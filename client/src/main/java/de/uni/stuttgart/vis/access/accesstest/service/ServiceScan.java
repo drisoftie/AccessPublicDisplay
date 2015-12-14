@@ -2,13 +2,9 @@ package de.uni.stuttgart.vis.access.accesstest.service;
 
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -20,9 +16,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.NotificationCompat;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.Toast;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import de.stuttgart.uni.vis.access.common.NotificationBuilder;
 import de.uni.stuttgart.vis.access.accesstest.Constants;
 import de.uni.stuttgart.vis.access.accesstest.R;
 import de.uni.stuttgart.vis.access.accesstest.act.ActScan;
@@ -43,29 +40,22 @@ import de.uni.stuttgart.vis.access.accesstest.brcast.BrRcvScan;
  */
 public class ServiceScan extends Service {
 
-    public static final  String  ADVERTISING_FAILED            = "com.example.android.bluetoothadvertisements.advertising_failed";
-    public static final  String  ADVERTISING_FAILED_EXTRA_CODE = "failureCode";
-    private static final long    SCAN_PERIOD                   = TimeUnit.MILLISECONDS.convert(3, TimeUnit.MINUTES);
-    private static final String  TAG                           = ServiceScan.class.getSimpleName();
+    private static final long    SCAN_PERIOD = TimeUnit.MILLISECONDS.convert(3, TimeUnit.MINUTES);
     /**
      * A global variable to let AdvertiserFragment check if the Service is running without needing
      * to start or bind to it.
      * This is the best practice method as defined here:
      * https://groups.google.com/forum/#!topic/android-developers/jEvXMWgbgzE
      */
-    public static        boolean running                       = false;
-    private ScanResult            currDev;
-    private boolean               scanning;
-    private BluetoothManager      blManager;
-    private BluetoothAdapter      blAdapt;
-    private BluetoothLeScanner    blLeScanner;
-    private ScanCallback          blScanCallback;
-    private BluetoothLeAdvertiser blluetoothLeAdvertiser;
-    private BluetoothGattServer   blGattServer;
-    private AdvertiseCallback     blAdvertiseCallback;
-    private Handler               handler;
-    private Handler               mHandler;
-    private Runnable              timeoutRunnable;
+    public static        boolean running     = false;
+    private ScanResult         currDev;
+    private BluetoothAdapter   blAdapt;
+    private BluetoothLeScanner blLeScanner;
+    private SampleScanCallback blScanCallback;
+    private Handler            handler;
+    private Handler            mHandler;
+    private Runnable           timeoutRunnable;
+    private TtsWrapper         tts;
     /**
      * Length of time to allow advertising before automatically shutting off. (10 minutes)
      */
@@ -77,22 +67,17 @@ public class ServiceScan extends Service {
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
             //            advertisement = intent.getStringExtra(getString(R.string.intent_advert_value));
-            restartAdvertisement();
+            //            restartAdvertisement();
         }
     };
-
-    private void restartAdvertisement() {
-        stopAdvertising();
-        startAdvertising();
-    }
 
     @Override
     public void onCreate() {
         running = true;
-
-
+        handler = new Handler();
         blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
 
+        tts = new TtsWrapper(this);
         // Is Bluetooth supported on this device?
         if (blAdapt != null) {
 
@@ -102,13 +87,14 @@ public class ServiceScan extends Service {
             }
         }
         checkAndScanLeDevices();
-
-        initialize();
-        startAdvertising();
-        //        startGattServer();
         setTimeout();
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(getString(R.string.bndl_advert_value)));
         super.onCreate();
+    }
+
+    private boolean checkAccessibility() {
+        AccessibilityManager am = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
+        return am.isEnabled() | am.isTouchExplorationEnabled();
     }
 
     private void checkAndScanLeDevices() {
@@ -131,7 +117,6 @@ public class ServiceScan extends Service {
                         //                        invalidateOptionsMenu();
                     }
                 }, SCAN_PERIOD);
-                scanning = true;
                 // Kick off a new scan.
                 blScanCallback = new SampleScanCallback();
                 blLeScanner.startScan(buildScanFilters(), buildScanSettings(), blScanCallback);
@@ -149,7 +134,6 @@ public class ServiceScan extends Service {
      * Stop scanning for BLE Advertisements.
      */
     public void stopScanning() {
-        scanning = false;
         removeNotification();
         if (blScanCallback != null) {
             // Stop the scan, wipe the callback.
@@ -191,8 +175,8 @@ public class ServiceScan extends Service {
          * is critical.
          */
         running = false;
+        tts.shutDown();
         removeNotification();
-        stopAdvertising();
         mHandler.removeCallbacks(timeoutRunnable);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
@@ -205,26 +189,6 @@ public class ServiceScan extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    /**
-     * Get references to system Bluetooth objects if we don't have them already.
-     */
-    private void initialize() {
-        if (blluetoothLeAdvertiser == null) {
-            blManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-            if (blManager != null) {
-                BluetoothAdapter mBluetoothAdapter = blManager.getAdapter();
-                if (mBluetoothAdapter != null) {
-                    blluetoothLeAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-                } else {
-                    //                    Toast.makeText(this, getString(R.string.bt_null), Toast.LENGTH_LONG).show();
-                }
-            } else {
-                //                Toast.makeText(this, getString(R.string.bt_null), Toast.LENGTH_LONG).show();
-            }
-        }
-
     }
 
     /**
@@ -244,118 +208,55 @@ public class ServiceScan extends Service {
         mHandler.postDelayed(timeoutRunnable, TIMEOUT);
     }
 
-    /**
-     * Starts BLE Advertising.
-     */
-    private void startAdvertising() {
-        //        Log.d(TAG, "Service: Starting Advertising");
-        //
-        //        if (blAdvertiseCallback == null) {
-        //            AdvertiseSettings settings = buildAdvertiseSettings();
-        //            AdvertiseData data = buildAdvertiseData();
-        //            blAdvertiseCallback = new SampleAdvertiseCallback();
-        //
-        //            if (blluetoothLeAdvertiser != null) {
-        //                blluetoothLeAdvertiser.startAdvertising(settings, data, blAdvertiseCallback);
-        //                createStartNotification();
-        //            }
-        //        }
-    }
-
     private void createScanNotification() {
-        NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this);
-        nBuilder.setContentTitle(getString(R.string.ntxt_scan));
+        NotificationCompat.Builder nBuilder = NotificationBuilder.createNotificationBuilder(this, R.id.nid_main,
+                                                                                            R.drawable.ic_action_bl_scan, getString(
+                        R.string.ntxt_scan), null, ActScan.class);
 
-        // Creates an explicit intent for an Activity in your app
-        Intent resultIntent = new Intent(this, ActScan.class);
-
-        // The stack builder object will contain an artificial back stack for the
-        // started Activity.
-        // This ensures that navigating backward from the Activity leads out of
-        // your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        // Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(ActScan.class);
-        // Adds the Intent that starts the Activity to the top of the stack
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(R.id.nid_main, PendingIntent.FLAG_UPDATE_CURRENT);
-        nBuilder.setContentIntent(resultPendingIntent);
+        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_remove, getString(R.string.nact_stop), BrRcvScan.class,
+                                      NotificationBuilder.BROADCAST_RECEIVER);
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        // mId allows you to update the notification later on.
-
-        Intent stopAdvertIntent = new Intent(this, BrRcvScan.class);
-        // PendingIntent contentIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        PendingIntent contentIntent = PendingIntent.getBroadcast(this, 0, stopAdvertIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        nBuilder.addAction(-1, getString(R.string.nact_stop), contentIntent);
 
         nBuilder.setAutoCancel(false);
 
         Notification n = nBuilder.build();
         mNotificationManager.notify(R.id.nid_main, n);
         startForeground(R.id.nid_main, n);
+
+        tts.queueRead(getString(R.string.ntxt_scan));
     }
 
     private void createStartNotification(String value) {
-        // start notification
-        NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this);
-        nBuilder.setContentTitle(getString(R.string.ntxt_scan_found));
-        nBuilder.setContentText(getString(R.string.ntxt_scan_descr, value));
+        String txtFound      = getString(R.string.ntxt_scan_found);
+        String txtFoundDescr = getString(R.string.ntxt_scan_descr, value);
 
-        // Creates an explicit intent for an Activity in your app
-        Intent resultIntent = new Intent(this, ActScan.class);
+        NotificationCompat.Builder nBuilder = NotificationBuilder.createNotificationBuilder(this, R.id.nid_main,
+                                                                                            R.drawable.ic_action_display_visible, txtFound,
+                                                                                            txtFoundDescr, ActScan.class);
 
-        // The stack builder object will contain an artificial back stack for the
-        // started Activity.
-        // This ensures that navigating backward from the Activity leads out of
-        // your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        // Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(ActScan.class);
-        // Adds the Intent that starts the Activity to the top of the stack
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(R.id.nid_main, PendingIntent.FLAG_UPDATE_CURRENT);
-        nBuilder.setContentIntent(resultPendingIntent);
+        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_display_visible, getString(R.string.nact_show), BrRcvScan.class,
+                                      NotificationBuilder.BROADCAST_RECEIVER);
 
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        // mId allows you to update the notification later on.
-
-        Intent getAdvertInfoIntent = new Intent(this, BrRcvScan.class);
-        // PendingIntent contentIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        PendingIntent infoIntent = PendingIntent.getBroadcast(this, 0, getAdvertInfoIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        nBuilder.addAction(-1, getString(R.string.nact_show), infoIntent);
-
-        Intent stopAdvertIntent = new Intent(this, BrRcvScan.class);
-        // PendingIntent contentIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        PendingIntent contentIntent = PendingIntent.getBroadcast(this, 0, stopAdvertIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        nBuilder.addAction(-1, getString(R.string.nact_stop), contentIntent);
+        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_remove, getString(R.string.nact_stop), BrRcvScan.class,
+                                      NotificationBuilder.BROADCAST_RECEIVER);
 
         nBuilder.setAutoCancel(false);
 
         Notification n = nBuilder.build();
+
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.notify(R.id.nid_main, n);
         startForeground(R.id.nid_main, n);
-    }
 
-    /**
-     * Stops BLE Advertising.
-     */
-    private void stopAdvertising() {
-        //        Log.d(TAG, "Service: Stopping Advertising");
-        //        if (blluetoothLeAdvertiser != null) {
-        //            blluetoothLeAdvertiser.stopAdvertising(blAdvertiseCallback);
-        //            blAdvertiseCallback = null;
-        //            removeNotification();
-        //        }
+        tts.queueRead(txtFound, txtFoundDescr);
     }
 
     private void removeNotification() {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(R.id.nid_main);
     }
+
 
     /**
      * Custom ScanCallback object - adds to adapter on success, displays error on failure.
@@ -378,12 +279,10 @@ public class ServiceScan extends Service {
                 if (StringUtils.equals(result.getDevice().getAddress(), currDev.getDevice().getAddress())) {
                     String newData = new String(result.getScanRecord().getServiceData().get(Constants.Service_UUID));
                     if (!StringUtils.equals(newData, new String(currDev.getScanRecord().getServiceData().get(Constants.Service_UUID)))) {
-                        removeNotification();
                         createStartNotification(newData);
                     }
                 }
             } else {
-                removeNotification();
                 createStartNotification(new String(result.getScanRecord().getServiceData().get(Constants.Service_UUID)));
             }
             currDev = result;

@@ -50,7 +50,7 @@ public class ServiceAdvertise extends Service {
      * https://groups.google.com/forum/#!topic/android-developers/jEvXMWgbgzE
      */
     public static        boolean running                       = false;
-    private String advertisement = "Hello";
+    private              String  advertisement                 = "Hello";
     private BluetoothManager      blManager;
     private BluetoothLeAdvertiser blLeAdvertiser;
     private BluetoothGattServer   blGattServer;
@@ -240,11 +240,11 @@ public class ServiceAdvertise extends Service {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
 
-        Intent stopAdvertIntent = new Intent(this, RecvAdvertisement.class);
+        Intent stopAdvertIntent = new Intent(this, BrRcvAdvertisement.class);
         // PendingIntent contentIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent contentIntent = PendingIntent.getBroadcast(this, 0, stopAdvertIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        nBuilder.addAction(-1, getString(R.string.nact_stop), contentIntent);
+        nBuilder.addAction(R.drawable.ic_action_remove, getString(R.string.nact_stop), contentIntent);
 
         nBuilder.setAutoCancel(false);
 

@@ -8,7 +8,7 @@ import android.content.Intent;
 /**
  * @author Alexander Dridiger
  */
-public class RecvAdvertisement extends BroadcastReceiver {
+public class BrRcvAdvertisement extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {

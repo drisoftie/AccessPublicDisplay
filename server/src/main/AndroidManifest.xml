@@ -28,7 +28,7 @@
             android:enabled="true"
             android:exported="false">
         </service>
-        <receiver android:name=".RecvAdvertisement"/>
+        <receiver android:name=".BrRcvAdvertisement"/>
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="de.uni.stuttgart.vis.access.accesstest"
-          xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest
+    package="de.uni.stuttgart.vis.access.accesstest"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"
@@ -26,6 +27,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <service
+            android:name=".service.ServiceScan"
+            android:enabled="true"
+            android:exported="false">
+        </service>
+        <receiver android:name=".brcast.BrRcvScan"/>
     </application>
 
 </manifest>

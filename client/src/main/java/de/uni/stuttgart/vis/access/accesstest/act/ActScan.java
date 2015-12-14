@@ -60,7 +60,7 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
-    private BluetoothGattCallback mGattCaback = new BluetoothGattCallback() {
+    private BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             String intentAction;
@@ -191,6 +191,7 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
         }
 
         //        checkAndScanLeDevices();
+        startService(new Intent(this, ServiceScan.class));
     }
 
     @Override
@@ -258,9 +259,13 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
                 rcycAdaptDevices.getResults().clear();
                 rcycAdaptDevices.notifyDataSetChanged();
                 checkAndScanLeDevices();
+                if (!ServiceScan.running) {
+                    startService(new Intent(this, ServiceScan.class));
+                }
                 break;
             case R.id.menu_stop:
                 scanLeDevice(false);
+                stopService(new Intent(this, ServiceScan.class));
                 break;
         }
         return true;
