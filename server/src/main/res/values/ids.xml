@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="nid_main" type="id"/>
+    <item name="txt_advert" type="id"/>
+    <item name="edt_advert" type="id"/>
+</resources>

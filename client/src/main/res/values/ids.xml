@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="ritem_txt_device_name" type="id"/>
+    <item name="ritem_txt_device_adv_content" type="id"/>
+    <item name="nid_main" type="id"/>
+</resources>

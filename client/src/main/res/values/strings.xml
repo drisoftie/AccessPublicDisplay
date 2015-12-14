@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">AccessClient</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="btn_fab">Default Action</string>
+    <string name="tst_fab">Replace with your own action</string>
+    <string name="btn_fab_descr">Shuffle</string>
+
+    <string name="ble_not_supported">BLE is not supported</string>
+    <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
+    <string name="error_bluetooth_le_not_supported">Bluetooth LE not supported.</string>
+    <string name="error_bt_not_enabled_leaving">User declined to enable Bluetooth, app not working.</string>
+
+    <!-- Menu items -->
+    <string name="menu_connect">Connect</string>
+    <string name="menu_disconnect">Disconnect</string>
+    <string name="menu_scan">Scan</string>
+    <string name="menu_stop">Stop</string>
+
+    <!-- ==================== -->
+    <!-- Notification Strings -->
+    <!-- ==================== -->
+    <string name="ntxt_scan">Scanning for public displays...</string>
+    <string name="ntxt_scan_found">Public Display found!</string>
+    <string name="ntxt_scan_descr">Want info about: %1$s?</string>
+    <string name="nact_show">Show me!</string>
+    <string name="nact_stop">Stop scan</string>
+
+    <!-- =================== -->
+    <!-- Content Description -->
+    <!-- =================== -->
+    <string name="cd_btn_filter">Filter your broadcasts</string>
+
+</resources>

@@ -1,0 +1,5 @@
+include ':EasyFragments'
+project(':EasyFragments').projectDir = new File('/../EasyFragments/easyfrags/EasyFragments')
+include ':AsyncActions'
+project(':AsyncActions').projectDir = new File('/../AsyncActions/actions/AsyncActions')
+include ':client', ':tv', ':server', ':common'

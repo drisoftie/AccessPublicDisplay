@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ================= -->
+    <!-- General Constants -->
+    <!-- ================= -->
+    <eat-comment/>
+    <string name="bl_advert_val">Test1</string>
+    <string name="bl_advert_val2">Test2</string>
+
+    <!-- ================ -->
+    <!-- Intent Constants -->
+    <!-- ================ -->
+    <eat-comment/>
+    <string name="intent_advert_value" translatable="false">value</string>
+    <string name="intent_bl_device_addr" translatable="false">device address</string>
+
+    <!-- ================ -->
+    <!-- Bundle Constants -->
+    <!-- ================ -->
+    <eat-comment/>
+    <string name="bndl_advert_value" translatable="false">advertisement update</string>
+    <string name="bndl_bl_dev_addr" translatable="false">device address</string>
+</resources>

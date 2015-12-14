@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_advertise"
+        android:icon="@drawable/ic_action_bl_advert"
+        android:title="@string/menu_advert"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/menu_stop"
+        android:title="@string/menu_stop"
+        app:showAsAction="ifRoom|withText"/>
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="never"/>
+</menu>
