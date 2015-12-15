@@ -41,10 +41,8 @@ public class NotificationBuilder {
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(c, intentClass);
 
-        // The stack builder object will contain an artificial back stack for the
-        // started Activity.
-        // This ensures that navigating backward from the Activity leads out of
-        // your application to the Home screen.
+        // The stack builder object will contain an artificial back stack for the started Activity.
+        // This ensures that navigating backward from the Activity leads out of your application to the Home screen.
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(c);
         // Adds the back stack for the Intent (but not the Intent itself)
         stackBuilder.addParentStack(intentClass);
@@ -57,20 +55,20 @@ public class NotificationBuilder {
 
     public static void addAction(Context c, NotificationCompat.Builder nBuilder, @DrawableRes int icon, String action, Class<?> intentClass,
                                  @ComponentType int type) {
-        Intent        nIntent = new Intent(c, intentClass);
-        PendingIntent intent  = null;
+        Intent        nClickIntent = new Intent(c, intentClass);
+        PendingIntent nActionIntent  = null;
         switch (type) {
             case ACTIVITY:
-                intent = PendingIntent.getActivity(c, 0, nIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                nActionIntent = PendingIntent.getActivity(c, 0, nClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 break;
             case SERVICE:
-                intent = PendingIntent.getService(c, 0, nIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                nActionIntent = PendingIntent.getService(c, 0, nClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 break;
             case BROADCAST_RECEIVER:
-                intent = PendingIntent.getBroadcast(c, 0, nIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                nActionIntent = PendingIntent.getBroadcast(c, 0, nClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 break;
         }
-        nBuilder.addAction(icon, action, intent);
+        nBuilder.addAction(icon, action, nActionIntent);
     }
 
     @IntDef({ACTIVITY, SERVICE, BROADCAST_RECEIVER})

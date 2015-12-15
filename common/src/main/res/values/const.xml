@@ -14,6 +14,7 @@
     <eat-comment/>
     <string name="intent_advert_value" translatable="false">value</string>
     <string name="intent_bl_device_addr" translatable="false">device address</string>
+    <string name="intent_bl_stopped" translatable="false">bl stopped</string>
 
     <!-- ================ -->
     <!-- Bundle Constants -->
