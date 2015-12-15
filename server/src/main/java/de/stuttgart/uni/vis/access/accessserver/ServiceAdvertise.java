@@ -32,6 +32,8 @@ import android.widget.Toast;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import de.stuttgart.uni.vis.access.common.Constants;
+
 /**
  * Manages BLE Advertising independent of the main app.
  * If the app goes off screen (or gets killed completely) advertising can continue because this

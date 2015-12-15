@@ -24,9 +24,11 @@ import android.widget.Toast;
 
 import org.apache.commons.lang3.StringUtils;
 
+import de.stuttgart.uni.vis.access.common.Constants;
+
 public class ActServerAdvertise extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothAdapter blAdapt;
     private Menu             menu;
 
     // Our handler for received Intents. This will be called whenever an Intent
@@ -80,16 +82,16 @@ public class ActServerAdvertise extends AppCompatActivity implements NavigationV
 
         if (savedInstanceState == null) {
 
-            mBluetoothAdapter = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+            blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
 
             // Is Bluetooth supported on this device?
-            if (mBluetoothAdapter != null) {
+            if (blAdapt != null) {
 
                 // Is Bluetooth turned on?
-                if (mBluetoothAdapter.isEnabled()) {
+                if (blAdapt.isEnabled()) {
 
                     // Are Bluetooth Advertisements supported on this device?
-                    if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
+                    if (blAdapt.isMultipleAdvertisementSupported()) {
 
                         // Everything is supported and enabled, load the fragments.
                         setupFragments();
@@ -123,7 +125,7 @@ public class ActServerAdvertise extends AppCompatActivity implements NavigationV
 
                     // Bluetooth is now Enabled, are Bluetooth Advertisements supported on
                     // this device?
-                    if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
+                    if (blAdapt.isMultipleAdvertisementSupported()) {
 
                         // Everything is supported and enabled, load the fragments.
                         setupFragments();

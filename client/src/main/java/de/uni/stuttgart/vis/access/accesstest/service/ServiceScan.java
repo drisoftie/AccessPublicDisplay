@@ -26,8 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.NotificationBuilder;
-import de.uni.stuttgart.vis.access.accesstest.Constants;
 import de.uni.stuttgart.vis.access.accesstest.R;
 import de.uni.stuttgart.vis.access.accesstest.act.ActScan;
 import de.uni.stuttgart.vis.access.accesstest.brcast.BrRcvScan;
@@ -52,7 +52,7 @@ public class ServiceScan extends Service {
     private BluetoothLeScanner blLeScanner;
     private SampleScanCallback blScanCallback;
     private Handler            handler;
-    private Handler            mHandler;
+    private Handler            timeoutHandler;
     private Runnable           timeoutRunnable;
     private TtsWrapper         tts;
     /**
@@ -170,7 +170,7 @@ public class ServiceScan extends Service {
         running = false;
         tts.shutDown();
         removeNotification();
-        mHandler.removeCallbacks(timeoutRunnable);
+        timeoutHandler.removeCallbacks(timeoutRunnable);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
     }
@@ -189,7 +189,7 @@ public class ServiceScan extends Service {
      * set amount of time.
      */
     private void setTimeout() {
-        mHandler = new Handler();
+        timeoutHandler = new Handler();
         timeoutRunnable = new Runnable() {
             @Override
             public void run() {
@@ -198,7 +198,7 @@ public class ServiceScan extends Service {
                 stopSelf();
             }
         };
-        mHandler.postDelayed(timeoutRunnable, TIMEOUT);
+        timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT);
     }
 
     private void createScanNotification() {

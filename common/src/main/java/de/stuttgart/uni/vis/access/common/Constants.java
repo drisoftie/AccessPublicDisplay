@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.uni.stuttgart.vis.access.accesstest;
+package de.stuttgart.uni.vis.access.common;
 
 import android.os.ParcelUuid;
 

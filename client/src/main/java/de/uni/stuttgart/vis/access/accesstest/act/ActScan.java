@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import de.uni.stuttgart.vis.access.accesstest.Constants;
+import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.accesstest.R;
 import de.uni.stuttgart.vis.access.accesstest.service.ServiceScan;
 import de.uni.stuttgart.vis.access.accesstest.view.AdaptScanResults;

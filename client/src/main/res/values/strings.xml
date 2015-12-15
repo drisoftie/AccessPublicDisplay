@@ -33,5 +33,8 @@
     <!-- Content Description -->
     <!-- =================== -->
     <string name="cd_btn_filter">Filter your broadcasts</string>
+    <string name="cd_img_weather_today">Weather icon for today.</string>
+    <string name="cd_img_weather_tomorrow">Weather icon for tomorrow.</string>
+    <string name="cd_img_weather_dat">Weather icon for day after tomorrow.</string>
 
 </resources>
