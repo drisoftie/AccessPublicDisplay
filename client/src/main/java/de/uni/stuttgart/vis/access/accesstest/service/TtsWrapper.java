@@ -12,7 +12,6 @@ import java.util.List;
  */
 public class TtsWrapper implements TextToSpeech.OnInitListener {
 
-
     private boolean init   = false;
     private boolean access = false;
     private TextToSpeech tts;

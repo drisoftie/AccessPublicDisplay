@@ -103,15 +103,18 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
 
     // Our handler for received Intents. This will be called whenever an Intent
     // with an action named "custom-event-name" is broadcasted.
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            // Get extra data included in the Intent
-            String          addr   = intent.getStringExtra(getString(R.string.intent_bl_device_addr));
-            BluetoothDevice device = blAdapt.getRemoteDevice(addr);
-            // We want to directly connect to the device, so we are setting the autoConnect
-            // parameter to false.
-            BluetoothGatt gatt = device.connectGatt(ActScan.this, false, mGattCallback);
+            if (intent.hasExtra(getString(R.string.intent_bl_device_addr))) {
+                String addr = intent.getStringExtra(getString(R.string.intent_bl_device_addr));
+                BluetoothDevice device = blAdapt.getRemoteDevice(addr);
+                // We want to directly connect to the device, so we are setting the autoConnect
+                // parameter to false.
+                BluetoothGatt gatt = device.connectGatt(ActScan.this, false, mGattCallback);
+            } else if (intent.hasExtra(getString(R.string.intent_bl_stopped))) {
+                invalidateOptionsMenu();
+            }
         }
     };
 
@@ -119,7 +122,7 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(getString(R.string.bndl_bl_dev_addr)));
+        LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, new IntentFilter(getString(R.string.bndl_bl_dev_addr)));
 
         setContentView(R.layout.act_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -219,7 +222,7 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
     @Override
     protected void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
         //        scanLeDevice(false);
         rcycAdaptDevices.getResults().clear();
         rcycAdaptDevices.notifyDataSetChanged();

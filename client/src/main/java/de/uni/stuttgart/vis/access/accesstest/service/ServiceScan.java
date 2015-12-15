@@ -18,7 +18,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.NotificationCompat;
-import android.view.accessibility.AccessibilityManager;
 import android.widget.Toast;
 
 import org.apache.commons.lang3.StringUtils;
@@ -92,18 +91,12 @@ public class ServiceScan extends Service {
         super.onCreate();
     }
 
-    private boolean checkAccessibility() {
-        AccessibilityManager am = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
-        return am.isEnabled() | am.isTouchExplorationEnabled();
-    }
-
     private void checkAndScanLeDevices() {
         if (blLeScanner == null) {
             Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
         } else {
             scanLeDevice(true);
         }
-
     }
 
     private void scanLeDevice(boolean enable) {
@@ -114,7 +107,7 @@ public class ServiceScan extends Service {
                     @Override
                     public void run() {
                         stopScanning();
-                        //                        invalidateOptionsMenu();
+                        // invalidateOptionsMenu();
                     }
                 }, SCAN_PERIOD);
                 // Kick off a new scan.
@@ -125,9 +118,9 @@ public class ServiceScan extends Service {
             }
         } else {
             stopScanning();
-            //            invalidateOptionsMenu();
+            // invalidateOptionsMenu();
         }
-        //        invalidateOptionsMenu();
+        // invalidateOptionsMenu();
     }
 
     /**

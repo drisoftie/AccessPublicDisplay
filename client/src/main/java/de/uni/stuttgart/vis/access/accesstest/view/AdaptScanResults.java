@@ -19,6 +19,7 @@ import de.uni.stuttgart.vis.access.accesstest.R;
  * @author Alexander Dridiger
  */
 public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.ViewHolder> {
+
     private List<ScanResult> results;
 
     public AdaptScanResults() {
@@ -47,11 +48,6 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
         byte[] data = result.getScanRecord().getServiceData().get(Constants.Service_UUID);
         holder.txtDeviceName.setText(result.getDevice().getName());
         holder.txtAdInfo.setText("Advertisement: " + new String(data));
-        holder.txtDeviceName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        });
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             private ScanResult result;
 
