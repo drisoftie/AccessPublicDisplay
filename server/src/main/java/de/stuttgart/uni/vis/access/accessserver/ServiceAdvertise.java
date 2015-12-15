@@ -139,14 +139,11 @@ public class ServiceAdvertise extends Service {
 
     @Override
     public void onDestroy() {
-        /**
-         * Note that onDestroy is not guaranteed to be called quickly or at all. Services exist at
-         * the whim of the system, and onDestroy can be delayed or skipped entirely if memory need
-         * is critical.
-         */
         running = false;
         stopAdvertising();
         mHandler.removeCallbacks(timeoutRunnable);
+        Intent notify = new Intent(getString(R.string.intent_bl_stopped));
+        LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
     }

@@ -2,8 +2,10 @@ package de.stuttgart.uni.vis.access.accessserver;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -20,15 +22,31 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class ActServerAdvertise extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private BluetoothAdapter mBluetoothAdapter;
     private Menu             menu;
 
+    // Our handler for received Intents. This will be called whenever an Intent
+    // with an action named "custom-event-name" is broadcasted.
+    private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (StringUtils.equals(intent.getAction(), getString(R.string.intent_bl_stopped))) {
+                invalidateOptionsMenu();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_main);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, new IntentFilter(getString(R.string.intent_bl_stopped)));
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -138,6 +156,12 @@ public class ActServerAdvertise extends AppCompatActivity implements NavigationV
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
+    }
+
+    @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -169,9 +193,7 @@ public class ActServerAdvertise extends AppCompatActivity implements NavigationV
                 menu.findItem(R.id.menu_advertise).setVisible(false);
                 menu.findItem(R.id.menu_stop).setVisible(true);
                 break;
-            case R.id.menu_
-
-                    :
+            case R.id.menu_stop:
                 stopService(new Intent(this, ServiceAdvertise.class));
                 menu.findItem(R.id.menu_advertise).setVisible(true);
                 menu.findItem(R.id.menu_stop).setVisible(false);
