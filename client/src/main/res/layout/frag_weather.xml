@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:orientation="vertical">
+              android:orientation="vertical"
+              android:paddingBottom="@dimen/activity_vertical_margin"
+              android:paddingLeft="@dimen/activity_horizontal_margin"
+              android:paddingRight="@dimen/activity_horizontal_margin"
+              android:paddingTop="@dimen/activity_vertical_margin"
+              tools:context=".act.FragWeather"
+              tools:showIn="@layout/act_weather">
 
     <TextView
         android:id="@+id/txt_headline_today"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Weather Today"
+        android:accessibilityLiveRegion="polite"
+        android:text="@string/txt_headline_weather_today"
         android:textAppearance="?android:attr/textAppearanceLarge"/>
 
     <LinearLayout
@@ -23,17 +31,20 @@
             android:contentDescription="@string/cd_img_weather_today"/>
 
         <TextView
-            android:id="@+id/txt_weather_today"
+            android:id="@id/txt_weather_today"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"/>
+            android:layout_gravity="center_vertical"
+            android:accessibilityLiveRegion="polite"
+            android:hint="@string/hint_weather_today"/>
     </LinearLayout>
 
     <TextView
         android:id="@+id/txt_headline_tomorrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Weather Tomorrow"
+        android:accessibilityLiveRegion="polite"
+        android:text="@string/txt_headline_weather_tomorrow"
         android:textAppearance="?android:attr/textAppearanceLarge"/>
 
     <LinearLayout
@@ -48,17 +59,20 @@
             android:contentDescription="@string/cd_img_weather_tomorrow"/>
 
         <TextView
-            android:id="@+id/txt_weather_tomorrow"
+            android:id="@id/txt_weather_tomorrow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"/>
+            android:layout_gravity="center_vertical"
+            android:accessibilityLiveRegion="polite"
+            android:hint="@string/hint_weather_tomorrow"/>
     </LinearLayout>
 
     <TextView
         android:id="@+id/txt_headline_dat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Weather Day After Tomorrow"
+        android:accessibilityLiveRegion="polite"
+        android:text="@string/txt_headline_weather_dat"
         android:textAppearance="?android:attr/textAppearanceLarge"/>
 
     <LinearLayout
@@ -73,9 +87,11 @@
             android:contentDescription="@string/cd_img_weather_dat"/>
 
         <TextView
-            android:id="@+id/txt_weather_dat"
+            android:id="@id/txt_weather_dat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"/>
+            android:layout_gravity="center_vertical"
+            android:accessibilityLiveRegion="polite"
+            android:hint="@string/hint_weather_dat"/>
     </LinearLayout>
 </LinearLayout>

@@ -55,17 +55,22 @@ public class NotificationBuilder {
 
     public static void addAction(Context c, NotificationCompat.Builder nBuilder, @DrawableRes int icon, String action, Class<?> intentClass,
                                  @ComponentType int type) {
-        Intent        nClickIntent = new Intent(c, intentClass);
-        PendingIntent nActionIntent  = null;
+        Intent nClickIntent = new Intent(c, intentClass);
+        addAction(c, nBuilder, icon, action, nClickIntent, type);
+    }
+
+    public static void addAction(Context c, NotificationCompat.Builder nBuilder, @DrawableRes int icon, String action, Intent intent,
+                                 @ComponentType int type) {
+        PendingIntent nActionIntent = null;
         switch (type) {
             case ACTIVITY:
-                nActionIntent = PendingIntent.getActivity(c, 0, nClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                nActionIntent = PendingIntent.getActivity(c, Constants.ACTIVITY, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 break;
             case SERVICE:
-                nActionIntent = PendingIntent.getService(c, 0, nClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                nActionIntent = PendingIntent.getService(c, Constants.SERVICE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 break;
             case BROADCAST_RECEIVER:
-                nActionIntent = PendingIntent.getBroadcast(c, 0, nClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                nActionIntent = PendingIntent.getBroadcast(c, Constants.BROADCAST_RECEIVER, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 break;
         }
         nBuilder.addAction(icon, action, nActionIntent);

@@ -4,7 +4,12 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -24,13 +29,16 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.NotificationBuilder;
 import de.uni.stuttgart.vis.access.accesstest.R;
 import de.uni.stuttgart.vis.access.accesstest.act.ActScan;
+import de.uni.stuttgart.vis.access.accesstest.act.ActWeather;
 import de.uni.stuttgart.vis.access.accesstest.brcast.BrRcvScan;
+import de.uni.stuttgart.vis.access.accesstest.brcast.BrRcvStop;
 
 /**
  * Manages BLE Advertising independent of the main app.
@@ -50,29 +58,23 @@ public class ServiceScan extends Service {
     private ScanResult         currDev;
     private BluetoothAdapter   blAdapt;
     private BluetoothLeScanner blLeScanner;
-    private SampleScanCallback blScanCallback;
+    private ScanCallback       blScanCallback;
     private Handler            handler;
     private Handler            timeoutHandler;
     private Runnable           timeoutRunnable;
-    private TtsWrapper         tts;
-    /**
-     * Length of time to allow advertising before automatically shutting off. (10 minutes)
-     */
-    private long              TIMEOUT          = TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
     // Our handler for received Intents. This will be called whenever an Intent
     // with an action named "custom-event-name" is broadcasted.
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Get extra data included in the Intent
-            //            advertisement = intent.getStringExtra(getString(R.string.intent_advert_value));
-            //            restartAdvertisement();
-        }
-    };
+    private BroadcastReceiver msgReceiver = new BrdcstReceiver();
+    private TtsWrapper tts;
+    /**
+     * Length of time to allow advertising scanning before automatically shutting off.
+     */
+    private long TIMEOUT = TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
 
     @Override
     public void onCreate() {
         running = true;
+        LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, new IntentFilter(getString(R.string.intent_advert_value)));
         handler = new Handler();
         blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
 
@@ -87,7 +89,6 @@ public class ServiceScan extends Service {
         }
         checkAndScanLeDevices();
         setTimeout();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(getString(R.string.bndl_advert_value)));
         super.onCreate();
     }
 
@@ -111,7 +112,7 @@ public class ServiceScan extends Service {
                     }
                 }, SCAN_PERIOD);
                 // Kick off a new scan.
-                blScanCallback = new SampleScanCallback();
+                blScanCallback = new BlScanCallback();
                 blLeScanner.startScan(buildScanFilters(), buildScanSettings(), blScanCallback);
                 createScanNotification();
             } else {
@@ -145,7 +146,7 @@ public class ServiceScan extends Service {
 
         ScanFilter.Builder builder = new ScanFilter.Builder();
         // Comment out the below line to see all BLE results around you
-        builder.setServiceUuid(Constants.Service_UUID);
+        //        builder.setServiceUuid(Constants.UUID_SERVICE_WEATHER);
         scanFilters.add(builder.build());
 
         return scanFilters;
@@ -168,10 +169,10 @@ public class ServiceScan extends Service {
          * is critical.
          */
         running = false;
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
         tts.shutDown();
         removeNotification();
         timeoutHandler.removeCallbacks(timeoutRunnable);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
     }
 
@@ -206,7 +207,7 @@ public class ServiceScan extends Service {
                                                                                             R.drawable.ic_action_bl_scan, getString(
                         R.string.ntxt_scan), null, ActScan.class);
 
-        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_remove, getString(R.string.nact_stop), BrRcvScan.class,
+        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_remove, getString(R.string.nact_stop), BrRcvStop.class,
                                       NotificationBuilder.BROADCAST_RECEIVER);
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -220,7 +221,7 @@ public class ServiceScan extends Service {
         tts.queueRead(getString(R.string.ntxt_scan));
     }
 
-    private void createStartNotification(String value) {
+    private void createDisplayNotification(String value) {
         String txtFound      = getString(R.string.ntxt_scan_found);
         String txtFoundDescr = getString(R.string.ntxt_scan_descr, value);
 
@@ -228,10 +229,12 @@ public class ServiceScan extends Service {
                                                                                             R.drawable.ic_action_display_visible, txtFound,
                                                                                             txtFoundDescr, ActScan.class);
 
-        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_display_visible, getString(R.string.nact_show), BrRcvScan.class,
+        Intent showIntent = new Intent(this, BrRcvScan.class);
+        showIntent.putExtra(getString(R.string.bndl_bl_show), value);
+        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_display_visible, getString(R.string.nact_show), showIntent,
                                       NotificationBuilder.BROADCAST_RECEIVER);
 
-        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_remove, getString(R.string.nact_stop), BrRcvScan.class,
+        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_remove, getString(R.string.nact_stop), BrRcvStop.class,
                                       NotificationBuilder.BROADCAST_RECEIVER);
 
         nBuilder.setAutoCancel(false);
@@ -250,11 +253,22 @@ public class ServiceScan extends Service {
         mNotificationManager.cancel(R.id.nid_main);
     }
 
+    private class BrdcstReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Get extra data included in the Intent
+            String advertisement = intent.getStringExtra(getString(R.string.intent_advert_value));
+            Intent weatherIntent = new Intent(ServiceScan.this, ActWeather.class);
+            weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(weatherIntent);
+            currDev.getDevice().connectGatt(ServiceScan.this, false, new BlGattCallback());
+        }
+    }
 
     /**
      * Custom ScanCallback object - adds to adapter on success, displays error on failure.
      */
-    private class SampleScanCallback extends ScanCallback {
+    private class BlScanCallback extends ScanCallback {
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
@@ -270,13 +284,14 @@ public class ServiceScan extends Service {
             super.onScanResult(callbackType, result);
             if (currDev != null) {
                 if (StringUtils.equals(result.getDevice().getAddress(), currDev.getDevice().getAddress())) {
-                    String newData = new String(result.getScanRecord().getServiceData().get(Constants.Service_UUID));
-                    if (!StringUtils.equals(newData, new String(currDev.getScanRecord().getServiceData().get(Constants.Service_UUID)))) {
-                        createStartNotification(newData);
+                    String oldData = new String(currDev.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER));
+                    String newData = new String(result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER));
+                    if (!StringUtils.equals(newData, oldData)) {
+                        createDisplayNotification(newData);
                     }
                 }
             } else {
-                createStartNotification(new String(result.getScanRecord().getServiceData().get(Constants.Service_UUID)));
+                createDisplayNotification(new String(result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER)));
             }
             currDev = result;
             //            rcycAdaptDevices.getResults().add(result);
@@ -287,6 +302,84 @@ public class ServiceScan extends Service {
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
             //            Toast.makeText(ActScan.this, "Scan failed with error: " + errorCode, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private class BlGattCallback extends BluetoothGattCallback {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            String intentAction;
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                gatt.discoverServices();
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            }
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                BluetoothGattService s = gatt.getService(UUID.fromString(Constants.GATT_SERVICE_WEATHER));
+                if (s != null) {
+                    BluetoothGattCharacteristic weatherC = s.getCharacteristic(UUID.fromString(Constants.GATT_WEATHER_TODAY));
+                    gatt.readCharacteristic(weatherC);
+                } else {
+                    s = gatt.getService(UUID.fromString(Constants.GATT_SERVICE_PUB_TRANSP));
+                    BluetoothGattCharacteristic transpC = s.getCharacteristic(UUID.fromString(Constants.GATT_PUB_TRANSP_BUS));
+                    gatt.readCharacteristic(transpC);
+                }
+            } else {
+            }
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                if (characteristic.getValue() != null) {
+                    if (UUID.fromString(Constants.GATT_WEATHER_QUERY).equals(characteristic.getUuid())) {
+
+                    } else if (UUID.fromString(Constants.GATT_WEATHER_TODAY).equals(characteristic.getUuid())) {
+                        byte[] weather = characteristic.getValue();
+                        Intent weatherIntent = new Intent(getString(R.string.intent_gatt_weather));
+                        weatherIntent.putExtra(getString(R.string.bndl_gatt_weather_today), weather);
+                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(weatherIntent);
+                        BluetoothGattCharacteristic weatherC = characteristic.getService().getCharacteristic(UUID.fromString(
+                                Constants.GATT_WEATHER_TOMORROW));
+                        gatt.readCharacteristic(weatherC);
+                    } else if (UUID.fromString(Constants.GATT_WEATHER_TOMORROW).equals(characteristic.getUuid())) {
+                        byte[] weather = characteristic.getValue();
+                        Intent weatherIntent = new Intent(getString(R.string.intent_gatt_weather));
+                        weatherIntent.putExtra(getString(R.string.bndl_gatt_weather_tomorrow), weather);
+                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(weatherIntent);
+                        BluetoothGattCharacteristic weatherC = characteristic.getService().getCharacteristic(UUID.fromString(
+                                Constants.GATT_WEATHER_DAT));
+                        gatt.readCharacteristic(weatherC);
+                    } else if (UUID.fromString(Constants.GATT_WEATHER_DAT).equals(characteristic.getUuid())) {
+                        byte[] weather = characteristic.getValue();
+                        Intent weatherIntent = new Intent(getString(R.string.intent_gatt_weather));
+                        weatherIntent.putExtra(getString(R.string.bndl_gatt_weather_dat), weather);
+                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(weatherIntent);
+                    } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_BUS).equals(characteristic.getUuid())) {
+                        byte[] transp = characteristic.getValue();
+                        Intent transpIntent = new Intent(getString(R.string.intent_gatt_pub_transp));
+                        transpIntent.putExtra(getString(R.string.bndl_gatt_pub_transp_bus), transp);
+                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(transpIntent);
+                    } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_METRO).equals(characteristic.getUuid())) {
+                        byte[] transp = characteristic.getValue();
+                        Intent transpIntent = new Intent(getString(R.string.intent_gatt_pub_transp));
+                        transpIntent.putExtra(getString(R.string.bndl_gatt_pub_transp_metro), transp);
+                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(transpIntent);
+                    } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_TRAIN).equals(characteristic.getUuid())) {
+                        byte[] transp = characteristic.getValue();
+                        Intent transpIntent = new Intent(getString(R.string.intent_gatt_pub_transp));
+                        transpIntent.putExtra(getString(R.string.bndl_gatt_pub_transp_metro), transp);
+                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(transpIntent);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         }
     }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">common</string>
+    <string name="bl_advert_pub_transp">Public Transport</string>
 </resources>

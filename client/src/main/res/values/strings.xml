@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AccessClient</string>
+    <string name="app_name">Access Public Displays</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -20,9 +20,23 @@
     <string name="menu_scan">Scan</string>
     <string name="menu_stop">Stop</string>
 
+    <!-- ================ -->
+    <!-- TextView Strings -->
+    <!-- ================ -->
+    <eat-comment/>
+
+    <string name="txt_headline_weather_today">Weather for Today</string>
+    <string name="txt_headline_weather_tomorrow">Weather for Tomorrow</string>
+    <string name="txt_headline_weather_dat">Weather for the Day after Tomorrow</string>
+    <string name="txt_headline_bus">Current bus</string>
+    <string name="txt_headline_metro">Current metro</string>
+    <string name="txt_headline_train">Current train</string>
+
     <!-- ==================== -->
     <!-- Notification Strings -->
     <!-- ==================== -->
+    <eat-comment/>
+
     <string name="ntxt_scan">Scanning for public displays...</string>
     <string name="ntxt_scan_found">Public Display found!</string>
     <string name="ntxt_scan_descr">Want info about: %1$s?</string>
@@ -32,9 +46,25 @@
     <!-- =================== -->
     <!-- Content Description -->
     <!-- =================== -->
+    <eat-comment/>
+
     <string name="cd_btn_filter">Filter your broadcasts</string>
     <string name="cd_img_weather_today">Weather icon for today.</string>
     <string name="cd_img_weather_tomorrow">Weather icon for tomorrow.</string>
     <string name="cd_img_weather_dat">Weather icon for day after tomorrow.</string>
+    <string name="title_activity_act_weather">Weather Forecast</string>
+    <string name="title_activity_act_pub_transport">Public Transport</string>
+
+    <!-- ===== -->
+    <!-- Hints -->
+    <!-- ===== -->
+    <eat-comment/>
+
+    <string name="hint_weather_today">Looking for the forecast today.</string>
+    <string name="hint_weather_tomorrow">Looking for the forecast tomorrow.</string>
+    <string name="hint_weather_dat">Looking for the forecast day after tomorrow.</string>
+    <string name="hint_bus">Looking for bus schedules.</string>
+    <string name="hint_metro">Looking for metro schedules.</string>
+    <string name="hint_train">Looking for train schedules..</string>
 
 </resources>

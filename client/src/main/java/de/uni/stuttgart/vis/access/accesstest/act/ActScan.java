@@ -60,7 +60,7 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
-    private BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+    private BluetoothGattCallback blGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             String intentAction;
@@ -81,10 +81,10 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
                 BluetoothGattService s = gatt.getService(UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb"));
                 BluetoothGattCharacteristic c = s.getCharacteristic(UUID.fromString("00fff3-0000-1000-8000-00805f9b34fb"));
                 byte[] v = c.getValue();
-                boolean succ = c.setValue("Get Type1".getBytes());
-                if (succ) {
-                    gatt.writeCharacteristic(c);
-                }
+                //                boolean succ = c.setValue("Get Type1".getBytes());
+                //                if (succ) {
+                //                    gatt.writeCharacteristic(c);
+                //                }
                 // "00fff3-0000-1000-8000-00805f9b34fb"
             } else {
             }
@@ -106,12 +106,12 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
     private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.hasExtra(getString(R.string.intent_bl_device_addr))) {
-                String addr = intent.getStringExtra(getString(R.string.intent_bl_device_addr));
+            if (intent.hasExtra(getString(R.string.bndl_bl_dev_addr))) {
+                String addr = intent.getStringExtra(getString(R.string.bndl_bl_dev_addr));
                 BluetoothDevice device = blAdapt.getRemoteDevice(addr);
                 // We want to directly connect to the device, so we are setting the autoConnect
                 // parameter to false.
-                BluetoothGatt gatt = device.connectGatt(ActScan.this, false, mGattCallback);
+                BluetoothGatt gatt = device.connectGatt(ActScan.this, false, blGattCallback);
             } else if (intent.hasExtra(getString(R.string.intent_bl_stopped))) {
                 invalidateOptionsMenu();
             }
@@ -122,7 +122,7 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, new IntentFilter(getString(R.string.bndl_bl_dev_addr)));
+        LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, new IntentFilter(getString(R.string.intent_bl_device_addr)));
 
         setContentView(R.layout.act_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -261,7 +261,7 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
             case R.id.menu_scan:
                 rcycAdaptDevices.getResults().clear();
                 rcycAdaptDevices.notifyDataSetChanged();
-                checkAndScanLeDevices();
+                //                checkAndScanLeDevices();
                 if (!ServiceScan.running) {
                     startService(new Intent(this, ServiceScan.class));
                 }
@@ -355,7 +355,7 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
 
         ScanFilter.Builder builder = new ScanFilter.Builder();
         // Comment out the below line to see all BLE results around you
-        builder.setServiceUuid(Constants.Service_UUID);
+        builder.setServiceUuid(Constants.UUID_SERVICE_WEATHER);
         scanFilters.add(builder.build());
 
         return scanFilters;

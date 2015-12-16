@@ -5,21 +5,40 @@
     <!-- General Constants -->
     <!-- ================= -->
     <eat-comment/>
-    <string name="bl_advert_val">Test1</string>
-    <string name="bl_advert_val2">Test2</string>
+
+    <string name="bl_advert_cloudy">cloudy</string>
+    <string name="bl_advert_sunny">sunny</string>
+    <string name="bl_advert_rainy">rainy</string>
+    <string name="bl_advert_bus">92,in 10 minutes,Feuerbach</string>
+    <string name="bl_advert_metro">U1,in 5 minutes,Vaihingen</string>
+    <string name="bl_advert_train">RE 19442,in 2 minutes,Nuernberg</string>
+    <item name="activity" type="integer">123</item>
+    <item name="service" type="integer">213</item>
+    <item name="broadcast_receiver" type="integer">312</item>
 
     <!-- ================ -->
     <!-- Intent Constants -->
     <!-- ================ -->
     <eat-comment/>
+
     <string name="intent_advert_value" translatable="false">value</string>
     <string name="intent_bl_device_addr" translatable="false">device address</string>
     <string name="intent_bl_stopped" translatable="false">bl stopped</string>
+    <string name="intent_gatt_weather" translatable="false">gatt broadcast</string>
+    <string name="intent_gatt_pub_transp" translatable="false">pub transp broadcast</string>
 
     <!-- ================ -->
     <!-- Bundle Constants -->
     <!-- ================ -->
     <eat-comment/>
+
     <string name="bndl_advert_value" translatable="false">advertisement update</string>
     <string name="bndl_bl_dev_addr" translatable="false">device address</string>
+    <string name="bndl_bl_show" translatable="false">show content</string>
+    <string name="bndl_gatt_weather_today" translatable="false">today</string>
+    <string name="bndl_gatt_weather_tomorrow" translatable="false">tomorrow</string>
+    <string name="bndl_gatt_weather_dat" translatable="false">dat</string>
+    <string name="bndl_gatt_pub_transp_bus" translatable="false">bus</string>
+    <string name="bndl_gatt_pub_transp_metro" translatable="false">metro</string>
+    <string name="bndl_gatt_pub_transp_train" translatable="false">train</string>
 </resources>

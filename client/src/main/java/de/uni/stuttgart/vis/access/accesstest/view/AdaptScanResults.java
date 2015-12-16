@@ -12,7 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.uni.stuttgart.vis.access.accesstest.Constants;
+import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.accesstest.R;
 
 /**
@@ -45,7 +45,7 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
         ScanResult result = results.get(position);
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        byte[] data = result.getScanRecord().getServiceData().get(Constants.Service_UUID);
+        byte[] data = result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER);
         holder.txtDeviceName.setText(result.getDevice().getName());
         holder.txtAdInfo.setText("Advertisement: " + new String(data));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -58,9 +58,9 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
 
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(v.getContext().getString(R.string.bndl_bl_dev_addr));
+                Intent intent = new Intent(v.getContext().getString(R.string.intent_bl_device_addr));
                 // You can also include some extra data.
-                intent.putExtra(v.getContext().getString(R.string.intent_bl_device_addr), result.getDevice().getAddress());
+                intent.putExtra(v.getContext().getString(R.string.bndl_bl_dev_addr), result.getDevice().getAddress());
                 LocalBroadcastManager.getInstance(v.getContext()).sendBroadcast(intent);
             }
         }.init(result));

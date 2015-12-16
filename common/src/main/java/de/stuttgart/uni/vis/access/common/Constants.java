@@ -25,14 +25,29 @@ public class Constants {
 
     /**
      * UUID identified with this app - set as Service UUID for BLE Advertisements.
-     *
+     * <p>
      * Bluetooth requires a certain format for UUIDs associated with Services.
      * The official specification can be found here:
      * {@link https://www.bluetooth.org/en-us/specification/assigned-numbers/service-discovery}
      */
-    public static final ParcelUuid Service_UUID = ParcelUuid
-            .fromString("0000b81d-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid UUID_SERVICE_WEATHER    = ParcelUuid.fromString("0000b81d-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid UUID_SERVICE_PUB_TRANSP = ParcelUuid.fromString("0000b81d-0000-1000-8000-00805f9b34fa");
 
     public static final int REQUEST_ENABLE_BT = 1;
 
+    public static final int ACTIVITY           = 123;
+    public static final int SERVICE            = 213;
+    public static final int BROADCAST_RECEIVER = 312;
+
+
+    public static final String GATT_SERVICE_WEATHER  = "0000fff0-0000-1000-8000-00805f9b34fb";
+    public static final String GATT_WEATHER_TODAY    = "00fff1-0000-1000-8000-00805f9b34fb";
+    public static final String GATT_WEATHER_TOMORROW = "00fff2-0000-1000-8000-00805f9b34fb";
+    public static final String GATT_WEATHER_DAT      = "00fff3-0000-1000-8000-00805f9b34fb";
+    public static final String GATT_WEATHER_QUERY    = "00fff4-0000-1000-8000-00805f9b34fb";
+
+    public static final String GATT_SERVICE_PUB_TRANSP = "0000fff0-0000-1000-8000-00805f9b34fa";
+    public static final String GATT_PUB_TRANSP_BUS     = "00fff1-0000-1000-8000-00805f9b34fa";
+    public static final String GATT_PUB_TRANSP_METRO   = "00fff2-0000-1000-8000-00805f9b34fa";
+    public static final String GATT_PUB_TRANSP_TRAIN   = "00fff3-0000-1000-8000-00805f9b34fa";
 }
