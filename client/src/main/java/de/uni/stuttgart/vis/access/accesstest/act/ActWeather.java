@@ -6,13 +6,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 import android.widget.TextView;
+
+import com.drisoftie.frags.comp.ManagedActivity;
 
 import de.uni.stuttgart.vis.access.accesstest.R;
 
-public class ActWeather extends AppCompatActivity {
+public class ActWeather extends ManagedActivity {
 
     private BroadcastReceiver msgReceiver = new BrdcstReceiver();
 
@@ -25,16 +27,26 @@ public class ActWeather extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        init();
     }
 
-    private void init() {
+    @Override
+    protected void onResuming() {
 
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void registerComponents() {
+        Intent intent = new Intent(getString(R.string.intent_weather_get));
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    @Override
+    protected void deregisterComponents() {
+
+    }
+
+    @Override
+    protected void onPausing() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
     }
 
@@ -44,13 +56,18 @@ public class ActWeather extends AppCompatActivity {
             String   weather = null;
             TextView txt     = null;
             if (intent.hasExtra(getString(R.string.bndl_gatt_weather_today))) {
-                weather = new String(intent.getByteArrayExtra(getString(R.string.bndl_gatt_weather_today)));
+                findViewById(R.id.txt_headline_today).setVisibility(View.GONE);
+                weather = getString(R.string.weather_today, new String(intent.getByteArrayExtra(getString(
+                        R.string.bndl_gatt_weather_today))));
                 txt = ((TextView) findViewById(R.id.txt_weather_today));
             } else if (intent.hasExtra(getString(R.string.bndl_gatt_weather_tomorrow))) {
-                weather = new String(intent.getByteArrayExtra(getString(R.string.bndl_gatt_weather_tomorrow)));
+                findViewById(R.id.txt_headline_tomorrow).setVisibility(View.GONE);
+                weather = getString(R.string.weather_tomorrow, new String(intent.getByteArrayExtra(getString(
+                        R.string.bndl_gatt_weather_tomorrow))));
                 txt = ((TextView) findViewById(R.id.txt_weather_tomorrow));
             } else if (intent.hasExtra(getString(R.string.bndl_gatt_weather_dat))) {
-                weather = new String(intent.getByteArrayExtra(getString(R.string.bndl_gatt_weather_dat)));
+                findViewById(R.id.txt_headline_dat).setVisibility(View.GONE);
+                weather = getString(R.string.weather_dat, new String(intent.getByteArrayExtra(getString(R.string.bndl_gatt_weather_dat))));
                 txt = ((TextView) findViewById(R.id.txt_weather_dat));
             }
             assert txt != null;

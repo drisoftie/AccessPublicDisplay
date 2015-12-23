@@ -64,7 +64,7 @@ public class ServiceScan extends Service {
     private Runnable           timeoutRunnable;
     // Our handler for received Intents. This will be called whenever an Intent
     // with an action named "custom-event-name" is broadcasted.
-    private BroadcastReceiver msgReceiver = new BrdcstReceiver();
+    private BroadcastReceiver brdRcvr = new BrdcstReceiver();
     private TtsWrapper tts;
     /**
      * Length of time to allow advertising scanning before automatically shutting off.
@@ -74,7 +74,10 @@ public class ServiceScan extends Service {
     @Override
     public void onCreate() {
         running = true;
-        LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, new IntentFilter(getString(R.string.intent_advert_value)));
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(getString(R.string.intent_advert_value));
+        filter.addAction(getString(R.string.intent_weather_get));
+        LocalBroadcastManager.getInstance(this).registerReceiver(brdRcvr, filter);
         handler = new Handler();
         blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
 
@@ -114,7 +117,7 @@ public class ServiceScan extends Service {
                 // Kick off a new scan.
                 blScanCallback = new BlScanCallback();
                 blLeScanner.startScan(buildScanFilters(), buildScanSettings(), blScanCallback);
-                createScanNotification();
+                createScanNotification(true);
             } else {
             }
         } else {
@@ -169,7 +172,7 @@ public class ServiceScan extends Service {
          * is critical.
          */
         running = false;
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(brdRcvr);
         tts.shutDown();
         removeNotification();
         timeoutHandler.removeCallbacks(timeoutRunnable);
@@ -202,7 +205,7 @@ public class ServiceScan extends Service {
         timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT);
     }
 
-    private void createScanNotification() {
+    private void createScanNotification(boolean read) {
         NotificationCompat.Builder nBuilder = NotificationBuilder.createNotificationBuilder(this, R.id.nid_main,
                                                                                             R.drawable.ic_action_bl_scan, getString(
                         R.string.ntxt_scan), null, ActScan.class);
@@ -218,7 +221,9 @@ public class ServiceScan extends Service {
         mNotificationManager.notify(R.id.nid_main, n);
         startForeground(R.id.nid_main, n);
 
-        tts.queueRead(getString(R.string.ntxt_scan));
+        if (read) {
+            tts.queueRead(getString(R.string.ntxt_scan));
+        }
     }
 
     private void createDisplayNotification(String value) {
@@ -256,12 +261,16 @@ public class ServiceScan extends Service {
     private class BrdcstReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            // Get extra data included in the Intent
-            String advertisement = intent.getStringExtra(getString(R.string.intent_advert_value));
-            Intent weatherIntent = new Intent(ServiceScan.this, ActWeather.class);
-            weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(weatherIntent);
-            currDev.getDevice().connectGatt(ServiceScan.this, false, new BlGattCallback());
+            if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_value))) {
+                String advertisement = intent.getStringExtra(getString(R.string.intent_advert_value));
+                Intent weatherIntent = new Intent(ServiceScan.this, ActWeather.class);
+                weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(weatherIntent);
+            } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_weather_get))) {
+                currDev.getDevice().connectGatt(ServiceScan.this, false, new BlGattCallback());
+                createScanNotification(false);
+                currDev = null;
+            }
         }
     }
 
@@ -282,7 +291,8 @@ public class ServiceScan extends Service {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
-            if (currDev != null) {
+            if (currDev != null && result.getScanRecord() != null && result.getScanRecord().getServiceData() != null &&
+                result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER) != null) {
                 if (StringUtils.equals(result.getDevice().getAddress(), currDev.getDevice().getAddress())) {
                     String oldData = new String(currDev.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER));
                     String newData = new String(result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER));
@@ -291,7 +301,10 @@ public class ServiceScan extends Service {
                     }
                 }
             } else {
-                createDisplayNotification(new String(result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER)));
+                if (result.getScanRecord() != null && result.getScanRecord().getServiceData() != null &&
+                    result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER) != null) {
+                    createDisplayNotification(new String(result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER)));
+                }
             }
             currDev = result;
             //            rcycAdaptDevices.getResults().add(result);
@@ -358,6 +371,7 @@ public class ServiceScan extends Service {
                         Intent weatherIntent = new Intent(getString(R.string.intent_gatt_weather));
                         weatherIntent.putExtra(getString(R.string.bndl_gatt_weather_dat), weather);
                         LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(weatherIntent);
+                        gatt.close();
                     } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_BUS).equals(characteristic.getUuid())) {
                         byte[] transp = characteristic.getValue();
                         Intent transpIntent = new Intent(getString(R.string.intent_gatt_pub_transp));

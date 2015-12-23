@@ -72,9 +72,9 @@ public class ActServerAdvertise extends AppCompatActivity implements NavigationV
         findViewById(R.id.btn_advert).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getString(R.string.bndl_advert_value));
+                Intent intent = new Intent(getString(R.string.intent_advert_value));
                 // You can also include some extra data.
-                intent.putExtra(getString(R.string.intent_advert_value), ((EditText) findViewById(R.id.edt_advert)).getText().toString());
+                intent.putExtra(getString(R.string.bndl_advert_value), ((EditText) findViewById(R.id.edt_advert)).getText().toString());
                 LocalBroadcastManager.getInstance(ActServerAdvertise.this).sendBroadcast(intent);
             }
         });

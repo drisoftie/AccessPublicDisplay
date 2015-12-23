@@ -16,6 +16,10 @@
     <item name="service" type="integer">213</item>
     <item name="broadcast_receiver" type="integer">312</item>
 
+    <string name="weather_today">The weather today will be %1$s</string>
+    <string name="weather_tomorrow">The weather tomorrow will be %1$s</string>
+    <string name="weather_dat">The weather the day after tomorrow will be %1$s</string>
+
     <!-- ================ -->
     <!-- Intent Constants -->
     <!-- ================ -->
@@ -26,6 +30,7 @@
     <string name="intent_bl_stopped" translatable="false">bl stopped</string>
     <string name="intent_gatt_weather" translatable="false">gatt broadcast</string>
     <string name="intent_gatt_pub_transp" translatable="false">pub transp broadcast</string>
+    <string name="intent_weather_get" translatable="false">get weather</string>
 
     <!-- ================ -->
     <!-- Bundle Constants -->

@@ -39,7 +39,7 @@ import de.stuttgart.uni.vis.access.common.Constants;
  * If the app goes off screen (or gets killed completely) advertising can continue because this
  * Service is maintaining the necessary Callback in memory.
  */
-public class ServiceAdvertise extends Service {
+public class ServiceAdvertise extends Service implements IAdvertisementReceiver {
 
     public static final  String  ADVERTISING_FAILED            = "com.example.android.bluetoothadvertisements.advertising_failed";
     public static final  String  ADVERTISING_FAILED_EXTRA_CODE = "failureCode";
@@ -65,17 +65,10 @@ public class ServiceAdvertise extends Service {
     /**
      * Length of time to allow advertising before automatically shutting off. (10 minutes)
      */
-    private long              TIMEOUT          = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
+    private long TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
     // Our handler for received Intents. This will be called whenever an Intent
     // with an action named "custom-event-name" is broadcasted.
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Get extra data included in the Intent
-            advertisement = intent.getStringExtra(getString(R.string.intent_advert_value));
-            restartAdvertisement();
-        }
-    };
+    private BroadcastReceiver brdRcvr;
 
     @Override
     public void onCreate() {
@@ -84,7 +77,8 @@ public class ServiceAdvertise extends Service {
         startGattServers();
         startAdvertising();
         setTimeout();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(getString(R.string.bndl_advert_value)));
+        brdRcvr = new BrRcvAdvertRestart(this);
+        LocalBroadcastManager.getInstance(this).registerReceiver(brdRcvr, new IntentFilter(getString(R.string.intent_advert_value)));
         super.onCreate();
     }
 
@@ -92,10 +86,13 @@ public class ServiceAdvertise extends Service {
     public void onDestroy() {
         running = false;
         stopAdvertising();
+        blGattServerWeather.close();
+        blGattServerPubTransp.close();
         timeoutHandler.removeCallbacks(timeoutRunnable);
         Intent notify = new Intent(getString(R.string.intent_bl_stopped));
         LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(brdRcvr);
+        brdRcvr = null;
         super.onDestroy();
     }
 
@@ -145,6 +142,11 @@ public class ServiceAdvertise extends Service {
         timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT);
     }
 
+    @Override
+    public void onNewAdvertisementString(String advert) {
+        advertisement = advert;
+    }
+
     /**
      * Starts BLE Advertising.
      */
@@ -171,7 +173,7 @@ public class ServiceAdvertise extends Service {
      */
     private AdvertiseSettings buildAdvertiseSettings() {
         AdvertiseSettings.Builder settingsBuilder = new AdvertiseSettings.Builder();
-        settingsBuilder.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER);
+        settingsBuilder.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED);
         settingsBuilder.setTimeout(0);
         return settingsBuilder.build();
     }
@@ -268,6 +270,10 @@ public class ServiceAdvertise extends Service {
         startAdvertising();
     }
 
+    @Override
+    public void onRestartAdvertisement() {
+        restartAdvertisement();
+    }
 
     /**
      * Builds and sends a broadcast intent indicating Advertising has failed. Includes the error
@@ -283,7 +289,7 @@ public class ServiceAdvertise extends Service {
     private void startGattServers() {
         blGattCallback = new GattCallback();
         startGattServerWeather();
-//        startGattServerPubStransp();
+        startGattServerPubTransp();
     }
 
     private void startGattServerWeather() {
@@ -309,25 +315,25 @@ public class ServiceAdvertise extends Service {
         blGattServerWeather.addService(serviceWeather);
     }
 
-    private void startGattServerPubStransp() {
+    private void startGattServerPubTransp() {
         blGattServerPubTransp = blManager.openGattServer(this, blGattCallback);
         blGattServerPubTransp.clearServices();
         addDeviceInfoService(blGattServerPubTransp);
 
-        BluetoothGattService servicePubTranp = new BluetoothGattService(UUID.fromString(Constants.GATT_SERVICE_PUB_TRANSP),
+        BluetoothGattService servicePubTransp = new BluetoothGattService(UUID.fromString(Constants.GATT_SERVICE_PUB_TRANSP),
                                                                         BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
-        servicePubTranp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_BUS, BluetoothGattCharacteristic.PROPERTY_READ,
+        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_BUS, BluetoothGattCharacteristic.PROPERTY_READ,
                                                                BluetoothGattCharacteristic.PERMISSION_READ, getString(
                         R.string.bl_advert_bus).getBytes()));
-        servicePubTranp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_METRO, BluetoothGattCharacteristic.PROPERTY_READ,
+        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_METRO, BluetoothGattCharacteristic.PROPERTY_READ,
                                                                BluetoothGattCharacteristic.PERMISSION_READ, getString(
                         R.string.bl_advert_metro).getBytes()));
-        servicePubTranp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_TRAIN, BluetoothGattCharacteristic.PROPERTY_READ,
+        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_TRAIN, BluetoothGattCharacteristic.PROPERTY_READ,
                                                                BluetoothGattCharacteristic.PERMISSION_READ, getString(
                         R.string.bl_advert_train).getBytes()));
 
-        blGattServerPubTransp.addService(servicePubTranp);
+        blGattServerPubTransp.addService(servicePubTransp);
     }
 
     private BluetoothGattCharacteristic createCharacteristic(String uuid, int property, int permission, byte[] value) {
