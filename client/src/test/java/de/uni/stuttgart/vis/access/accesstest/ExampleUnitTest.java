@@ -1,4 +1,4 @@
-package de.uni.stuttgart.vis.access.accesstest;
+package de.uni.stuttgart.vis.access.client;
 
 import org.junit.Test;
 

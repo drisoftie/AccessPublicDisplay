@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.uni.stuttgart.vis.access.accesstest" >
+    package="de.uni.stuttgart.vis.access.client" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -19,7 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Leanback" >
         <activity
-            android:name=".ActTvStart"
+            android:name="de.uni.stuttgart.vis.access.tv.ActTvStart"
             android:banner="@drawable/app_icon_your_company"
             android:icon="@drawable/app_icon_your_company"
             android:label="@string/app_name"
@@ -31,9 +31,9 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ActTvDetails" />
-        <activity android:name=".PlaybackOverlayActivity" />
-        <activity android:name=".BrowseErrorActivity" />
+        <activity android:name="de.uni.stuttgart.vis.access.tv.ActTvDetails" />
+        <activity android:name="de.uni.stuttgart.vis.access.tv.PlaybackOverlayActivity" />
+        <activity android:name="de.uni.stuttgart.vis.access.tv.BrowseErrorActivity" />
     </application>
 
 </manifest>

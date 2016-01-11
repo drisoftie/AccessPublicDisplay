@@ -10,7 +10,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "de.uni.stuttgart.vis.access.accesstest"
+        applicationId "de.uni.stuttgart.vis.access.client"
         minSdkVersion 21
         targetSdkVersion 23
         versionCode 1

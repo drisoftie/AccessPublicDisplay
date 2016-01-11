@@ -9,7 +9,7 @@ android {
         exclude 'META-INF/NOTICE.txt'
     }
     defaultConfig {
-        applicationId "de.stuttgart.uni.vis.access.accessserver"
+        applicationId "de.stuttgart.uni.vis.access.server"
         minSdkVersion 21
         targetSdkVersion 23
         versionCode 1

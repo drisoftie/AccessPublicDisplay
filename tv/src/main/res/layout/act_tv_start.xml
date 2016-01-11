@@ -3,9 +3,9 @@
           xmlns:app="http://schemas.android.com/apk/res-auto"
           xmlns:tools="http://schemas.android.com/tools"
           android:id="@+id/main_browse_fragment"
-          android:name="de.uni.stuttgart.vis.access.accesstest.FragTvMain"
+          android:name="de.uni.stuttgart.vis.access.tv.FragTvMain"
           android:layout_width="match_parent"
           android:layout_height="match_parent"
-          tools:context=".ActTvStart"
+          tools:context="de.uni.stuttgart.vis.access.tv.ActTvStart"
           tools:deviceIds="tv"
           tools:ignore="MergeRootFrame"/>
