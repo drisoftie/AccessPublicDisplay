@@ -355,7 +355,7 @@ public class ActScan extends AppCompatActivity implements NavigationView.OnNavig
 
         ScanFilter.Builder builder = new ScanFilter.Builder();
         // Comment out the below line to see all BLE results around you
-        builder.setServiceUuid(Constants.UUID_SERVICE_WEATHER);
+        builder.setServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
         scanFilters.add(builder.build());
 
         return scanFilters;

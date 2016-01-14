@@ -35,7 +35,7 @@ import de.stuttgart.uni.vis.access.server.brcast.BrRcvAdvertisement;
  * If the app goes off screen (or gets killed completely) advertising can continue because this
  * Service is maintaining the necessary Callback in memory.
  */
-public class ServiceAdvertise extends Service implements AdvertStartHandler.IAdvertStartListener, IAdvertReceiver {
+public class ServiceAdvertise extends Service implements AdvertisementHandler.IAdvertStartListener, IAdvertReceiver {
 
     private static final String  TAG           = ServiceAdvertise.class.getSimpleName();
     /**
@@ -48,7 +48,7 @@ public class ServiceAdvertise extends Service implements AdvertStartHandler.IAdv
     private              String  advertisement = "Weather Forecast";
     private BluetoothManager      blManager;
     private BluetoothLeAdvertiser blLeAdvertiser;
-    private AdvertStartHandler    blAdvertStartHandler;
+    private AdvertisementHandler  blAdvertisementHandler;
 
     private GattServerStateHolder blGattServerHolder;
 
@@ -139,15 +139,15 @@ public class ServiceAdvertise extends Service implements AdvertStartHandler.IAdv
     private void startAdvertising() {
         Log.d(TAG, "Service: Starting Advertising");
 
-        if (blAdvertStartHandler == null) {
-            blAdvertStartHandler = new AdvertStartHandler(this);
-            AdvertiseSettings settings = blAdvertStartHandler.buildAdvertiseSettings();
-            AdvertiseData dataWeather = buildAdvertiseDataWeather();
-            AdvertiseData dataPubTransp = buildAdvertiseDataPubTransp();
+        if (blAdvertisementHandler == null) {
+            blAdvertisementHandler = new AdvertisementHandler(this);
+            AdvertiseSettings settings = blAdvertisementHandler.buildAdvertiseSettings();
+            AdvertiseData dataWeather = blAdvertisementHandler.buildAdvertiseDataWeather();
+//            AdvertiseData dataPubTransp = buildAdvertiseDataPubTransp();
 
             if (blLeAdvertiser != null) {
-                blLeAdvertiser.startAdvertising(settings, dataWeather, blAdvertStartHandler);
-                //                blLeAdvertiser.startAdvertising(settings, dataPubTransp, blAdvertStartHandler);
+                blLeAdvertiser.startAdvertising(settings, dataWeather, blAdvertisementHandler);
+                //                blLeAdvertiser.startAdvertising(settings, dataPubTransp, blAdvertisementHandler);
                 createStartNotification();
             }
         }
@@ -167,40 +167,6 @@ public class ServiceAdvertise extends Service implements AdvertStartHandler.IAdv
     public void onStartingFailed(int code) {
         stopSelf();
     }
-
-    /**
-     * Returns an AdvertiseData object which includes the Service UUID and Device Name.
-     */
-    private AdvertiseData buildAdvertiseDataWeather() {
-        /**
-         * Note: There is a strict limit of 31 Bytes on packets sent over BLE Advertisements.
-         *  This includes everything put into AdvertiseData including UUIDs, device info, &
-         *  arbitrary service or manufacturer data.
-         *  Attempting to send packets over this limit will result in a failure with error code
-         *  AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE. Catch this error in the
-         *  onStartFailure() method of an AdvertiseCallback implementation.
-         */
-
-        AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
-        //        dataBuilder.addServiceUuid(Constants.UUID_SERVICE_WEATHER);
-
-        //        dataBuilder.addServiceData(Constants.UUID_SERVICE_WEATHER, advertisement.getBytes());
-        dataBuilder.addServiceData(Constants.UUID_SERVICE_WEATHER, new byte[]{Constants.AdvertiseConst.ADVERTISE_START,
-                Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag(), Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag(),
-                Constants.AdvertiseConst.ADVERTISE_END});
-
-        return dataBuilder.build();
-    }
-
-    private AdvertiseData buildAdvertiseDataPubTransp() {
-        AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
-        //        dataBuilder.addServiceUuid(Constants.UUID_SERVICE_WEATHER);
-
-        dataBuilder.addServiceData(Constants.UUID_SERVICE_PUB_TRANSP, "Public Transport".getBytes());
-
-        return dataBuilder.build();
-    }
-
 
     private void createStartNotification() {
         // start notification
@@ -252,8 +218,8 @@ public class ServiceAdvertise extends Service implements AdvertStartHandler.IAdv
     private void stopAdvertising() {
         Log.d(TAG, "Service: Stopping Advertising");
         if (blLeAdvertiser != null) {
-            blLeAdvertiser.stopAdvertising(blAdvertStartHandler);
-            blAdvertStartHandler = null;
+            blLeAdvertiser.stopAdvertising(blAdvertisementHandler);
+            blAdvertisementHandler = null;
             removeNotification();
         }
     }

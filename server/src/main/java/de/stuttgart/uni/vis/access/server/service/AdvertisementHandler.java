@@ -1,6 +1,7 @@
 package de.stuttgart.uni.vis.access.server.service;
 
 import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.content.Context;
 import android.content.Intent;
@@ -14,13 +15,13 @@ import de.stuttgart.uni.vis.access.common.Constants;
  * Custom callback after Advertising succeeds or fails to start. Broadcasts the error code
  * in an Intent to be picked up by AdvertiserFragment and stops this Service.
  */
-class AdvertStartHandler extends AdvertiseCallback {
+class AdvertisementHandler extends AdvertiseCallback {
 
-    private static final String TAG = AdvertStartHandler.class.getSimpleName();
+    private static final String TAG = AdvertisementHandler.class.getSimpleName();
 
     private IAdvertStartListener serviceAdvertise;
 
-    public AdvertStartHandler(IAdvertStartListener serviceAdvertise) {
+    public AdvertisementHandler(IAdvertStartListener serviceAdvertise) {
         this.serviceAdvertise = serviceAdvertise;
     }
 
@@ -28,7 +29,7 @@ class AdvertStartHandler extends AdvertiseCallback {
     public void onStartFailure(int errorCode) {
         super.onStartFailure(errorCode);
 
-        Log.d(AdvertStartHandler.TAG, "Advertising failed: " + errorCode);
+        Log.d(AdvertisementHandler.TAG, "Advertising failed: " + errorCode);
         switch (errorCode) {
             case ADVERTISE_FAILED_ALREADY_STARTED:
                 Toast.makeText(serviceAdvertise.getCntxt(), "Already started", Toast.LENGTH_SHORT).show();
@@ -72,6 +73,39 @@ class AdvertStartHandler extends AdvertiseCallback {
         settingsBuilder.setTimeout(0);
         return settingsBuilder.build();
     }
+
+    /**
+     * Returns an AdvertiseData object which includes the Service UUID and Device Name.
+     */
+    public AdvertiseData buildAdvertiseDataWeather() {
+        /**
+         * Note: There is a strict limit of 31 Bytes on packets sent over BLE Advertisements.
+         *  This includes everything put into AdvertiseData including UUIDs, device info, &
+         *  arbitrary service or manufacturer data.
+         *  Attempting to send packets over this limit will result in a failure with error code
+         *  AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE. Catch this error in the
+         *  onStartFailure() method of an AdvertiseCallback implementation.
+         */
+
+        AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
+        //        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
+
+        //        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_WEATHER, advertisement.getBytes());
+        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_WEATHER, new byte[]{Constants.AdvertiseConst.ADVERTISE_START,
+                Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag(), Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag(),
+                Constants.AdvertiseConst.ADVERTISE_END});
+
+        return dataBuilder.build();
+    }
+
+    //    private AdvertiseData buildAdvertiseDataPubTransp() {
+    //        AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
+    //        //        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
+    //
+    //        dataBuilder.addServiceData(Constants.UUID_SERVICE_PUB_TRANSP, "Public Transport".getBytes());
+    //
+    //        return dataBuilder.build();
+    //    }
 
     public interface IAdvertStartListener {
 

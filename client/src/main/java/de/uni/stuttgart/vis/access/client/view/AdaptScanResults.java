@@ -45,7 +45,7 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
         ScanResult result = results.get(position);
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        byte[] data = result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER);
+        byte[] data = result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER);
         holder.txtDeviceName.setText(result.getDevice().getName());
         holder.txtAdInfo.setText("Advertisement: " + new String(data));
         holder.itemView.setOnClickListener(new View.OnClickListener() {

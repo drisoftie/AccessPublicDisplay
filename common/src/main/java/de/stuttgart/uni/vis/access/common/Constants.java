@@ -34,8 +34,8 @@ public class Constants {
      * The official specification can be found here:
      * {@link https://www.bluetooth.org/en-us/specification/assigned-numbers/service-discovery}
      */
-    public static final ParcelUuid UUID_SERVICE_WEATHER    = ParcelUuid.fromString("0000b81d-0000-1000-8000-00805f9b34fb");
-    public static final ParcelUuid UUID_SERVICE_PUB_TRANSP = ParcelUuid.fromString("0000b81d-0000-1000-8000-00805f9b34fa");
+    public static final ParcelUuid UUID_ADVERT_SERVICE_WEATHER = ParcelUuid.fromString("0000b81d-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid UUID_SERVICE_PUB_TRANSP     = ParcelUuid.fromString("0000b81d-0000-1000-8000-00805f9b34fa");
 
     public static final int REQUEST_ENABLE_BT = 1;
 

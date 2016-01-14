@@ -149,7 +149,7 @@ public class ServiceScan extends Service {
 
         ScanFilter.Builder builder = new ScanFilter.Builder();
         // Comment out the below line to see all BLE results around you
-        //        builder.setServiceUuid(Constants.UUID_SERVICE_WEATHER);
+        //        builder.setServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
         scanFilters.add(builder.build());
 
         return scanFilters;
@@ -292,18 +292,18 @@ public class ServiceScan extends Service {
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
             if (currDev != null && result.getScanRecord() != null && result.getScanRecord().getServiceData() != null &&
-                result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER) != null) {
+                result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER) != null) {
                 if (StringUtils.equals(result.getDevice().getAddress(), currDev.getDevice().getAddress())) {
-                    String oldData = new String(currDev.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER));
-                    String newData = new String(result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER));
+                    String oldData = new String(currDev.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
+                    String newData = new String(result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
                     if (!StringUtils.equals(newData, oldData)) {
                         createDisplayNotification(newData);
                     }
                 }
             } else {
                 if (result.getScanRecord() != null && result.getScanRecord().getServiceData() != null &&
-                    result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER) != null) {
-                    createDisplayNotification(new String(result.getScanRecord().getServiceData().get(Constants.UUID_SERVICE_WEATHER)));
+                    result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER) != null) {
+                    createDisplayNotification(new String(result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER)));
                 }
             }
             currDev = result;
