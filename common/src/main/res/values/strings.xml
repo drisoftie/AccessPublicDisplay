@@ -19,9 +19,9 @@
     <string name="bl_advert_cloudy">cloudy</string>
     <string name="bl_advert_sunny">sunny</string>
     <string name="bl_advert_rainy">rainy</string>
-    <string name="weather_today">The weather today will be %1$s</string>
-    <string name="weather_tomorrow">The weather tomorrow will be %1$s</string>
-    <string name="weather_dat">The weather the day after tomorrow will be %1$s</string>
+    <string name="info_weather_today">The weather today will be %1$s</string>
+    <string name="info_weather_tomorrow">The weather tomorrow will be %1$s</string>
+    <string name="info_weather_dat">The weather the day after tomorrow will be %1$s</string>
 
     <!-- ========================== -->
     <!-- Public Transport Constants -->
@@ -32,6 +32,9 @@
     <string name="bl_advert_bus">92,in 10 minutes,Feuerbach</string>
     <string name="bl_advert_metro">U1,in 5 minutes,Vaihingen</string>
     <string name="bl_advert_train">RE 19442,in 2 minutes,Nuernberg</string>
+    <string name="info_pub_transp_bus">Bus Info: %1$s</string>
+    <string name="info_pub_transp_metro">Metro Info: %1$s</string>
+    <string name="info_pub_transp_train">Train Info: %1$s</string>
 
     <!-- ============== -->
     <!-- News Constants -->

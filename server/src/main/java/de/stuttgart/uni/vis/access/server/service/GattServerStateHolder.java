@@ -45,6 +45,7 @@ public class GattServerStateHolder {
         blGattServerWeather = blManager.openGattServer(AccessApp.inst(), blGattCallback);
         handler.setServer(blGattServerWeather);
         handler.prepareServer();
+        blGattHandler.add(handler);
     }
 
     private void startGattServerPubTransp(BluetoothManager blManager) {
@@ -52,6 +53,7 @@ public class GattServerStateHolder {
         blGattServerPubTransp = blManager.openGattServer(AccessApp.inst(), blGattCallback);
         handler.setServer(blGattServerPubTransp);
         handler.prepareServer();
+        blGattHandler.add(handler);
     }
 
     private BluetoothGattCharacteristic createCharacteristic(String uuid, int property, int permission, byte[] value) {

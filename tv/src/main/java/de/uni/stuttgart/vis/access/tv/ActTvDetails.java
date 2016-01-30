@@ -17,7 +17,6 @@ package de.uni.stuttgart.vis.access.tv;
 import android.app.Activity;
 import android.os.Bundle;
 
-import de.uni.stuttgart.vis.access.client.R;
 
 /*
  * Details activity class that loads LeanbackDetailsFragment class

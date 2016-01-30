@@ -15,6 +15,8 @@ package de.uni.stuttgart.vis.access.client;
 
 import android.app.Application;
 
+import java.util.Objects;
+
 /**
  * Central {@link android.app.Application} class for handling application states. Uses the Singleton Pattern.
  *
@@ -52,6 +54,14 @@ public class AccessApp extends Application {
         return instance;
     }
 
+    public static String string(int id) {
+        return inst().getString(id);
+    }
+
+    public static String string(int id, Objects... args) {
+        return inst().getString(id, args);
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public void onCreate() {
@@ -64,7 +74,7 @@ public class AccessApp extends Application {
         //
         //        domainHolder = new DomainHolder();
         //        ndefConstructor = new NdefConstructor();
-        //
+        //+
     }
 
     @Override

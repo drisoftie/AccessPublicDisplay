@@ -15,13 +15,13 @@ import de.stuttgart.uni.vis.access.common.Constants;
  * Custom callback after Advertising succeeds or fails to start. Broadcasts the error code
  * in an Intent to be picked up by AdvertiserFragment and stops this Service.
  */
-class AdvertisementHandler extends AdvertiseCallback {
+class AdvertHandler extends AdvertiseCallback {
 
-    private static final String TAG = AdvertisementHandler.class.getSimpleName();
+    private static final String TAG = AdvertHandler.class.getSimpleName();
 
     private IAdvertStartListener serviceAdvertise;
 
-    public AdvertisementHandler(IAdvertStartListener serviceAdvertise) {
+    public AdvertHandler(IAdvertStartListener serviceAdvertise) {
         this.serviceAdvertise = serviceAdvertise;
     }
 
@@ -29,7 +29,7 @@ class AdvertisementHandler extends AdvertiseCallback {
     public void onStartFailure(int errorCode) {
         super.onStartFailure(errorCode);
 
-        Log.d(AdvertisementHandler.TAG, "Advertising failed: " + errorCode);
+        Log.d(AdvertHandler.TAG, "Advertising failed: " + errorCode);
         switch (errorCode) {
             case ADVERTISE_FAILED_ALREADY_STARTED:
                 Toast.makeText(serviceAdvertise.getCntxt(), "Already started", Toast.LENGTH_SHORT).show();

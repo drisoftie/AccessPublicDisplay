@@ -17,8 +17,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import de.uni.stuttgart.vis.access.client.R;
-
 /*
  * This class demonstrates how to extend ErrorFragment
  */

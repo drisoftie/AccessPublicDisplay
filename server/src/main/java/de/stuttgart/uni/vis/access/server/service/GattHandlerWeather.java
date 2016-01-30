@@ -25,6 +25,9 @@ public class GattHandlerWeather extends BaseGattHandler {
     public GattHandlerWeather() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(UUID.fromString(Constants.GATT_SERVICE_WEATHER));
+        constantUuids.add(UUID.fromString(Constants.GATT_WEATHER_DAT));
+        constantUuids.add(UUID.fromString(Constants.GATT_WEATHER_TODAY));
+        constantUuids.add(UUID.fromString(Constants.GATT_WEATHER_TOMORROW));
         setConstantUuids(constantUuids);
     }
 

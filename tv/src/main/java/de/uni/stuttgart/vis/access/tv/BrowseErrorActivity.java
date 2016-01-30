@@ -24,8 +24,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
-import de.uni.stuttgart.vis.access.client.R;
-
 /*
  * BrowseErrorActivity shows how to use ErrorFragment
  */

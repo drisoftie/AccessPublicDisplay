@@ -10,6 +10,8 @@
     <item name="ritem_txt_device_name" type="id"/>
     <item name="ritem_txt_device_adv_content" type="id"/>
     <item name="nid_main" type="id"/>
+    <item name="nid_weather" type="id"/>
+    <item name="nid_pub_transp" type="id"/>
 
     <item name="txt_weather_today" type="id"/>
     <item name="txt_weather_tomorrow" type="id"/>
@@ -18,6 +20,7 @@
     <item name="txt_headline_bus" type="id"/>
     <item name="txt_headline_metro" type="id"/>
     <item name="txt_headline_train" type="id"/>
+
     <item name="txt_bus" type="id"/>
     <item name="txt_metro" type="id"/>
     <item name="txt_train" type="id"/>

@@ -19,15 +19,15 @@ import java.util.concurrent.TimeUnit;
 
 import de.uni.stuttgart.vis.access.client.R;
 
-public class ActWeather extends ManagedActivity {
+public class ActPubTransp extends ManagedActivity {
 
     private BroadcastReceiver msgReceiver = new BrdcstReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, new IntentFilter(getString(R.string.intent_gatt_weather)));
-        setContentView(R.layout.act_weather);
+        LocalBroadcastManager.getInstance(this).registerReceiver(msgReceiver, new IntentFilter(getString(R.string.intent_gatt_pub_transp)));
+        setContentView(R.layout.act_pub_transport);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -50,7 +50,7 @@ public class ActWeather extends ManagedActivity {
                 if (current != null) {
                     current.clearFocus();
                 }
-                findViewById(R.id.txt_headline_today).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
+                findViewById(R.id.txt_headline_bus).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
             }
         };
 
@@ -62,7 +62,7 @@ public class ActWeather extends ManagedActivity {
 
     @Override
     protected void registerComponents() {
-        Intent intent = new Intent(getString(R.string.intent_weather_get));
+        Intent intent = new Intent(getString(R.string.intent_pub_transp_get));
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -79,26 +79,26 @@ public class ActWeather extends ManagedActivity {
     private class BrdcstReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String   weather = null;
+            String   transp = null;
             TextView txt     = null;
-            if (intent.hasExtra(getString(R.string.bndl_gatt_weather_today))) {
-                findViewById(R.id.txt_headline_today).setVisibility(View.GONE);
-                weather = getString(R.string.info_weather_today, new String(intent.getByteArrayExtra(getString(
-                        R.string.bndl_gatt_weather_today))));
-                txt = ((TextView) findViewById(R.id.txt_weather_today));
-                txt.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
-            } else if (intent.hasExtra(getString(R.string.bndl_gatt_weather_tomorrow))) {
-                findViewById(R.id.txt_headline_tomorrow).setVisibility(View.GONE);
-                weather = getString(R.string.info_weather_tomorrow, new String(intent.getByteArrayExtra(getString(
-                        R.string.bndl_gatt_weather_tomorrow))));
-                txt = ((TextView) findViewById(R.id.txt_weather_tomorrow));
-            } else if (intent.hasExtra(getString(R.string.bndl_gatt_weather_dat))) {
-                findViewById(R.id.txt_headline_dat).setVisibility(View.GONE);
-                weather = getString(R.string.info_weather_dat, new String(intent.getByteArrayExtra(getString(R.string.bndl_gatt_weather_dat))));
-                txt = ((TextView) findViewById(R.id.txt_weather_dat));
+            if (intent.hasExtra(getString(R.string.bndl_gatt_pub_transp_bus))) {
+                findViewById(R.id.txt_headline_bus).setVisibility(View.GONE);
+                transp = getString(R.string.info_pub_transp_bus, new String(intent.getByteArrayExtra(getString(
+                        R.string.bndl_gatt_pub_transp_bus))));
+                txt = ((TextView) findViewById(R.id.txt_bus));
+                findViewById(R.id.txt_bus).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
+            } else if (intent.hasExtra(getString(R.string.bndl_gatt_pub_transp_metro))) {
+                findViewById(R.id.txt_headline_metro).setVisibility(View.GONE);
+                transp = getString(R.string.info_pub_transp_metro, new String(intent.getByteArrayExtra(getString(
+                        R.string.bndl_gatt_pub_transp_metro))));
+                txt = ((TextView) findViewById(R.id.txt_metro));
+            } else if (intent.hasExtra(getString(R.string.bndl_gatt_pub_transp_train))) {
+                findViewById(R.id.txt_headline_train).setVisibility(View.GONE);
+                transp = getString(R.string.info_pub_transp_train, new String(intent.getByteArrayExtra(getString(R.string.bndl_gatt_weather_dat))));
+                txt = ((TextView) findViewById(R.id.txt_train));
             }
             assert txt != null;
-            txt.setText(weather);
+            txt.setText(transp);
         }
     }
 }

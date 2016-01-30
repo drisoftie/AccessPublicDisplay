@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 
     <application
+        android:name=".AccessApp"
         android:allowBackup="true"
         android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
@@ -41,6 +42,7 @@
         <activity
             android:name="de.uni.stuttgart.vis.access.client.act.ActWeather"
             android:label="@string/title_activity_act_weather"
+            android:launchMode="singleTop"
             android:parentActivityName="de.uni.stuttgart.vis.access.client.act.ActScan"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
@@ -48,8 +50,9 @@
                 android:value="de.uni.stuttgart.vis.access.client.act.ActScan"/>
         </activity>
         <activity
-            android:name="de.uni.stuttgart.vis.access.client.act.ActPubTransport"
+            android:name="de.uni.stuttgart.vis.access.client.act.ActPubTransp"
             android:label="@string/title_activity_act_pub_transport"
+            android:launchMode="singleTop"
             android:parentActivityName="de.uni.stuttgart.vis.access.client.act.ActScan"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data

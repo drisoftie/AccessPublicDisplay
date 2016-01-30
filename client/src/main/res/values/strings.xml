@@ -5,8 +5,8 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
-    <string name="btn_fab">Default Action</string>
-    <string name="tst_fab">Replace with your own action</string>
+    <string name="btn_fab">Filter your scan preferences!</string>
+    <string name="tst_fab">Not ready yet</string>
     <string name="btn_fab_descr">Shuffle</string>
 
     <string name="ble_not_supported">BLE is not supported</string>

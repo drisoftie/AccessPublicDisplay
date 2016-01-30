@@ -21,6 +21,8 @@ import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
@@ -35,7 +37,7 @@ import de.stuttgart.uni.vis.access.server.brcast.BrRcvAdvertisement;
  * If the app goes off screen (or gets killed completely) advertising can continue because this
  * Service is maintaining the necessary Callback in memory.
  */
-public class ServiceAdvertise extends Service implements AdvertisementHandler.IAdvertStartListener, IAdvertReceiver {
+public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertStartListener, IAdvertReceiver {
 
     private static final String  TAG           = ServiceAdvertise.class.getSimpleName();
     /**
@@ -48,7 +50,7 @@ public class ServiceAdvertise extends Service implements AdvertisementHandler.IA
     private              String  advertisement = "Weather Forecast";
     private BluetoothManager      blManager;
     private BluetoothLeAdvertiser blLeAdvertiser;
-    private AdvertisementHandler  blAdvertisementHandler;
+    private AdvertHandler         blAdvertHandler;
 
     private GattServerStateHolder blGattServerHolder;
 
@@ -65,14 +67,26 @@ public class ServiceAdvertise extends Service implements AdvertisementHandler.IA
     @Override
     public void onCreate() {
         running = true;
-        initialize();
-        startGattServers();
-        startAdvertising();
-        setTimeout();
+        Runnable task = new Runnable() {
+
+            @Override
+            public void run() {
+                initialize();
+                startGattServers();
+                startAdvertising();
+                setTimeout();
+            }
+        };
+
+        final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
+
+        worker.schedule(task, 1, TimeUnit.SECONDS);
+
         brdRcvr = new BrRcvAdvertRestart(this);
         LocalBroadcastManager.getInstance(this).registerReceiver(brdRcvr, new IntentFilter(getString(R.string.intent_advert_value)));
         super.onCreate();
     }
+
 
     @Override
     public void onDestroy() {
@@ -139,15 +153,15 @@ public class ServiceAdvertise extends Service implements AdvertisementHandler.IA
     private void startAdvertising() {
         Log.d(TAG, "Service: Starting Advertising");
 
-        if (blAdvertisementHandler == null) {
-            blAdvertisementHandler = new AdvertisementHandler(this);
-            AdvertiseSettings settings = blAdvertisementHandler.buildAdvertiseSettings();
-            AdvertiseData dataWeather = blAdvertisementHandler.buildAdvertiseDataWeather();
-//            AdvertiseData dataPubTransp = buildAdvertiseDataPubTransp();
+        if (blAdvertHandler == null) {
+            blAdvertHandler = new AdvertHandler(this);
+            AdvertiseSettings settings = blAdvertHandler.buildAdvertiseSettings();
+            AdvertiseData dataWeather = blAdvertHandler.buildAdvertiseDataWeather();
+            //            AdvertiseData dataPubTransp = buildAdvertiseDataPubTransp();
 
             if (blLeAdvertiser != null) {
-                blLeAdvertiser.startAdvertising(settings, dataWeather, blAdvertisementHandler);
-                //                blLeAdvertiser.startAdvertising(settings, dataPubTransp, blAdvertisementHandler);
+                blLeAdvertiser.startAdvertising(settings, dataWeather, blAdvertHandler);
+                //                blLeAdvertiser.startAdvertising(settings, dataPubTransp, blAdvertHandler);
                 createStartNotification();
             }
         }
@@ -218,8 +232,8 @@ public class ServiceAdvertise extends Service implements AdvertisementHandler.IA
     private void stopAdvertising() {
         Log.d(TAG, "Service: Stopping Advertising");
         if (blLeAdvertiser != null) {
-            blLeAdvertiser.stopAdvertising(blAdvertisementHandler);
-            blAdvertisementHandler = null;
+            blLeAdvertiser.stopAdvertising(blAdvertHandler);
+            blAdvertHandler = null;
             removeNotification();
         }
     }

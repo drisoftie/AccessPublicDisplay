@@ -1,51 +1,39 @@
 package de.uni.stuttgart.vis.access.client.service;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.NotificationCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.stuttgart.uni.vis.access.common.NotificationBuilder;
 import de.uni.stuttgart.vis.access.client.R;
-import de.uni.stuttgart.vis.access.client.act.ActScan;
+import de.uni.stuttgart.vis.access.client.act.ActPubTransp;
 import de.uni.stuttgart.vis.access.client.act.ActWeather;
-import de.uni.stuttgart.vis.access.client.brcast.BrRcvScan;
-import de.uni.stuttgart.vis.access.client.brcast.BrRcvStop;
 
 /**
  * Manages BLE Advertising independent of the main app.
  * If the app goes off screen (or gets killed completely) advertising can continue because this
  * Service is maintaining the necessary Callback in memory.
  */
-public class ServiceScan extends Service {
+public class ServiceScan extends Service implements IAdvertSubscriber {
 
     private static final long    SCAN_PERIOD = TimeUnit.MILLISECONDS.convert(3, TimeUnit.MINUTES);
     /**
@@ -55,17 +43,27 @@ public class ServiceScan extends Service {
      * https://groups.google.com/forum/#!topic/android-developers/jEvXMWgbgzE
      */
     public static        boolean running     = false;
+
+    private final Binder serviceBinder = new ServiceBinder();
+
+    private List<IServiceBlListener> serviceListeners = new ArrayList<>();
+
+    private AdvertScanHandler advertScanHandler;
+    private GattScanHandler   gattScanHandler;
+
     private ScanResult         currDev;
     private BluetoothAdapter   blAdapt;
     private BluetoothLeScanner blLeScanner;
-    private ScanCallback       blScanCallback;
     private Handler            handler;
     private Handler            timeoutHandler;
     private Runnable           timeoutRunnable;
     // Our handler for received Intents. This will be called whenever an Intent
     // with an action named "custom-event-name" is broadcasted.
-    private BroadcastReceiver brdRcvr = new BrdcstReceiver();
+    private BroadcastReceiver brdRcvr = new BrdcstRcvrService();
     private TtsWrapper tts;
+
+    private NotifyHolder notify;
+
     /**
      * Length of time to allow advertising scanning before automatically shutting off.
      */
@@ -73,110 +71,27 @@ public class ServiceScan extends Service {
 
     @Override
     public void onCreate() {
+        super.onCreate();
         running = true;
         IntentFilter filter = new IntentFilter();
         filter.addAction(getString(R.string.intent_advert_value));
         filter.addAction(getString(R.string.intent_weather_get));
+        filter.addAction(getString(R.string.intent_action_bl_user_stopped));
         LocalBroadcastManager.getInstance(this).registerReceiver(brdRcvr, filter);
+        notify = new NotifyHolder();
+        notify.setService(this);
         handler = new Handler();
         blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
 
         tts = new TtsWrapper(this);
         // Is Bluetooth supported on this device?
         if (blAdapt != null) {
-
             // Is Bluetooth turned on?
             if (blAdapt.isEnabled()) {
                 blLeScanner = blAdapt.getBluetoothLeScanner();
             }
         }
         checkAndScanLeDevices();
-        setTimeout();
-        super.onCreate();
-    }
-
-    private void checkAndScanLeDevices() {
-        if (blLeScanner == null) {
-            Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
-        } else {
-            scanLeDevice(true);
-        }
-    }
-
-    private void scanLeDevice(boolean enable) {
-        if (enable) {
-            if (blScanCallback == null) {
-                // Will stop the scanning after a set time.
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        stopScanning();
-                        // invalidateOptionsMenu();
-                    }
-                }, SCAN_PERIOD);
-                // Kick off a new scan.
-                blScanCallback = new BlScanCallback();
-                blLeScanner.startScan(buildScanFilters(), buildScanSettings(), blScanCallback);
-                createScanNotification(true);
-            } else {
-            }
-        } else {
-            stopScanning();
-            // invalidateOptionsMenu();
-        }
-        // invalidateOptionsMenu();
-    }
-
-    /**
-     * Stop scanning for BLE Advertisements.
-     */
-    public void stopScanning() {
-        removeNotification();
-        if (blScanCallback != null) {
-            // Stop the scan, wipe the callback.
-            blLeScanner.stopScan(blScanCallback);
-            blScanCallback = null;
-        }
-        // Even if no new results, update 'last seen' times.
-        //        rcycAdaptDevices.notifyDataSetChanged();
-    }
-
-    /**
-     * Return a List of {@link ScanFilter} objects to filter by Service UUID.
-     */
-    private List<ScanFilter> buildScanFilters() {
-        List<ScanFilter> scanFilters = new ArrayList<>();
-
-        ScanFilter.Builder builder = new ScanFilter.Builder();
-        // Comment out the below line to see all BLE results around you
-        //        builder.setServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
-        scanFilters.add(builder.build());
-
-        return scanFilters;
-    }
-
-    /**
-     * Return a {@link ScanSettings} object set to use low power (to preserve battery life).
-     */
-    private ScanSettings buildScanSettings() {
-        ScanSettings.Builder builder = new ScanSettings.Builder();
-        builder.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
-        return builder.build();
-    }
-
-    @Override
-    public void onDestroy() {
-        /**
-         * Note that onDestroy is not guaranteed to be called quickly or at all. Services exist at
-         * the whim of the system, and onDestroy can be delayed or skipped entirely if memory need
-         * is critical.
-         */
-        running = false;
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(brdRcvr);
-        tts.shutDown();
-        removeNotification();
-        timeoutHandler.removeCallbacks(timeoutRunnable);
-        super.onDestroy();
     }
 
     /**
@@ -185,7 +100,86 @@ public class ServiceScan extends Service {
      */
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return serviceBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return super.onUnbind(intent);
+    }
+
+    private void checkAndScanLeDevices() {
+        if (blLeScanner == null) {
+            Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
+        } else {
+            setTimeout();
+            scanLeDevice(true);
+        }
+    }
+
+    private void scanLeDevice(boolean enable) {
+        if (enable) {
+            // Will stop the scanning after a set time.
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    stopScanning();
+                    // invalidateOptionsMenu();
+                }
+            }, SCAN_PERIOD);
+            // Kick off a new scan.
+            advertScanHandler = new AdvertScanHandler();
+            advertScanHandler.registerAdvertSubscriber(this);
+
+            blLeScanner.startScan(advertScanHandler.buildScanFilters(), advertScanHandler.buildScanSettings(),
+                                  advertScanHandler.getScanCallback());
+            notify.createScanNotification();
+            tts.queueRead(getString(R.string.ntxt_scan));
+            //            } else {
+        } else {
+            stopScanning();
+            // invalidateOptionsMenu();
+        }
+        // invalidateOptionsMenu();
+    }
+
+    @Override
+    public void onScanResultReceived(ScanResult result) {
+        Log.i("", "");
+    }
+
+    @Override
+    public void onScanResultsReceived(List<ScanResult> results) {
+
+    }
+
+    @Override
+    public void onRefreshedScanReceived(ScanResult result) {
+
+    }
+
+    @Override
+    public void onRefreshedScansReceived(List<ScanResult> results) {
+
+    }
+
+    @Override
+    public void onScanLost(ScanResult lostResult) {
+
+    }
+
+    @Override
+    public void onScanFailed(int errorCode) {
+        notify.removeAllNotifications();
+    }
+
+    /**
+     * Stop scanning for BLE Advertisements.
+     */
+    public void stopScanning() {
+        notify.removeAllNotifications();
+        // Stop the scan, wipe the callback.
+        blLeScanner.stopScan(advertScanHandler.getScanCallback());
     }
 
     /**
@@ -205,71 +199,49 @@ public class ServiceScan extends Service {
         timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT);
     }
 
-    private void createScanNotification(boolean read) {
-        NotificationCompat.Builder nBuilder = NotificationBuilder.createNotificationBuilder(this, R.id.nid_main,
-                                                                                            R.drawable.ic_action_bl_scan, getString(
-                        R.string.ntxt_scan), null, ActScan.class);
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
 
-        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_remove, getString(R.string.nact_stop), BrRcvStop.class,
-                                      NotificationBuilder.BROADCAST_RECEIVER);
+        running = false;
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(brdRcvr);
+        tts.shutDown();
+        timeoutHandler.removeCallbacks(timeoutRunnable);
+        stopScanning();
+        notify.setService(null);
+        notify = null;
+        advertScanHandler.removeAdvertSubscriber(this);
+        advertScanHandler = null;
 
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        nBuilder.setAutoCancel(false);
-
-        Notification n = nBuilder.build();
-        mNotificationManager.notify(R.id.nid_main, n);
-        startForeground(R.id.nid_main, n);
-
-        if (read) {
-            tts.queueRead(getString(R.string.ntxt_scan));
+        for (IServiceBlListener l : serviceListeners) {
+            l.onConnStopped();
         }
     }
 
-    private void createDisplayNotification(String value) {
-        String txtFound      = getString(R.string.ntxt_scan_found);
-        String txtFoundDescr = getString(R.string.ntxt_scan_descr, value);
-
-        NotificationCompat.Builder nBuilder = NotificationBuilder.createNotificationBuilder(this, R.id.nid_main,
-                                                                                            R.drawable.ic_action_display_visible, txtFound,
-                                                                                            txtFoundDescr, ActScan.class);
-
-        Intent showIntent = new Intent(this, BrRcvScan.class);
-        showIntent.putExtra(getString(R.string.bndl_bl_show), value);
-        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_display_visible, getString(R.string.nact_show), showIntent,
-                                      NotificationBuilder.BROADCAST_RECEIVER);
-
-        NotificationBuilder.addAction(this, nBuilder, R.drawable.ic_action_remove, getString(R.string.nact_stop), BrRcvStop.class,
-                                      NotificationBuilder.BROADCAST_RECEIVER);
-
-        nBuilder.setAutoCancel(false);
-
-        Notification n = nBuilder.build();
-
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(R.id.nid_main, n);
-        startForeground(R.id.nid_main, n);
-
-        tts.queueRead(txtFound, txtFoundDescr);
-    }
-
-    private void removeNotification() {
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.cancel(R.id.nid_main);
-    }
-
-    private class BrdcstReceiver extends BroadcastReceiver {
+    private class BrdcstRcvrService extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_value))) {
-                String advertisement = intent.getStringExtra(getString(R.string.intent_advert_value));
-                Intent weatherIntent = new Intent(ServiceScan.this, ActWeather.class);
-                weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(weatherIntent);
+                String advertisement = intent.getStringExtra(getString(R.string.bndl_bl_show));
+                if (getString(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()).equals(advertisement)) {
+                    Intent weatherIntent = new Intent(ServiceScan.this, ActWeather.class);
+                    weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(weatherIntent);
+                } else if (getString(Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()).equals(advertisement)) {
+                    Intent weatherIntent = new Intent(ServiceScan.this, ActPubTransp.class);
+                    weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(weatherIntent);
+                }
+
             } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_weather_get))) {
-                currDev.getDevice().connectGatt(ServiceScan.this, false, new BlGattCallback());
-                createScanNotification(false);
+                currDev.getDevice().connectGatt(ServiceScan.this, false, gattScanHandler.getGattCallback());
+                notify.createScanNotification();
                 currDev = null;
+            } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_action_bl_user_stopped))) {
+                for (IServiceBlListener l : serviceListeners) {
+                    l.onConnStopped();
+                }
+                stopSelf();
             }
         }
     }
@@ -293,18 +265,48 @@ public class ServiceScan extends Service {
             super.onScanResult(callbackType, result);
             if (currDev != null && result.getScanRecord() != null && result.getScanRecord().getServiceData() != null &&
                 result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER) != null) {
-                if (StringUtils.equals(result.getDevice().getAddress(), currDev.getDevice().getAddress())) {
-                    String oldData = new String(currDev.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
-                    String newData = new String(result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
-                    if (!StringUtils.equals(newData, oldData)) {
-                        createDisplayNotification(newData);
-                    }
-                }
+                //                if (StringUtils.equals(result.getDevice().getAddress(), currDev.getDevice().getAddress())) {
+                //                    String oldData = new String(currDev.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
+                //                    String newData = new String(result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
+                //                    if (!StringUtils.equals(newData, oldData)) {
+                notify.removeNotification(R.id.nid_main);
+                //                        boolean start = false;
+                //                        for (byte b : newData.getBytes()) {
+                //                            if (b == Constants.AdvertiseConst.ADVERTISE_START) {
+                //                                start = true;
+                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag()) {
+                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS.getFlag()) {
+                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag()) {
+                //                                //                                createDisplayNotification(getString(Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()),
+                //                                //                                                          R.id.nid_pub_transp);
+                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag()) {
+                //                                notify.createDisplayNotification(getString(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()),
+                //                                                                 R.id.nid_weather);
+                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_END) {
+                //                                break;
+                //                            }
+                //                        }
+                //                    }
+                //                }
             } else {
-                if (result.getScanRecord() != null && result.getScanRecord().getServiceData() != null &&
-                    result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER) != null) {
-                    createDisplayNotification(new String(result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER)));
-                }
+                //                String newData = new String(result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
+                notify.removeNotification(R.id.nid_main);
+                //                boolean start = false;
+                //                for (byte b : newData.getBytes()) {
+                //                    if (b == Constants.AdvertiseConst.ADVERTISE_START) {
+                //                        start = true;
+                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag()) {
+                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS.getFlag()) {
+                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag()) {
+                //                        //                        createDisplayNotification(getString(Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()),
+                //                        //                                                  R.id.nid_pub_transp);
+                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag()) {
+                //                        notify.createDisplayNotification(getString(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()),
+                //                                                         R.id.nid_weather);
+                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_END) {
+                //                        break;
+                //                    }
+                //                }
             }
             currDev = result;
             //            rcycAdaptDevices.getResults().add(result);
@@ -318,82 +320,16 @@ public class ServiceScan extends Service {
         }
     }
 
-    private class BlGattCallback extends BluetoothGattCallback {
+
+    public class ServiceBinder extends Binder implements IServiceBinder {
+
         @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            String intentAction;
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                gatt.discoverServices();
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-            }
+        public void registerServiceListener(IServiceBlListener listener) {
+            serviceListeners.add(listener);
         }
 
-        @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                BluetoothGattService s = gatt.getService(UUID.fromString(Constants.GATT_SERVICE_WEATHER));
-                if (s != null) {
-                    BluetoothGattCharacteristic weatherC = s.getCharacteristic(UUID.fromString(Constants.GATT_WEATHER_TODAY));
-                    gatt.readCharacteristic(weatherC);
-                } else {
-                    s = gatt.getService(UUID.fromString(Constants.GATT_SERVICE_PUB_TRANSP));
-                    BluetoothGattCharacteristic transpC = s.getCharacteristic(UUID.fromString(Constants.GATT_PUB_TRANSP_BUS));
-                    gatt.readCharacteristic(transpC);
-                }
-            } else {
-            }
-        }
-
-        @Override
-        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                if (characteristic.getValue() != null) {
-                    if (UUID.fromString(Constants.GATT_WEATHER_QUERY).equals(characteristic.getUuid())) {
-
-                    } else if (UUID.fromString(Constants.GATT_WEATHER_TODAY).equals(characteristic.getUuid())) {
-                        byte[] weather = characteristic.getValue();
-                        Intent weatherIntent = new Intent(getString(R.string.intent_gatt_weather));
-                        weatherIntent.putExtra(getString(R.string.bndl_gatt_weather_today), weather);
-                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(weatherIntent);
-                        BluetoothGattCharacteristic weatherC = characteristic.getService().getCharacteristic(UUID.fromString(
-                                Constants.GATT_WEATHER_TOMORROW));
-                        gatt.readCharacteristic(weatherC);
-                    } else if (UUID.fromString(Constants.GATT_WEATHER_TOMORROW).equals(characteristic.getUuid())) {
-                        byte[] weather = characteristic.getValue();
-                        Intent weatherIntent = new Intent(getString(R.string.intent_gatt_weather));
-                        weatherIntent.putExtra(getString(R.string.bndl_gatt_weather_tomorrow), weather);
-                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(weatherIntent);
-                        BluetoothGattCharacteristic weatherC = characteristic.getService().getCharacteristic(UUID.fromString(
-                                Constants.GATT_WEATHER_DAT));
-                        gatt.readCharacteristic(weatherC);
-                    } else if (UUID.fromString(Constants.GATT_WEATHER_DAT).equals(characteristic.getUuid())) {
-                        byte[] weather = characteristic.getValue();
-                        Intent weatherIntent = new Intent(getString(R.string.intent_gatt_weather));
-                        weatherIntent.putExtra(getString(R.string.bndl_gatt_weather_dat), weather);
-                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(weatherIntent);
-                        gatt.close();
-                    } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_BUS).equals(characteristic.getUuid())) {
-                        byte[] transp = characteristic.getValue();
-                        Intent transpIntent = new Intent(getString(R.string.intent_gatt_pub_transp));
-                        transpIntent.putExtra(getString(R.string.bndl_gatt_pub_transp_bus), transp);
-                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(transpIntent);
-                    } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_METRO).equals(characteristic.getUuid())) {
-                        byte[] transp = characteristic.getValue();
-                        Intent transpIntent = new Intent(getString(R.string.intent_gatt_pub_transp));
-                        transpIntent.putExtra(getString(R.string.bndl_gatt_pub_transp_metro), transp);
-                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(transpIntent);
-                    } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_TRAIN).equals(characteristic.getUuid())) {
-                        byte[] transp = characteristic.getValue();
-                        Intent transpIntent = new Intent(getString(R.string.intent_gatt_pub_transp));
-                        transpIntent.putExtra(getString(R.string.bndl_gatt_pub_transp_metro), transp);
-                        LocalBroadcastManager.getInstance(ServiceScan.this).sendBroadcast(transpIntent);
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+        public void deRegisterServiceListener(IServiceBlListener listener) {
+            serviceListeners.remove(listener);
         }
     }
 }

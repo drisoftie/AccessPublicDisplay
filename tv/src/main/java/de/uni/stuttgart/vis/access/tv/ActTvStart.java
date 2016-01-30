@@ -17,8 +17,6 @@ package de.uni.stuttgart.vis.access.tv;
 import android.app.Activity;
 import android.os.Bundle;
 
-import de.uni.stuttgart.vis.access.client.R;
-
 /*
  * MainActivity class that loads MainFragment
  */

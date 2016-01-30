@@ -24,6 +24,9 @@ public class GattHandlerPubTransp extends BaseGattHandler {
     public GattHandlerPubTransp() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(UUID.fromString(Constants.GATT_SERVICE_PUB_TRANSP));
+        constantUuids.add(UUID.fromString(Constants.GATT_PUB_TRANSP_BUS));
+        constantUuids.add(UUID.fromString(Constants.GATT_PUB_TRANSP_METRO));
+        constantUuids.add(UUID.fromString(Constants.GATT_PUB_TRANSP_TRAIN));
         setConstantUuids(constantUuids);
     }
 

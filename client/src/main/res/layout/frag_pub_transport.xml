@@ -31,7 +31,7 @@
             android:contentDescription="@string/cd_img_weather_today"/>
 
         <TextView
-            android:id="@id/txt_weather_today"
+            android:id="@id/txt_bus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
