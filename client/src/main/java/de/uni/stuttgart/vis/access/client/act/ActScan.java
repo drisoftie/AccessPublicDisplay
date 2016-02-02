@@ -196,7 +196,6 @@ public class ActScan extends ManagedActivity
 
     @Override
     protected void onPausing() {
-        super.onPause();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(brdcstRcvr);
         //        scanLeDevice(false);
         rcycAdaptDevices.getResults().clear();

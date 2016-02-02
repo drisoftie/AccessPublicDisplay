@@ -91,6 +91,7 @@ class AdvertHandler extends AdvertiseCallback {
         //        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
 
         //        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_WEATHER, advertisement.getBytes());
+        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
         dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_WEATHER, new byte[]{Constants.AdvertiseConst.ADVERTISE_START,
                 Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag(), Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag(),
                 Constants.AdvertiseConst.ADVERTISE_END});
@@ -102,7 +103,7 @@ class AdvertHandler extends AdvertiseCallback {
     //        AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
     //        //        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
     //
-    //        dataBuilder.addServiceData(Constants.UUID_SERVICE_PUB_TRANSP, "Public Transport".getBytes());
+    //        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_PUB_TRANSP, "Public Transport".getBytes());
     //
     //        return dataBuilder.build();
     //    }

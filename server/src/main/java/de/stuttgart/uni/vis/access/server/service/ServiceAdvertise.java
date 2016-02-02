@@ -93,7 +93,9 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
         running = false;
         stopAdvertising();
         blGattServerHolder.closeServer();
-        timeoutHandler.removeCallbacks(timeoutRunnable);
+        if (timeoutHandler != null) {
+            timeoutHandler.removeCallbacks(timeoutRunnable);
+        }
         Intent notify = new Intent(getString(R.string.intent_bl_stopped));
         LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(brdRcvr);

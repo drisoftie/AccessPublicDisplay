@@ -14,27 +14,32 @@ import de.stuttgart.uni.vis.access.common.Constants;
 /**
  * @author Alexander Dridiger
  */
-public abstract class BaseGattHandler {
+public abstract class BaseGattHandler implements IGattHandler {
 
     private BluetoothGattServer server;
     private List<UUID>          constantUuids;
 
+    @Override
     public BluetoothGattServer getServer() {
         return server;
     }
 
+    @Override
     public void setServer(BluetoothGattServer server) {
         this.server = server;
     }
 
+    @Override
     public List<UUID> getConstantUuids() {
         return constantUuids;
     }
 
+    @Override
     public void setConstantUuids(List<UUID> constantUuids) {
         this.constantUuids = constantUuids;
     }
 
+    @Override
     public void prepareServer() {
         server.clearServices();
         addDeviceInfoService(server);
@@ -72,6 +77,7 @@ public abstract class BaseGattHandler {
     }
 
 
+    @Override
     public BluetoothGattServerCallback getCallback(ParcelUuid[] uuids) {
         for (ParcelUuid uuid : uuids) {
             BluetoothGattServerCallback callback = getCallback(uuid);
@@ -82,6 +88,7 @@ public abstract class BaseGattHandler {
         return null;
     }
 
+    @Override
     public BluetoothGattServerCallback getCallback(UUID[] uuids) {
         for (UUID uuid : uuids) {
             BluetoothGattServerCallback callback = getCallback(uuid);
@@ -92,9 +99,9 @@ public abstract class BaseGattHandler {
         return null;
     }
 
+    @Override
     public BluetoothGattServerCallback getCallback(ParcelUuid uuid) {
         return getCallback(uuid.getUuid());
     }
 
-    public abstract BluetoothGattServerCallback getCallback(UUID uuids);
 }

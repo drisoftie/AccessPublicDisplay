@@ -27,7 +27,7 @@ public class GattServerStateHolder {
     private BluetoothGattServer blGattServerWeather;
     private BluetoothGattServer blGattServerPubTransp;
 
-    private List<BaseGattHandler> blGattHandler = new ArrayList<>();
+    private List<IGattHandler> blGattHandler = new ArrayList<>();
 
     public void startGatt(BluetoothManager blManager) {
         blGattCallback = new GattCallback();
@@ -84,7 +84,7 @@ public class GattServerStateHolder {
     }
 
     private BluetoothGattServerCallback getHandlerCallback(ParcelUuid... uuids) {
-        for (BaseGattHandler handler : blGattHandler) {
+        for (IGattHandler handler : blGattHandler) {
             BluetoothGattServerCallback callback = handler.getCallback(uuids);
             if (callback != null) {
                 return callback;
@@ -94,7 +94,7 @@ public class GattServerStateHolder {
     }
 
     private BluetoothGattServerCallback getHandlerCallback(UUID... uuids) {
-        for (BaseGattHandler handler : blGattHandler) {
+        for (IGattHandler handler : blGattHandler) {
             BluetoothGattServerCallback callback = handler.getCallback(uuids);
             if (callback != null) {
                 return callback;
