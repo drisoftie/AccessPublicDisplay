@@ -93,6 +93,7 @@
     <orderEntry type="library" exported="" name="support-annotations-23.1.1" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-23.1.1" level="project" />
     <orderEntry type="library" exported="" name="design-23.1.1" level="project" />
+    <orderEntry type="module" module-name="AsyncActions" exported="" />
     <orderEntry type="module" module-name="common" exported="" />
     <orderEntry type="library" exported="" name="org.apache.http.legacy-android-23" level="project" />
   </component>

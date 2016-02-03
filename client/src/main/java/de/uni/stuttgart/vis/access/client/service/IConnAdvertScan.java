@@ -59,9 +59,9 @@ public interface IConnAdvertScan {
 
     void removeScanResult(ScanResult scanResult);
 
-    IConnAdvertScanHandler registerConnectionSubscriber(IConnSubscriber subscriber);
+    IConnAdvertScanHandler registerConnectionSubscriber(IConnAdvertScanHandler.IConnGattSubscriber subscriber);
 
-    List<IConnSubscriber> getConnSubscribers();
+    List<IConnAdvertScanHandler.IConnGattSubscriber> getConnSubscribers();
 
     List<BluetoothDevice> getConnDevices();
 

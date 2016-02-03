@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.client.R;
+import de.uni.stuttgart.vis.access.client.helper.IContextProv;
 import de.uni.stuttgart.vis.access.client.helper.INotifyProv;
 import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
 import de.uni.stuttgart.vis.access.client.helper.NotifyHolder;
@@ -157,7 +158,7 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         notifyProv.provideNotify().removeAllNotifications();
     }
 
-    public IConnAdvertScanHandler subscribeBlConnection(UUID uuid, IConnSubscriber subscriber) {
+    public IConnAdvertScanHandler subscribeBlConnection(UUID uuid, IConnAdvertScanHandler.IConnGattSubscriber subscriber) {
         for (IConnAdvertScan conn : connections) {
             if (conn.match(uuid)) {
                 return conn.registerConnectionSubscriber(subscriber);

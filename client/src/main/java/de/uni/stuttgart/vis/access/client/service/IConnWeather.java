@@ -9,10 +9,12 @@ public interface IConnWeather {
 
     void registerWeatherSub(IConnWeatherSub sub);
 
+    void deregisterWeatherSub(IConnWeatherSub sub);
+
     void getWeatherInfo(UUID uuid);
 
 
-    public interface IConnWeatherSub {
+    interface IConnWeatherSub {
 
         void onWeatherInfo(UUID uuid, byte[] value);
     }

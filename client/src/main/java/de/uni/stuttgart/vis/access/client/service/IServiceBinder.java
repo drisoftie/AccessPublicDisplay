@@ -11,5 +11,5 @@ public interface IServiceBinder {
 
     void deRegisterServiceListener(IServiceBlListener listener);
 
-    IConnAdvertScanHandler subscribeBlConnection(UUID uuid, IConnSubscriber subscriber);
+    IConnAdvertScanHandler subscribeBlConnection(UUID uuid, IConnAdvertScanHandler.IConnGattSubscriber subscriber);
 }

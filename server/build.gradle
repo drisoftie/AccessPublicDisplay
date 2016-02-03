@@ -32,4 +32,5 @@ dependencies {
     /* helper libs*/
     compile 'commons-io:commons-io:2.4'
     compile project(':common')
+    compile project(':AsyncActions')
 }

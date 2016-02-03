@@ -8,6 +8,7 @@ import android.os.ParcelUuid;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import de.uni.stuttgart.vis.access.client.helper.INotifyProv;
@@ -22,10 +23,10 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvert
     private ScanCallback          cllbckAdvertScan;
     private BluetoothGattCallback cllbckGatt;
 
-    private List<BluetoothDevice>   connDevices = new ArrayList<>();
-    private List<ScanResult>        scanHistory = new ArrayList<>();
-    private List<IAdvertSubscriber> subscribers = new ArrayList<>();
-    private List<IConnSubscriber>   subsConn    = new ArrayList<>();
+    private List<BluetoothDevice>     connDevices = new ArrayList<>();
+    private List<ScanResult>          scanHistory = new ArrayList<>();
+    private List<IAdvertSubscriber>   subscribers = new ArrayList<>();
+    private List<IConnGattSubscriber> subsConn    = new ArrayList<>();
     private INotifyProv notifyProv;
     private ITtsProv    ttsProv;
 
@@ -65,6 +66,11 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvert
     }
 
     @Override
+    public void setNotifyProv(INotifyProv notifyProv) {
+        this.notifyProv = notifyProv;
+    }
+
+    @Override
     public ITtsProv getTtsProv() {
         return ttsProv;
     }
@@ -72,11 +78,6 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvert
     @Override
     public void setTtsProv(ITtsProv ttsProv) {
         this.ttsProv = ttsProv;
-    }
-
-    @Override
-    public void setNotifyProv(INotifyProv notifyProv) {
-        this.notifyProv = notifyProv;
     }
 
     @Override
@@ -147,7 +148,7 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvert
     public boolean match(BluetoothDevice device) {
         if (!connDevices.isEmpty()) {
             for (BluetoothDevice dev : connDevices) {
-                if (dev.getAddress().equals(device)) {
+                if (dev.getAddress().equals(device.getAddress())) {
                     return true;
                 }
             }
@@ -162,7 +163,24 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvert
 
     @Override
     public void addScanResult(ScanResult scanResult) {
-        scanHistory.add(scanResult);
+        if (scanResult.getScanRecord() != null && scanResult.getScanRecord().getServiceData() != null) {
+            ScanResult foundRes = null;
+            for (ScanResult myRes : scanHistory) {
+                if (scanResult.getDevice().getAddress().equals(myRes.getDevice().getAddress())) {
+                    if (scanResult.getScanRecord() != null && myRes.getScanRecord() != null && Objects.equals(
+                            scanResult.getScanRecord().getServiceData(), myRes.getScanRecord().getServiceData())) {
+                        foundRes = myRes;
+                        break;
+                    }
+                }
+            }
+            if (foundRes != null) {
+                scanHistory.remove(foundRes);
+                scanHistory.add(scanResult);
+            } else {
+                scanHistory.add(scanResult);
+            }
+        }
     }
 
     @Override
@@ -188,19 +206,24 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvert
     }
 
     @Override
-    public IConnAdvertScanHandler registerConnectionSubscriber(IConnSubscriber subscriber) {
+    public IConnAdvertScanHandler registerConnectionSubscriber(IConnGattSubscriber subscriber) {
         subsConn.add(subscriber);
         return this;
     }
 
     @Override
-    public void registerConnSub(IConnSubscriber sub) {
+    public void registerConnSub(IConnGattSubscriber sub) {
         subsConn.add(sub);
     }
 
     @Override
-    public List<IConnSubscriber> getConnSubscribers() {
+    public List<IConnGattSubscriber> getConnSubscribers() {
         return subsConn;
+    }
+
+    @Override
+    public void deregisterConnSub(IConnGattSubscriber sub) {
+        subsConn.remove(sub);
     }
 
     @Override
@@ -218,6 +241,8 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvert
         }
         if (foundDev != null) {
             connDevices.remove(foundDev);
+            connDevices.add(dev);
+        } else {
             connDevices.add(dev);
         }
     }

@@ -58,8 +58,9 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather {
                 String txtFound = AccessApp.string(R.string.ntxt_scan_found);
                 String txtFoundDescr = AccessApp.inst().getString(R.string.ntxt_scan_descr, AccessApp.string(
                         Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
-//                getTtsProv().provideTts().queueRead(txtFound, txtFoundDescr);
+                //                getTtsProv().provideTts().queueRead(txtFound, txtFoundDescr);
             } else if (b == Constants.AdvertiseConst.ADVERTISE_END) {
+                start = false;
                 break;
             }
         }
@@ -68,6 +69,11 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather {
     @Override
     public void registerWeatherSub(IConnWeatherSub sub) {
         subs.add(sub);
+    }
+
+    @Override
+    public void deregisterWeatherSub(IConnWeatherSub sub) {
+        subs.remove(sub);
     }
 
     @Override
@@ -84,17 +90,9 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather {
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             super.onBatchScanResults(results);
-            List<ScanResult> newScans       = null;
-            List<ScanResult> refreshedScans = null;
             for (ScanResult result : results) {
-                if (result.getDevice().getAddress() != null) {
-                    addScanResult(result);
-                }
+                addScanResult(result);
             }
-            //            for (IAdvertSubscriber callback : getSubscribers()) {
-            //                callback.onScanResultsReceived(newScans);
-            //                callback.onRefreshedScansReceived(refreshedScans);
-            //            }
         }
 
         @Override
@@ -105,10 +103,8 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather {
                 switch (callbackType) {
                     case ScanSettings.CALLBACK_TYPE_ALL_MATCHES:
                     case ScanSettings.CALLBACK_TYPE_FIRST_MATCH:
-                        if (result.getDevice().getAddress() != null) {
-                            addScanResult(result);
-                            analyzeScanData(result);
-                        }
+                        addScanResult(result);
+                        analyzeScanData(result);
                         break;
                     case ScanSettings.CALLBACK_TYPE_MATCH_LOST:
                         removeScanResult(result);
@@ -142,7 +138,6 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather {
             for (IAdvertSubscriber subs : getSubscribers()) {
                 subs.onScanFailed(errorCode);
             }
-            //            Toast.makeText(ActScan.this, "Scan failed with error: " + errorCode, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -155,7 +150,7 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather {
                     switch (newState) {
                         case BluetoothProfile.STATE_CONNECTED:
                             lastGattInst = gatt;
-                            for (IConnSubscriber sub : getConnSubscribers()) {
+                            for (IConnGattSubscriber sub : getConnSubscribers()) {
                                 sub.onGattReady();
                             }
                     }
@@ -176,16 +171,9 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 lastGattInst = gatt;
-                BluetoothGattService s = gatt.getService(UUID.fromString(Constants.GATT_SERVICE_WEATHER));
-                if (s != null) {
-                    BluetoothGattCharacteristic weatherC = s.getCharacteristic(UUID.fromString(Constants.GATT_WEATHER_TODAY));
-                    gatt.readCharacteristic(weatherC);
-                    //                } else {
-                    //                    s = gatt.getService(UUID.fromString(Constants.GATT_SERVICE_PUB_TRANSP));
-                    //                    BluetoothGattCharacteristic transpC = s.getCharacteristic(UUID.fromString(Constants.GATT_PUB_TRANSP_BUS));
-                    //                    gatt.readCharacteristic(transpC);
+                for (IConnGattSubscriber sub : getConnSubscribers()) {
+                    sub.onServicesReady();
                 }
-                //            } else {
             }
         }
 
@@ -194,52 +182,9 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 lastGattInst = gatt;
                 if (characteristic.getValue() != null) {
-                    //                    if (UUID.fromString(Constants.GATT_WEATHER_QUERY).equals(characteristic.getUuid())) {
-                    //
-                    //                    } else
-                    if (UUID.fromString(Constants.GATT_WEATHER_TODAY).equals(characteristic.getUuid())) {
-                        byte[] weather = characteristic.getValue();
-                        Intent weatherIntent = new Intent(AccessApp.string(R.string.intent_gatt_weather));
-                        weatherIntent.putExtra(AccessApp.string(R.string.bndl_gatt_weather_today), weather);
-                        LocalBroadcastManager.getInstance(AccessApp.inst()).sendBroadcast(weatherIntent);
-
-                        for (IConnWeatherSub sub : subs) {
-                            sub.onWeatherInfo(UUID.fromString(Constants.GATT_WEATHER_TODAY), weather);
-                        }
-
-
-                        BluetoothGattCharacteristic weatherC = characteristic.getService().getCharacteristic(UUID.fromString(
-                                Constants.GATT_WEATHER_TOMORROW));
-                        gatt.readCharacteristic(weatherC);
-                    } else if (UUID.fromString(Constants.GATT_WEATHER_TOMORROW).equals(characteristic.getUuid())) {
-                        byte[] weather = characteristic.getValue();
-                        Intent weatherIntent = new Intent(AccessApp.string(R.string.intent_gatt_weather));
-                        weatherIntent.putExtra(AccessApp.string(R.string.bndl_gatt_weather_tomorrow), weather);
-                        LocalBroadcastManager.getInstance(AccessApp.inst()).sendBroadcast(weatherIntent);
-                        BluetoothGattCharacteristic weatherC = characteristic.getService().getCharacteristic(UUID.fromString(
-                                Constants.GATT_WEATHER_DAT));
-                        gatt.readCharacteristic(weatherC);
-                    } else if (UUID.fromString(Constants.GATT_WEATHER_DAT).equals(characteristic.getUuid())) {
-                        byte[] weather = characteristic.getValue();
-                        Intent weatherIntent = new Intent(AccessApp.string(R.string.intent_gatt_weather));
-                        weatherIntent.putExtra(AccessApp.string(R.string.bndl_gatt_weather_dat), weather);
-                        LocalBroadcastManager.getInstance(AccessApp.inst()).sendBroadcast(weatherIntent);
-                        gatt.close();
-                    } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_BUS).equals(characteristic.getUuid())) {
-                        byte[] transp = characteristic.getValue();
-                        Intent transpIntent = new Intent(AccessApp.string(R.string.intent_gatt_pub_transp));
-                        transpIntent.putExtra(AccessApp.string(R.string.bndl_gatt_pub_transp_bus), transp);
-                        LocalBroadcastManager.getInstance(AccessApp.inst()).sendBroadcast(transpIntent);
-                    } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_METRO).equals(characteristic.getUuid())) {
-                        byte[] transp = characteristic.getValue();
-                        Intent transpIntent = new Intent(AccessApp.string(R.string.intent_gatt_pub_transp));
-                        transpIntent.putExtra(AccessApp.string(R.string.bndl_gatt_pub_transp_metro), transp);
-                        LocalBroadcastManager.getInstance(AccessApp.inst()).sendBroadcast(transpIntent);
-                    } else if (UUID.fromString(Constants.GATT_PUB_TRANSP_TRAIN).equals(characteristic.getUuid())) {
-                        byte[] transp = characteristic.getValue();
-                        Intent transpIntent = new Intent(AccessApp.string(R.string.intent_gatt_pub_transp));
-                        transpIntent.putExtra(AccessApp.string(R.string.bndl_gatt_pub_transp_train), transp);
-                        LocalBroadcastManager.getInstance(AccessApp.inst()).sendBroadcast(transpIntent);
+                    byte[] weather = characteristic.getValue();
+                    for (IConnWeatherSub sub : subs) {
+                        sub.onWeatherInfo(characteristic.getUuid(), weather);
                     }
                 }
             }

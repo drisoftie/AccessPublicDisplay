@@ -8,6 +8,7 @@ import java.util.List;
  * @author Alexander Dridiger
  */
 public interface IAdvertSubscriber {
+
     void onScanResultReceived(ScanResult result);
 
     void onScanResultsReceived(List<ScanResult> results);

@@ -27,6 +27,7 @@ import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.act.ActPubTransp;
 import de.uni.stuttgart.vis.access.client.act.ActWeather;
+import de.uni.stuttgart.vis.access.client.helper.IContextProv;
 import de.uni.stuttgart.vis.access.client.helper.INotifyProv;
 import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
 import de.uni.stuttgart.vis.access.client.helper.NotifyHolder;
@@ -76,7 +77,6 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         running = true;
         IntentFilter filter = new IntentFilter();
         filter.addAction(getString(R.string.intent_advert_value));
-        filter.addAction(getString(R.string.intent_weather_get));
         filter.addAction(getString(R.string.intent_action_bl_user_stopped));
         LocalBroadcastManager.getInstance(this).registerReceiver(brdRcvr, filter);
 
@@ -220,12 +220,6 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
                     weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(weatherIntent);
                 }
-
-            } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_weather_get))) {
-                //                currDev.getDevice().connectGatt(ServiceScan.this, false, connectorAdvertScan.getGattCallback());
-                //                connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_show)));
-                notify.createScanNotification();
-                currDev = null;
             } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_action_bl_user_stopped))) {
                 for (IServiceBlListener l : serviceListeners) {
                     l.onConnStopped();
@@ -243,10 +237,6 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             super.onBatchScanResults(results);
-            //            for (ScanResult result : results) {
-            //                rcycAdaptDevices.getResults().add(result);
-            //            }
-            //            rcycAdaptDevices.notifyDataSetChanged();
         }
 
         @Override
@@ -254,58 +244,16 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
             super.onScanResult(callbackType, result);
             if (currDev != null && result.getScanRecord() != null && result.getScanRecord().getServiceData() != null &&
                 result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER) != null) {
-                //                if (StringUtils.equals(result.getDevice().getAddress(), currDev.getDevice().getAddress())) {
-                //                    String oldData = new String(currDev.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
-                //                    String newData = new String(result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
-                //                    if (!StringUtils.equals(newData, oldData)) {
                 notify.removeNotification(R.id.nid_main);
-                //                        boolean start = false;
-                //                        for (byte b : newData.getBytes()) {
-                //                            if (b == Constants.AdvertiseConst.ADVERTISE_START) {
-                //                                start = true;
-                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag()) {
-                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS.getFlag()) {
-                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag()) {
-                //                                //                                createDisplayNotification(getString(Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()),
-                //                                //                                                          R.id.nid_pub_transp);
-                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag()) {
-                //                                notify.createDisplayNotification(getString(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()),
-                //                                                                 R.id.nid_weather);
-                //                            } else if (b == Constants.AdvertiseConst.ADVERTISE_END) {
-                //                                break;
-                //                            }
-                //                        }
-                //                    }
-                //                }
             } else {
-                //                String newData = new String(result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER));
                 notify.removeNotification(R.id.nid_main);
-                //                boolean start = false;
-                //                for (byte b : newData.getBytes()) {
-                //                    if (b == Constants.AdvertiseConst.ADVERTISE_START) {
-                //                        start = true;
-                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag()) {
-                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS.getFlag()) {
-                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag()) {
-                //                        //                        createDisplayNotification(getString(Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()),
-                //                        //                                                  R.id.nid_pub_transp);
-                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag()) {
-                //                        notify.createDisplayNotification(getString(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()),
-                //                                                         R.id.nid_weather);
-                //                    } else if (b == Constants.AdvertiseConst.ADVERTISE_END) {
-                //                        break;
-                //                    }
-                //                }
             }
             currDev = result;
-            //            rcycAdaptDevices.getResults().add(result);
-            //            rcycAdaptDevices.notifyDataSetChanged();
         }
 
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
-            //            Toast.makeText(ActScan.this, "Scan failed with error: " + errorCode, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -323,7 +271,7 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         }
 
         @Override
-        public IConnAdvertScanHandler subscribeBlConnection(UUID uuid, IConnSubscriber subscriber) {
+        public IConnAdvertScanHandler subscribeBlConnection(UUID uuid, IConnAdvertScanHandler.IConnGattSubscriber subscriber) {
             return connectorAdvertScan.subscribeBlConnection(uuid, subscriber);
         }
     }

@@ -5,5 +5,14 @@ package de.uni.stuttgart.vis.access.client.service;
  */
 public interface IConnAdvertScanHandler {
 
-    void registerConnSub(IConnSubscriber sub);
+    void registerConnSub(IConnGattSubscriber sub);
+
+    void deregisterConnSub(IConnGattSubscriber sub);
+
+    interface IConnGattSubscriber {
+
+        void onGattReady();
+
+        void onServicesReady();
+    }
 }

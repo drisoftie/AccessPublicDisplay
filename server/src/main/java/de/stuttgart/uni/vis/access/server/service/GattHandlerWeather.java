@@ -7,7 +7,17 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.view.View;
 
+import com.drisoftie.action.async.IGenericAction;
+import com.drisoftie.action.async.android.AndroidAction;
+
+import net.aksingh.owmjapis.CurrentWeather;
+import net.aksingh.owmjapis.OpenWeatherMap;
+
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +52,36 @@ public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherE
 
         yahooWeather.setExceptionListener(this);
         searchByPlaceName("Stuttgart");
+
+        AndroidAction<View, Void, Void, Void, Void> action = new AndroidAction<View, Void, Void, Void, Void>(new View[0],
+                                                                                                             IGenericAction.class, null) {
+            @Override
+            public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+                return null;
+            }
+
+            @Override
+            public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+                OpenWeatherMap owm = new OpenWeatherMap(OpenWeatherMap.Units.IMPERIAL, OpenWeatherMap.Language.GERMAN, AccessApp.string(
+                        R.string.ow_api));
+                try {
+                    CurrentWeather cwd = owm.currentWeatherByCityName("Stuttgart");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
+                                          Object[] additionalTags) {
+
+            }
+        };
+        action.invokeSelf();
+
     }
 
     @Override
@@ -103,13 +143,10 @@ public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherE
 
             String info = weatherInfo.getTitle() + "\n" + weatherInfo.getWOEIDneighborhood() + ", " + weatherInfo.getWOEIDCounty() + ", " +
                           weatherInfo.getWOEIDState() + ", " + weatherInfo.getWOEIDCountry();
-            BluetoothGattCharacteristic c = getServer().getService(UUID.fromString(Constants.GATT_SERVICE_WEATHER)).getCharacteristic(
-                    UUID.fromString(Constants.GATT_WEATHER_TODAY));
-            c.setValue(weatherInfo.getCurrentText());
+            changeGattChar(UUID.fromString(Constants.GATT_WEATHER_TODAY), weatherInfo.getCurrentText());
+            changeGattChar(UUID.fromString(Constants.GATT_WEATHER_TOMORROW), weatherInfo.getForecastInfo1().getForecastText());
+            changeGattChar(UUID.fromString(Constants.GATT_WEATHER_DAT), weatherInfo.getForecastInfo2().getForecastText());
 
-            for (BluetoothDevice dev : connectedDevices) {
-                getServer().notifyCharacteristicChanged(dev, c, false);
-            }
             //            mTvWeather0.setText("====== CURRENT ======" + "\n" +
             //                                "date: " + weatherInfo.getCurrentConditionDate() + "\n" +
             //                                "weather: " + weatherInfo.getCurrentText() + "\n" +
@@ -141,6 +178,14 @@ public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherE
             //                }
             //                mWeatherInfosLayout.addView(forecastInfoLayout);
             //            }
+        }
+    }
+
+    private void changeGattChar(UUID uuid, String value) {
+        BluetoothGattCharacteristic c = getServer().getService(UUID.fromString(Constants.GATT_SERVICE_WEATHER)).getCharacteristic(uuid);
+        c.setValue(value);
+        for (BluetoothDevice dev : connectedDevices) {
+            getServer().notifyCharacteristicChanged(dev, c, false);
         }
     }
 
