@@ -17,11 +17,10 @@ import com.drisoftie.frags.comp.ManagedActivity;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.helper.IContextProv;
 import de.uni.stuttgart.vis.access.client.service.IServiceBinder;
@@ -32,8 +31,8 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
 
     private BroadcastReceiver msgReceiver = new BrdcstReceiver();
 
-    private IServiceBinder          service;
-    private ConnGattGattCommWeather gattCommunicator;
+    private IServiceBinder      service;
+    private ConnGattCommWeather gattCommunicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +61,7 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
             }
         };
 
-        final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
-        worker.schedule(task, 1, TimeUnit.SECONDS);
+        ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
 
         Intent intent = new Intent(getString(R.string.intent_weather_get));
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
@@ -75,7 +73,7 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
     public void onServiceConnected(ComponentName className, IBinder binder) {
         service = (IServiceBinder) binder;
         service.registerServiceListener(this);
-        gattCommunicator = new ConnGattGattCommWeather();
+        gattCommunicator = new ConnGattCommWeather();
         gattCommunicator.setContextProvider(this);
         gattCommunicator.setViewProvider(this);
         gattCommunicator.setConn(service.subscribeBlConnection(UUID.fromString(Constants.GATT_SERVICE_WEATHER), gattCommunicator));

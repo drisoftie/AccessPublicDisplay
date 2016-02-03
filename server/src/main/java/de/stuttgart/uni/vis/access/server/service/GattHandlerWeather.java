@@ -7,12 +7,13 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.content.res.Resources;
 import android.view.View;
 
 import com.drisoftie.action.async.IGenericAction;
 import com.drisoftie.action.async.android.AndroidAction;
 
-import net.aksingh.owmjapis.CurrentWeather;
+import net.aksingh.owmjapis.DailyForecast;
 import net.aksingh.owmjapis.OpenWeatherMap;
 
 import org.json.JSONException;
@@ -50,8 +51,8 @@ public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherE
         constantUuids.add(UUID.fromString(Constants.GATT_WEATHER_QUERY));
         setConstantUuids(constantUuids);
 
-        yahooWeather.setExceptionListener(this);
-        searchByPlaceName("Stuttgart");
+        //        yahooWeather.setExceptionListener(this);
+        //        searchByPlaceName("Stuttgart");
 
         AndroidAction<View, Void, Void, Void, Void> action = new AndroidAction<View, Void, Void, Void, Void>(new View[0],
                                                                                                              IGenericAction.class, null) {
@@ -62,10 +63,27 @@ public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherE
 
             @Override
             public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
-                OpenWeatherMap owm = new OpenWeatherMap(OpenWeatherMap.Units.IMPERIAL, OpenWeatherMap.Language.GERMAN, AccessApp.string(
-                        R.string.ow_api));
+                OpenWeatherMap owm = new OpenWeatherMap(OpenWeatherMap.Units.IMPERIAL, OpenWeatherMap.Language.fromLangCode(
+                        Resources.getSystem().getConfiguration().locale.getLanguage()), AccessApp.string(R.string.ow_api));
                 try {
-                    CurrentWeather cwd = owm.currentWeatherByCityName("Stuttgart");
+                    DailyForecast fwd = owm.dailyForecastByCityName("Stuttgart", "de", (byte) 3);
+                    for (int i = 0; i < fwd.getForecastCount(); i++) {
+                        if (i == 3) {
+                            break;
+                        }
+                        String descr = fwd.getForecastInstance(i).getWeatherInstance(0).getWeatherDescription();
+                        switch (i) {
+                            case 0:
+                                changeGattChar(UUID.fromString(Constants.GATT_WEATHER_TODAY), descr);
+                                break;
+                            case 1:
+                                changeGattChar(UUID.fromString(Constants.GATT_WEATHER_TOMORROW), descr);
+                                break;
+                            case 2:
+                                changeGattChar(UUID.fromString(Constants.GATT_WEATHER_DAT), descr);
+                                break;
+                        }
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {

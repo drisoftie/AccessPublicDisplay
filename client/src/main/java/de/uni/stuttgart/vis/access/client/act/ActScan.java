@@ -27,11 +27,10 @@ import android.widget.Toast;
 
 import com.drisoftie.frags.comp.ManagedActivity;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.service.IServiceBinder;
 import de.uni.stuttgart.vis.access.client.service.IServiceBlListener;
@@ -138,10 +137,7 @@ public class ActScan extends ManagedActivity
                             startService(new Intent(ActScan.this, ServiceScan.class));
                         }
                     };
-
-                    final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
-
-                    worker.schedule(task, 3, TimeUnit.SECONDS);
+                    ScheduleUtil.scheduleWork(task, 3, TimeUnit.SECONDS);
 
                 } else {
 
@@ -170,10 +166,7 @@ public class ActScan extends ManagedActivity
                     startService(new Intent(ActScan.this, ServiceScan.class));
                 }
             };
-
-            final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
-
-            worker.schedule(task, 3, TimeUnit.SECONDS);
+            ScheduleUtil.scheduleWork(task, 3, TimeUnit.SECONDS);
         }
     }
 

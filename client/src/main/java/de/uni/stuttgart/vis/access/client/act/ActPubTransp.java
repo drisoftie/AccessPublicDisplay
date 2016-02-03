@@ -13,10 +13,9 @@ import android.widget.TextView;
 
 import com.drisoftie.frags.comp.ManagedActivity;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.uni.stuttgart.vis.access.client.R;
 
 public class ActPubTransp extends ManagedActivity {
@@ -53,11 +52,7 @@ public class ActPubTransp extends ManagedActivity {
                 findViewById(R.id.txt_headline_bus).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
             }
         };
-
-        final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
-
-        worker.schedule(task, 1, TimeUnit.SECONDS);
-
+        ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
     }
 
     @Override
@@ -80,7 +75,7 @@ public class ActPubTransp extends ManagedActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String   transp = null;
-            TextView txt     = null;
+            TextView txt    = null;
             if (intent.hasExtra(getString(R.string.bndl_gatt_pub_transp_bus))) {
                 findViewById(R.id.txt_headline_bus).setVisibility(View.GONE);
                 transp = getString(R.string.info_pub_transp_bus, new String(intent.getByteArrayExtra(getString(
@@ -94,7 +89,8 @@ public class ActPubTransp extends ManagedActivity {
                 txt = ((TextView) findViewById(R.id.txt_metro));
             } else if (intent.hasExtra(getString(R.string.bndl_gatt_pub_transp_train))) {
                 findViewById(R.id.txt_headline_train).setVisibility(View.GONE);
-                transp = getString(R.string.info_pub_transp_train, new String(intent.getByteArrayExtra(getString(R.string.bndl_gatt_weather_dat))));
+                transp = getString(R.string.info_pub_transp_train, new String(intent.getByteArrayExtra(getString(
+                        R.string.bndl_gatt_weather_dat))));
                 txt = ((TextView) findViewById(R.id.txt_train));
             }
             assert txt != null;

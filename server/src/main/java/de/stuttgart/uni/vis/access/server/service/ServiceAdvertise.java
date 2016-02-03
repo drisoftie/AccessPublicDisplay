@@ -21,11 +21,10 @@ import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.stuttgart.uni.vis.access.server.IAdvertReceiver;
 import de.stuttgart.uni.vis.access.server.R;
 import de.stuttgart.uni.vis.access.server.act.ActServerAdvertise;
@@ -75,15 +74,14 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
                 startGattServers();
                 startAdvertising();
                 setTimeout();
+                brdRcvr = new BrRcvAdvertRestart(ServiceAdvertise.this);
+                LocalBroadcastManager.getInstance(ServiceAdvertise.this).registerReceiver(brdRcvr, new IntentFilter(getString(
+                        R.string.intent_advert_value)));
             }
         };
+        ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
 
-        final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
 
-        worker.schedule(task, 1, TimeUnit.SECONDS);
-
-        brdRcvr = new BrRcvAdvertRestart(this);
-        LocalBroadcastManager.getInstance(this).registerReceiver(brdRcvr, new IntentFilter(getString(R.string.intent_advert_value)));
         super.onCreate();
     }
 

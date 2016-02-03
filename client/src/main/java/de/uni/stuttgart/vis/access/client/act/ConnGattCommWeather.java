@@ -16,7 +16,7 @@ import de.uni.stuttgart.vis.access.client.service.IConnWeather;
 /**
  * @author Alexander Dridiger
  */
-public class ConnGattGattCommWeather implements IConnAdvertScanHandler.IConnGattSubscriber, IConnWeather.IConnWeatherSub {
+public class ConnGattCommWeather implements IConnAdvertScanHandler.IConnGattSubscriber, IConnWeather.IConnWeatherSub {
 
     private IConnAdvertScanHandler blConn;
     private IConnWeather           blWeather;
