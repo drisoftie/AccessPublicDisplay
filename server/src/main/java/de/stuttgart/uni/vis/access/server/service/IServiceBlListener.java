@@ -8,4 +8,6 @@ public interface IServiceBlListener {
     void onBlStarted();
 
     void onConnStopped();
+
+    void onBlUserShutdownCompleted();
 }

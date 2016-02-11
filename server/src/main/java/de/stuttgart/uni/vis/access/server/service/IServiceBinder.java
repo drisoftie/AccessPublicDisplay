@@ -10,4 +10,6 @@ public interface IServiceBinder {
     void deregisterServiceListener(IServiceBlListener listener);
 
     boolean isConnected(IServiceBlListener listener);
+
+    void onBlUserShutdown();
 }

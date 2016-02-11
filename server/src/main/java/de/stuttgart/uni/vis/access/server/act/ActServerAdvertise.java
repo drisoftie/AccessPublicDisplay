@@ -138,7 +138,6 @@ public class ActServerAdvertise extends ManagedActivity
                 Log.d(TAG, "Instance state is null, starting bluetooth stack");
             }
             blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
-
             // Is Bluetooth supported on this device?
             if (blAdapt != null) {
                 // Is Bluetooth turned on?
@@ -181,23 +180,17 @@ public class ActServerAdvertise extends ManagedActivity
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case Constants.REQUEST_ENABLE_BT:
-
                 if (resultCode == RESULT_OK) {
-
                     // Bluetooth is now Enabled, are Bluetooth Advertisements supported on
                     // this device?
                     if (blAdapt.isMultipleAdvertisementSupported()) {
-
                         // Everything is supported and enabled, load the fragments.
                         startBlServiceConn();
-
                     } else {
-
                         // Bluetooth Advertisements are not supported.
                         showErrorText(R.string.bt_ads_not_supported);
                     }
                 } else {
-
                     // User declined to enable Bluetooth, exit the app.
                     Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
                     finish();
@@ -228,7 +221,11 @@ public class ActServerAdvertise extends ManagedActivity
     @Override
     public void onBlStarted() {
         actionMenuEnd.invokeSelf();
-//        createMenuStart();
+    }
+
+    @Override
+    public void onBlUserShutdownCompleted() {
+        actionMenuStart.invokeSelf();
     }
 
     private void createMenuStart() {
@@ -268,7 +265,6 @@ public class ActServerAdvertise extends ManagedActivity
     }
 
     private void showErrorText(int messageId) {
-
         //        TextView view = (TextView) findViewById(R.id.error_textview);
         //        view.setText(getString(messageId));
     }
@@ -333,7 +329,10 @@ public class ActServerAdvertise extends ManagedActivity
                 menu.findItem(R.id.menu_refresh).setActionView(R.layout.actionbar_indeterminate_progress);
                 break;
             case R.id.menu_stop:
-                stopServiceBl();
+                if (isServiceBlConnected()) {
+                    service.onBlUserShutdown();
+                    stopServiceBl();
+                }
                 menu.findItem(R.id.menu_advertise).setVisible(true);
                 menu.findItem(R.id.menu_stop).setVisible(false);
                 menu.findItem(R.id.menu_refresh).setVisible(true);

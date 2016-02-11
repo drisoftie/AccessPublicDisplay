@@ -122,6 +122,7 @@ public class GattHandlerShout extends BaseGattHandler {
 
         @Override
         public void onServiceAdded(int status, BluetoothGattService service) {
+            getServicesReadyListener().onFinished(service.getUuid());
         }
 
         @Override

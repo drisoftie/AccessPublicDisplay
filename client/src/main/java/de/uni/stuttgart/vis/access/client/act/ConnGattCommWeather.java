@@ -21,19 +21,19 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
 
     private IConnGattProvider blConn;
     private IConnWeather      blWeather;
-    private IContextProv      cntxtProv;
-    private IViewProv         viewProv;
+    private IContextProv      provCntxt;
+    private IViewProv         provView;
 
     private ActionSetText actionWeatherToday;
     private ActionSetText actionWeatherTomorrow;
     private ActionSetText actionWeatherDat;
 
     public void setContextProvider(IContextProv prov) {
-        this.cntxtProv = prov;
+        this.provCntxt = prov;
     }
 
     public void setViewProvider(IViewProv prov) {
-        this.viewProv = prov;
+        this.provView = prov;
         actionWeatherToday = new ActionSetText((TextView) prov.provideView(R.id.txt_weather_today), IGenericAction.class, null);
         actionWeatherTomorrow = new ActionSetText((TextView) prov.provideView(R.id.txt_weather_tomorrow), IGenericAction.class, null);
         actionWeatherDat = new ActionSetText((TextView) prov.provideView(R.id.txt_weather_dat), IGenericAction.class, null);
@@ -54,7 +54,7 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
 
     @Override
     public void onServicesReady() {
-        viewProv.provideView(R.id.txt_headline_today).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
+        provView.provideView(R.id.txt_headline_today).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
         blWeather.getWeatherInfo(Constants.GATT_WEATHER_TODAY.getUuid());
     }
 
@@ -74,7 +74,7 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
     }
 
     public void onDetach() {
-        cntxtProv = null;
+        provCntxt = null;
         blConn.deregisterConnGattSub(this);
         blWeather.deregisterWeatherSub(this);
     }

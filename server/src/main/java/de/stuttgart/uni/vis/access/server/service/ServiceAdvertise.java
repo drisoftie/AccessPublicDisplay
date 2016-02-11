@@ -20,12 +20,20 @@ import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
+import com.drisoftie.action.async.ActionMethod;
+import com.drisoftie.action.async.IGenericAction;
+import com.drisoftie.action.async.android.AndroidAction;
+import com.drisoftie.action.async.handler.IFinishedHandler;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
@@ -58,17 +66,22 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
     private BluetoothLeAdvertiser blLeAdvertiser;
     private List<IServiceBlListener> serviceListeners = new ArrayList<>();
 
-    private AdvertHandler         blAdvertHandler;
-    private GattServerStateHolder blGattServerHolder;
-    private Handler               timeoutHandler;
-    private Runnable              timeoutRunnable;
+    private AdvertHandler            blAdvertHandler;
+    private GattServerStateHolder    blGattServerHolder;
+    private Handler                  timeoutHandler;
+    private Runnable                 timeoutRunnable;
+    private ScheduledExecutorService worker;
+
+    private ActionServiceSetup actionServiceSetup;
+
     /**
      * Length of time to allow advertising before automatically shutting off. (10 minutes)
      */
-    private long              TIMEOUT     = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
+    private long TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
+
     // Our handler for received Intents. This will be called whenever an Intent
     // with an action named "custom-event-name" is broadcasted.
-    private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver                           msgReceiver        = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (StringUtils.equals(intent.getAction(), getString(R.string.intent_action_bl_user_stopped)) || StringUtils.equals(
@@ -77,6 +90,33 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
                     l.onConnStopped();
                 }
                 stopSelf();
+            }
+        }
+    };
+    private AndroidAction<View, Void, Void, Void, Void> actionUserShutdown = new AndroidAction<View, Void, Void, Void, Void>(new View[0],
+                                                                                                                             IGenericAction.class,
+                                                                                                                             "") {
+        @Override
+        public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            return null;
+        }
+
+        @Override
+        public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            worker.shutdown();
+            stopAdvertising();
+            blGattServerHolder.closeServer();
+            if (timeoutHandler != null) {
+                timeoutHandler.removeCallbacks(timeoutRunnable);
+            }
+            return null;
+        }
+
+        @Override
+        public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
+                                      Object[] additionalTags) {
+            for (IServiceBlListener l : serviceListeners) {
+                l.onBlUserShutdownCompleted();
             }
         }
     };
@@ -92,43 +132,25 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Initializing GATT && Advertising...");
                 }
-                initialize();
-                startGattServers();
-                startAdvertising();
-                setTimeout();
-                IntentFilter filter = new IntentFilter();
-                filter.addAction(getString(R.string.intent_bl_stopped));
-                filter.addAction(getString(R.string.intent_action_bl_user_stopped));
-                filter.addAction(getString(R.string.intent_advert_value));
-                LocalBroadcastManager.getInstance(ServiceAdvertise.this).registerReceiver(msgReceiver, filter);
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Sending listeners start notify: " + serviceListeners.size());
-                }
-                for (IServiceBlListener l : serviceListeners) {
-                    l.onBlStarted();
-                }
+                actionServiceSetup = new ActionServiceSetup(null, new Class[]{IGenericAction.class, IFinishedHandler.class}, null);
+                actionServiceSetup.invokeSelf();
             }
         };
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Creating Service Components");
         }
         timeoutHandler = new Handler();
-        ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
+        worker = ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
     }
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
         running = false;
-        stopAdvertising();
-        blGattServerHolder.closeServer();
-        if (timeoutHandler != null) {
-            timeoutHandler.removeCallbacks(timeoutRunnable);
-        }
         Intent notify = new Intent(getString(R.string.intent_bl_stopped));
         LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
         msgReceiver = null;
-        super.onDestroy();
     }
 
     /**
@@ -299,7 +321,6 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
         restartAdvertisement();
     }
 
-
     /**
      * Builds and sends a broadcast intent indicating Advertising has failed. Includes the error
      * code as an extra. This is intended to be picked up by the {@code AdvertiserFragment}.
@@ -319,12 +340,9 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "GATT State Holder = " + blGattServerHolder);
         }
-        blGattServerHolder.startGatt(blManager);
+        blGattServerHolder.startGatt(blManager, actionServiceSetup.getHandlerImpl(IFinishedHandler.class));
     }
 
-    /**
-     *
-     */
     public class ServiceBinder extends Binder implements IServiceBinder {
 
         @Override
@@ -340,6 +358,53 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
         @Override
         public boolean isConnected(IServiceBlListener listener) {
             return serviceListeners.contains(listener);
+        }
+
+        @Override
+        public void onBlUserShutdown() {
+            actionUserShutdown.invokeSelf();
+        }
+    }
+
+    private class ActionServiceSetup extends AndroidAction<View, Void, Void, Void, Void> {
+
+        public ActionServiceSetup(View view, Class<?>[] actionTypes, String regMethodName) {
+            super(view, actionTypes, regMethodName);
+        }
+
+        @Override
+        public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            return null;
+        }
+
+        @Override
+        public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            if (ActionMethod.INVOKE_ACTION.matches(methodName)) {
+                if (ArrayUtils.isEmpty(stripMethodArgs(methodArgs))) {
+                    initialize();
+                    //noinspection unchecked
+                    startGattServers();
+                }
+            } else if (StringUtils.equals(methodName, "onFinished")) {
+                startAdvertising();
+                setTimeout();
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(getString(R.string.intent_action_bl_user_stopped));
+                filter.addAction(getString(R.string.intent_advert_value));
+                LocalBroadcastManager.getInstance(ServiceAdvertise.this).registerReceiver(msgReceiver, filter);
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Sending listeners start notify: " + serviceListeners.size());
+                }
+                for (IServiceBlListener l : serviceListeners) {
+                    l.onBlStarted();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
+                                      Object[] additionalTags) {
         }
     }
 }

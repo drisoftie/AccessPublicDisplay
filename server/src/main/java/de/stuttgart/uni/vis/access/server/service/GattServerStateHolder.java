@@ -9,6 +9,15 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.os.ParcelUuid;
 import android.util.Log;
+import android.view.View;
+
+import com.drisoftie.action.async.ActionMethod;
+import com.drisoftie.action.async.IGenericAction;
+import com.drisoftie.action.async.android.AndroidAction;
+import com.drisoftie.action.async.handler.IFinishedHandler;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,77 +35,64 @@ public class GattServerStateHolder {
     private static final String TAG = GattServerStateHolder.class.getSimpleName();
 
     private GattCallback        blGattCallback;
-    private BluetoothGattServer blGattServerWeather;
-    private BluetoothGattServer blGattServerPubTransp;
-    private BluetoothGattServer blGattServerShout;
+    private BluetoothGattServer blGattServer;
 
     private List<IGattHandler> blGattHandler = new ArrayList<>();
 
-    public void startGatt(BluetoothManager blManager) {
+    private ActionServicesAdd         actionServicesAdd;
+    private IFinishedHandler<Integer> finishedHandler;
+
+    public void startGatt(BluetoothManager blManager, IFinishedHandler<Integer> finishedHandler) {
+        this.finishedHandler = finishedHandler;
         blGattCallback = new GattCallback();
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Start Weather + Pubtransp + Shout");
         }
-        startGattServerWeather(blManager);
-        startGattServerPubTransp(blManager);
-        startGattServerShout(blManager);
+        startGattServer(blManager);
+        actionServicesAdd = new ActionServicesAdd(null, new Class[]{IGenericAction.class, IFinishedHandler.class}, null);
+        actionServicesAdd.invokeSelf();
     }
 
     public void closeServer() {
-        blGattServerWeather.close();
-        blGattServerPubTransp.close();
+        blGattServer.close();
     }
 
-    private void startGattServerWeather(BluetoothManager blManager) {
-        GattHandlerWeather handler = new GattHandlerWeather();
-        blGattServerWeather = blManager.openGattServer(AccessApp.inst(), blGattCallback);
-        handler.setServer(blGattServerWeather);
-        handler.prepareServer();
-        handler.prepareServices();
-        blGattHandler.add(handler);
+    private void startGattServer(BluetoothManager blManager) {
+        blGattServer = blManager.openGattServer(AccessApp.inst(), blGattCallback);
     }
 
-    private void startGattServerPubTransp(BluetoothManager blManager) {
-        GattHandlerPubTransp handler = new GattHandlerPubTransp();
-        blGattServerPubTransp = blManager.openGattServer(AccessApp.inst(), blGattCallback);
-        handler.setServer(blGattServerPubTransp);
-        handler.prepareServices();
-        blGattHandler.add(handler);
-    }
-
-    private void startGattServerShout(BluetoothManager blManager) {
-        GattHandlerShout handler = new GattHandlerShout();
-        blGattServerShout = blManager.openGattServer(AccessApp.inst(), blGattCallback);
-        handler.setServer(blGattServerShout);
-        handler.prepareServices();
-        blGattHandler.add(handler);
-    }
-
-    private BluetoothGattCharacteristic createCharacteristic(String uuid, int property, int permission, byte[] value) {
-        BluetoothGattCharacteristic c = new BluetoothGattCharacteristic(UUID.fromString(uuid), property, permission);
-        c.setValue(value);
-        return c;
-    }
-
-    private void addDeviceInfoService(BluetoothGattServer gattServer) {
-        if (null == gattServer) {
-            return;
+    private void startGattServerWeather() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Start Weather");
         }
-        //
-        // device info
-        //
-        BluetoothGattCharacteristic softwareVerCharacteristic = new BluetoothGattCharacteristic(
-                Constants.SOFTWARE_REVISION_STRING.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
-                BluetoothGattCharacteristic.PERMISSION_READ);
+        GattHandlerWeather handler = new GattHandlerWeather();
+        handler.setServer(blGattServer);
+        handler.prepareServer();
+        //noinspection unchecked
+        handler.prepareServices(actionServicesAdd.getHandlerImpl(IFinishedHandler.class));
+        blGattHandler.add(handler);
+    }
 
-        BluetoothGattService deviceInfoService = new BluetoothGattService(Constants.SERVICE_DEVICE_INFORMATION.getUuid(),
-                                                                          BluetoothGattService.SERVICE_TYPE_PRIMARY);
+    private void startGattServerPubTransp() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Start Pubtransp");
+        }
+        GattHandlerPubTransp handler = new GattHandlerPubTransp();
+        handler.setServer(blGattServer);
+        //noinspection unchecked
+        handler.prepareServices(actionServicesAdd.getHandlerImpl(IFinishedHandler.class));
+        blGattHandler.add(handler);
+    }
 
-
-        softwareVerCharacteristic.setValue("0.0.1".getBytes());
-
-        deviceInfoService.addCharacteristic(softwareVerCharacteristic);
-        gattServer.addService(deviceInfoService);
+    private void startGattServerShout() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Start Shout");
+        }
+        GattHandlerShout handler = new GattHandlerShout();
+        handler.setServer(blGattServer);
+        //noinspection unchecked
+        handler.prepareServices(actionServicesAdd.getHandlerImpl(IFinishedHandler.class));
+        blGattHandler.add(handler);
     }
 
     private BluetoothGattServerCallback getHandlerCallback(ParcelUuid... uuids) {
@@ -212,6 +208,42 @@ public class GattServerStateHolder {
                 callback.onExecuteWrite(device, requestId, execute);
             }
             super.onExecuteWrite(device, requestId, execute);
+        }
+    }
+
+
+    private class ActionServicesAdd extends AndroidAction<View, Void, Void, Void, Void> {
+
+        public ActionServicesAdd(View view, Class<?>[] actionTypes, String regMethodName) {
+            super(view, actionTypes, regMethodName);
+        }
+
+        @Override
+        public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            return null;
+        }
+
+        @Override
+        public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            if (ActionMethod.INVOKE_ACTION.matches(methodName)) {
+                if (ArrayUtils.isEmpty(stripMethodArgs(methodArgs))) {
+                    startGattServerWeather();
+                }
+            } else if (StringUtils.equals(methodName, "onFinished")) {
+                if (Constants.GATT_SERVICE_WEATHER.getUuid().equals(methodArgs[0])) {
+                    startGattServerPubTransp();
+                } else if (Constants.GATT_SERVICE_PUB_TRANSP.getUuid().equals(methodArgs[0])) {
+                    startGattServerShout();
+                } else if (Constants.GATT_SERVICE_SHOUT.getUuid().equals(methodArgs[0])) {
+                    finishedHandler.onFinished(null);
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
+                                      Object[] additionalTags) {
         }
     }
 }

@@ -42,6 +42,9 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
         connections.add(shout);
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid());
+        constantUuids.add(Constants.UUID_ADVERT_SERVICE_WEATHER.getUuid());
+        constantUuids.add(Constants.UUID_ADVERT_SERVICE_PUB_TRANSP.getUuid());
+        constantUuids.add(Constants.UUID_ADVERT_SERVICE_SHOUT.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());

@@ -36,8 +36,9 @@ public class GattHandlerPubTransp extends BaseGattHandler {
                                                                          BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
         servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_BUS.getUuid(),
-                                           BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ,
-                                           AccessApp.inst().getString(R.string.bl_advert_bus).getBytes()));
+                                                                BluetoothGattCharacteristic.PROPERTY_READ,
+                                                                BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
+                R.string.bl_advert_bus).getBytes()));
         servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_METRO.getUuid(),
                                                                 BluetoothGattCharacteristic.PROPERTY_READ,
                                                                 BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
@@ -68,6 +69,7 @@ public class GattHandlerPubTransp extends BaseGattHandler {
 
         @Override
         public void onServiceAdded(int status, BluetoothGattService service) {
+            getServicesReadyListener().onFinished(service.getUuid());
         }
 
         @Override

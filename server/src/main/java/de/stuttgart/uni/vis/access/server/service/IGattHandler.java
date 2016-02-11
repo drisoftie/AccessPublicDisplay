@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.os.ParcelUuid;
 
+import com.drisoftie.action.async.handler.IFinishedHandler;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +27,9 @@ public interface IGattHandler {
 
     void prepareServer();
 
-    void prepareServices();
+    void prepareServices(IFinishedHandler<UUID> readyListener);
+
+    IFinishedHandler<UUID> getServicesReadyListener();
 
     void changeGattChar(UUID servUuid, UUID charUuid, String value);
 

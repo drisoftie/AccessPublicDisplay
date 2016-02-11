@@ -6,21 +6,28 @@ import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.os.ParcelUuid;
+import android.util.Log;
+
+import com.drisoftie.action.async.handler.IFinishedHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.server.BuildConfig;
 
 /**
  * @author Alexander Dridiger
  */
 public abstract class BaseGattHandler implements IGattHandler {
 
+    private static final String TAG = BaseGattHandler.class.getSimpleName();
+
     private BluetoothGattServer server;
     private List<UUID>          constantUuids;
     private List<BluetoothDevice> connectedDevices = new ArrayList<>();
+    private IFinishedHandler<UUID> readyListener;
 
     @Override
     public BluetoothGattServer getServer() {
@@ -50,12 +57,21 @@ public abstract class BaseGattHandler implements IGattHandler {
     @Override
     public void prepareServer() {
         server.clearServices();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Start Device Info");
+        }
         addDeviceInfoService(server);
     }
 
     @Override
-    public void prepareServices() {
+    public void prepareServices(IFinishedHandler<UUID> readyListener) {
+        this.readyListener = readyListener;
         addServices();
+    }
+
+    @Override
+    public IFinishedHandler<UUID> getServicesReadyListener() {
+        return readyListener;
     }
 
     protected void addDeviceInfoService(BluetoothGattServer gattServer) {

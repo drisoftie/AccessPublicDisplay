@@ -59,7 +59,7 @@ public class AccessApp extends Application {
     }
 
     public static String string(int id, Objects... args) {
-        return inst().getString(id, args);
+        return inst().getString(id, new Object[]{args});
     }
 
     @SuppressWarnings("rawtypes")

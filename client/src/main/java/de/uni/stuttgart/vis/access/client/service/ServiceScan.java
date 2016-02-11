@@ -202,7 +202,7 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
             if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_value))) {
                 connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)));
                 String advertisement = intent.getStringExtra(getString(R.string.bndl_bl_show));
-                if (getString(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()).equals(advertisement)) {
+                if ("Some new infos!".equals(advertisement)) {
                     Intent weatherIntent = new Intent(ServiceScan.this, ActWeather.class);
                     weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(weatherIntent);
