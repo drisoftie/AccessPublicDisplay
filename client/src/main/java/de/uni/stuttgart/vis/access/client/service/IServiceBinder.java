@@ -2,6 +2,8 @@ package de.uni.stuttgart.vis.access.client.service;
 
 import java.util.UUID;
 
+import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
+
 /**
  * @author Alexander Dridiger
  */
@@ -9,7 +11,7 @@ public interface IServiceBinder {
 
     void registerServiceListener(IServiceBlListener listener);
 
-    void deRegisterServiceListener(IServiceBlListener listener);
+    void deregisterServiceListener(IServiceBlListener listener);
 
-    IConnAdvertScanHandler subscribeBlConnection(UUID uuid, IConnAdvertScanHandler.IConnGattSubscriber subscriber);
+    IConnGattProvider subscribeBlConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber);
 }

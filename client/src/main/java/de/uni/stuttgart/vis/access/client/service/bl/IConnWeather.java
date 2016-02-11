@@ -1,4 +1,4 @@
-package de.uni.stuttgart.vis.access.client.service;
+package de.uni.stuttgart.vis.access.client.service.bl;
 
 import java.util.UUID;
 

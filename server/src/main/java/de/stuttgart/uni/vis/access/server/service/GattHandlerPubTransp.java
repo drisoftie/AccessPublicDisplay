@@ -23,25 +23,27 @@ public class GattHandlerPubTransp extends BaseGattHandler {
 
     public GattHandlerPubTransp() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
-        constantUuids.add(UUID.fromString(Constants.GATT_SERVICE_PUB_TRANSP));
-        constantUuids.add(UUID.fromString(Constants.GATT_PUB_TRANSP_BUS));
-        constantUuids.add(UUID.fromString(Constants.GATT_PUB_TRANSP_METRO));
-        constantUuids.add(UUID.fromString(Constants.GATT_PUB_TRANSP_TRAIN));
+        constantUuids.add(Constants.GATT_SERVICE_PUB_TRANSP.getUuid());
+        constantUuids.add(Constants.GATT_PUB_TRANSP_BUS.getUuid());
+        constantUuids.add(Constants.GATT_PUB_TRANSP_METRO.getUuid());
+        constantUuids.add(Constants.GATT_PUB_TRANSP_TRAIN.getUuid());
         setConstantUuids(constantUuids);
     }
 
     @Override
     protected void addServices() {
-        BluetoothGattService servicePubTransp = new BluetoothGattService(UUID.fromString(Constants.GATT_SERVICE_PUB_TRANSP),
+        BluetoothGattService servicePubTransp = new BluetoothGattService(Constants.GATT_SERVICE_PUB_TRANSP.getUuid(),
                                                                          BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
-        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_BUS, BluetoothGattCharacteristic.PROPERTY_READ,
-                                                                BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
-                        R.string.bl_advert_bus).getBytes()));
-        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_METRO, BluetoothGattCharacteristic.PROPERTY_READ,
+        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_BUS.getUuid(),
+                                           BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ,
+                                           AccessApp.inst().getString(R.string.bl_advert_bus).getBytes()));
+        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_METRO.getUuid(),
+                                                                BluetoothGattCharacteristic.PROPERTY_READ,
                                                                 BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
                         R.string.bl_advert_metro).getBytes()));
-        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_TRAIN, BluetoothGattCharacteristic.PROPERTY_READ,
+        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_TRAIN.getUuid(),
+                                                                BluetoothGattCharacteristic.PROPERTY_READ,
                                                                 BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
                         R.string.bl_advert_train).getBytes()));
 

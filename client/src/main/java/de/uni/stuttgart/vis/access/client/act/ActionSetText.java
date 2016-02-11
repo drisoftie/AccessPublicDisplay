@@ -7,6 +7,8 @@ import com.drisoftie.action.async.android.AndroidAction;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import de.uni.stuttgart.vis.access.client.R;
+
 /**
  * @author Alexander Dridiger
  */
@@ -39,6 +41,9 @@ public class ActionSetText extends AndroidAction<View, Void, Void, Void, Void> {
         Object[] args = stripMethodArgs(methodArgs);
         if (ArrayUtils.isNotEmpty(args)) {
             txt.setText((String) args[0]);
+            if (R.id.txt_weather_dat == txt.getId()) {
+                ((TextView) txt.getRootView().findViewById(R.id.txt_weather_more_info)).setText(R.string.txt_weather_more_info);
+            }
         }
     }
 }

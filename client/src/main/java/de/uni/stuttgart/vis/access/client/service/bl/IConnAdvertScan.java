@@ -1,4 +1,4 @@
-package de.uni.stuttgart.vis.access.client.service;
+package de.uni.stuttgart.vis.access.client.service.bl;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCallback;
@@ -53,15 +53,21 @@ public interface IConnAdvertScan {
 
     boolean match(BluetoothDevice device);
 
+    List<ScanResult> getScanResults();
+
     void addScanResult(ScanResult scanResult);
 
     void clearScanHistory();
 
     void removeScanResult(ScanResult scanResult);
 
-    IConnAdvertScanHandler registerConnectionSubscriber(IConnAdvertScanHandler.IConnGattSubscriber subscriber);
+    IConnAdvertProvider registerConnectionAdvertSubscriber(IConnAdvertProvider.IConnAdvertSubscriber subscriber);
 
-    List<IConnAdvertScanHandler.IConnGattSubscriber> getConnSubscribers();
+    List<IConnAdvertProvider.IConnAdvertSubscriber> getConnAdvertSubscribers();
+
+    IConnGattProvider registerConnectionGattSubscriber(IConnGattProvider.IConnGattSubscriber subscriber);
+
+    List<IConnGattProvider.IConnGattSubscriber> getConnGattSubscribers();
 
     List<BluetoothDevice> getConnDevices();
 

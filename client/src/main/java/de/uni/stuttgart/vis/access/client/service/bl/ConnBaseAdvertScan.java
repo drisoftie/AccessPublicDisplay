@@ -1,4 +1,4 @@
-package de.uni.stuttgart.vis.access.client.service;
+package de.uni.stuttgart.vis.access.client.service.bl;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCallback;
@@ -17,16 +17,16 @@ import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
 /**
  * @author Alexander Dridiger
  */
-public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvertScanHandler {
+public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattProvider, IConnAdvertProvider {
 
     private List<UUID>            constantUuids;
     private ScanCallback          cllbckAdvertScan;
     private BluetoothGattCallback cllbckGatt;
 
-    private List<BluetoothDevice>     connDevices = new ArrayList<>();
-    private List<ScanResult>          scanHistory = new ArrayList<>();
-    private List<IAdvertSubscriber>   subscribers = new ArrayList<>();
-    private List<IConnGattSubscriber> subsConn    = new ArrayList<>();
+    private List<BluetoothDevice>       connDevices    = new ArrayList<>();
+    private List<ScanResult>            scanHistory    = new ArrayList<>();
+    private List<IConnAdvertSubscriber> subsConnAdvert = new ArrayList<>();
+    private List<IConnGattSubscriber>   subsConnGatt   = new ArrayList<>();
     private INotifyProv notifyProv;
     private ITtsProv    ttsProv;
 
@@ -162,6 +162,11 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvert
     }
 
     @Override
+    public List<ScanResult> getScanResults() {
+        return scanHistory;
+    }
+
+    @Override
     public void addScanResult(ScanResult scanResult) {
         if (scanResult.getScanRecord() != null && scanResult.getScanRecord().getServiceData() != null) {
             ScanResult foundRes = null;
@@ -193,37 +198,54 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnAdvert
         scanHistory.remove(scanResult);
     }
 
-    public List<IAdvertSubscriber> getSubscribers() {
-        return subscribers;
-    }
-
-    public void registerAdvertSubscriber(IAdvertSubscriber subscriber) {
-        subscribers.add(subscriber);
-    }
-
-    public void removeAdvertSubscriber(IAdvertSubscriber subscriber) {
-        subscribers.remove(subscriber);
+    @Override
+    public List<IConnAdvertSubscriber> getConnAdvertSubscribers() {
+        return subsConnAdvert;
     }
 
     @Override
-    public IConnAdvertScanHandler registerConnectionSubscriber(IConnGattSubscriber subscriber) {
-        subsConn.add(subscriber);
+    public IConnAdvertProvider registerConnectionAdvertSubscriber(IConnAdvertSubscriber subscriber) {
+        if (!subsConnAdvert.contains(subscriber)) {
+            subsConnAdvert.add(subscriber);
+        }
         return this;
     }
 
     @Override
-    public void registerConnSub(IConnGattSubscriber sub) {
-        subsConn.add(sub);
+    public void registerConnAdvertSub(IConnAdvertSubscriber subscriber) {
+        if (!subsConnAdvert.contains(subscriber)) {
+            subsConnAdvert.add(subscriber);
+        }
     }
 
     @Override
-    public List<IConnGattSubscriber> getConnSubscribers() {
-        return subsConn;
+    public void deregisterConnAdvertSub(IConnAdvertSubscriber subscriber) {
+        subsConnAdvert.remove(subscriber);
     }
 
     @Override
-    public void deregisterConnSub(IConnGattSubscriber sub) {
-        subsConn.remove(sub);
+    public IConnGattProvider registerConnectionGattSubscriber(IConnGattSubscriber subscriber) {
+        if (!subsConnGatt.contains(subscriber)) {
+            subsConnGatt.add(subscriber);
+        }
+        return this;
+    }
+
+    @Override
+    public void registerConnGattSub(IConnGattSubscriber sub) {
+        if (!subsConnGatt.contains(sub)) {
+            subsConnGatt.add(sub);
+        }
+    }
+
+    @Override
+    public List<IConnGattSubscriber> getConnGattSubscribers() {
+        return subsConnGatt;
+    }
+
+    @Override
+    public void deregisterConnGattSub(IConnGattSubscriber sub) {
+        subsConnGatt.remove(sub);
     }
 
     @Override

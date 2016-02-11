@@ -36,7 +36,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:accessibilityLiveRegion="polite"
-            android:hint="@string/hint_weather_today"/>
+            android:hint="@string/hint_weather_today"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
     </LinearLayout>
 
     <TextView
@@ -64,7 +65,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:accessibilityLiveRegion="polite"
-            android:hint="@string/hint_weather_tomorrow"/>
+            android:hint="@string/hint_weather_tomorrow"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
     </LinearLayout>
 
     <TextView
@@ -92,6 +94,15 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:accessibilityLiveRegion="polite"
-            android:hint="@string/hint_weather_dat"/>
+            android:hint="@string/hint_weather_dat"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
     </LinearLayout>
+
+    <TextView
+        android:id="@id/txt_weather_more_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:accessibilityLiveRegion="polite"
+        android:textAppearance="?android:attr/textAppearanceLarge"/>
 </LinearLayout>

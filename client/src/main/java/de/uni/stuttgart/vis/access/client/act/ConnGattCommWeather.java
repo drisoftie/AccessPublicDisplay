@@ -1,5 +1,6 @@
 package de.uni.stuttgart.vis.access.client.act;
 
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.TextView;
 
 import com.drisoftie.action.async.IGenericAction;
@@ -10,18 +11,18 @@ import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.client.AccessApp;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.helper.IContextProv;
-import de.uni.stuttgart.vis.access.client.service.IConnAdvertScanHandler;
-import de.uni.stuttgart.vis.access.client.service.IConnWeather;
+import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
+import de.uni.stuttgart.vis.access.client.service.bl.IConnWeather;
 
 /**
  * @author Alexander Dridiger
  */
-public class ConnGattCommWeather implements IConnAdvertScanHandler.IConnGattSubscriber, IConnWeather.IConnWeatherSub {
+public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscriber, IConnWeather.IConnWeatherSub {
 
-    private IConnAdvertScanHandler blConn;
-    private IConnWeather           blWeather;
-    private IContextProv           cntxtProv;
-    private IViewProv              viewProv;
+    private IConnGattProvider blConn;
+    private IConnWeather      blWeather;
+    private IContextProv      cntxtProv;
+    private IViewProv         viewProv;
 
     private ActionSetText actionWeatherToday;
     private ActionSetText actionWeatherTomorrow;
@@ -38,9 +39,9 @@ public class ConnGattCommWeather implements IConnAdvertScanHandler.IConnGattSubs
         actionWeatherDat = new ActionSetText((TextView) prov.provideView(R.id.txt_weather_dat), IGenericAction.class, null);
     }
 
-    public void setConn(IConnAdvertScanHandler blConnection) {
+    public void setConn(IConnGattProvider blConnection) {
         this.blConn = blConnection;
-        blConnection.registerConnSub(this);
+        blConnection.registerConnGattSub(this);
         if (blConnection instanceof IConnWeather) {
             blWeather = (IConnWeather) blConnection;
             blWeather.registerWeatherSub(this);
@@ -53,7 +54,18 @@ public class ConnGattCommWeather implements IConnAdvertScanHandler.IConnGattSubs
 
     @Override
     public void onServicesReady() {
-        blWeather.getWeatherInfo(UUID.fromString(Constants.GATT_WEATHER_TODAY));
+        viewProv.provideView(R.id.txt_headline_today).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
+        blWeather.getWeatherInfo(Constants.GATT_WEATHER_TODAY.getUuid());
+    }
+
+    @Override
+    public void onGattValueReceived(byte[] value) {
+
+    }
+
+    @Override
+    public void onGattValueChanged(UUID uuid, byte[] value) {
+
     }
 
     @Override
@@ -63,21 +75,21 @@ public class ConnGattCommWeather implements IConnAdvertScanHandler.IConnGattSubs
 
     public void onDetach() {
         cntxtProv = null;
-        blConn.deregisterConnSub(this);
+        blConn.deregisterConnGattSub(this);
         blWeather.deregisterWeatherSub(this);
     }
 
     private void setText(UUID uuid, byte[] value) {
-        String weather = null;
-        if (UUID.fromString(Constants.GATT_WEATHER_TODAY).equals(uuid)) {
+        String weather;
+        if (Constants.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
             weather = AccessApp.inst().getString(R.string.info_weather_today, new String(value));
             actionWeatherToday.invokeSelf(weather);
-            blWeather.getWeatherInfo(UUID.fromString(Constants.GATT_WEATHER_TOMORROW));
-        } else if (UUID.fromString(Constants.GATT_WEATHER_TOMORROW).equals(uuid)) {
+            blWeather.getWeatherInfo(Constants.GATT_WEATHER_TOMORROW.getUuid());
+        } else if (Constants.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
             weather = AccessApp.inst().getString(R.string.info_weather_tomorrow, new String(value));
             actionWeatherTomorrow.invokeSelf(weather);
-            blWeather.getWeatherInfo(UUID.fromString(Constants.GATT_WEATHER_DAT));
-        } else if (UUID.fromString(Constants.GATT_WEATHER_DAT).equals(uuid)) {
+            blWeather.getWeatherInfo(Constants.GATT_WEATHER_DAT.getUuid());
+        } else if (Constants.GATT_WEATHER_DAT.getUuid().equals(uuid)) {
             weather = AccessApp.inst().getString(R.string.info_weather_dat, new String(value));
             actionWeatherDat.invokeSelf(weather);
         }

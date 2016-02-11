@@ -4,7 +4,6 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -32,6 +31,8 @@ import de.uni.stuttgart.vis.access.client.helper.INotifyProv;
 import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
 import de.uni.stuttgart.vis.access.client.helper.NotifyHolder;
 import de.uni.stuttgart.vis.access.client.helper.TtsWrapper;
+import de.uni.stuttgart.vis.access.client.service.bl.ConnectorAdvertScan;
+import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
 
 /**
  * Manages BLE Advertising independent of the main app.
@@ -126,16 +127,6 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
 
     private void scanLeDevice(boolean enable) {
         if (enable) {
-            // Will stop the scanning after a set time.
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    stopScanning();
-                    // invalidateOptionsMenu();
-                }
-            }, SCAN_PERIOD);
-            // Kick off a new scan.
-
             blLeScanner.startScan(connectorAdvertScan.buildScanFilters(), connectorAdvertScan.buildScanSettings(),
                                   connectorAdvertScan.getAdvertScanCallback());
             connectorAdvertScan.startingAdvertScan();
@@ -230,34 +221,8 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
     }
 
     /**
-     * Custom ScanCallback object - adds to adapter on success, displays error on failure.
+     *
      */
-    private class BlScanCallback extends ScanCallback {
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-        }
-
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-            if (currDev != null && result.getScanRecord() != null && result.getScanRecord().getServiceData() != null &&
-                result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_WEATHER) != null) {
-                notify.removeNotification(R.id.nid_main);
-            } else {
-                notify.removeNotification(R.id.nid_main);
-            }
-            currDev = result;
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-        }
-    }
-
-
     public class ServiceBinder extends Binder implements IServiceBinder {
 
         @Override
@@ -266,12 +231,12 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         }
 
         @Override
-        public void deRegisterServiceListener(IServiceBlListener listener) {
+        public void deregisterServiceListener(IServiceBlListener listener) {
             serviceListeners.remove(listener);
         }
 
         @Override
-        public IConnAdvertScanHandler subscribeBlConnection(UUID uuid, IConnAdvertScanHandler.IConnGattSubscriber subscriber) {
+        public IConnGattProvider subscribeBlConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber) {
             return connectorAdvertScan.subscribeBlConnection(uuid, subscriber);
         }
     }

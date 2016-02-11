@@ -13,6 +13,7 @@ import android.view.View;
 import com.drisoftie.action.async.IGenericAction;
 import com.drisoftie.action.async.android.AndroidAction;
 
+import net.aksingh.owmjapis.CurrentWeather;
 import net.aksingh.owmjapis.DailyForecast;
 import net.aksingh.owmjapis.OpenWeatherMap;
 
@@ -20,103 +21,52 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.server.AccessApp;
 import de.stuttgart.uni.vis.access.server.R;
-import zh.wang.android.apis.yweathergetter4a.WeatherInfo;
-import zh.wang.android.apis.yweathergetter4a.YahooWeather;
-import zh.wang.android.apis.yweathergetter4a.YahooWeatherExceptionListener;
-import zh.wang.android.apis.yweathergetter4a.YahooWeatherInfoListener;
 
 /**
  * @author Alexander Dridiger
  */
-public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherExceptionListener, YahooWeatherInfoListener {
+public class GattHandlerWeather extends BaseGattHandler {
 
-
-    private List<BluetoothDevice> connectedDevices = new ArrayList<>();
-
-    private GattCallback callback     = new GattCallback();
-    private YahooWeather yahooWeather = YahooWeather.getInstance(5000, 5000, true);
+    private GattCallback callback = new GattCallback();
+    private CurrentWeather currWeather;
+    private DailyForecast  forecast;
 
     public GattHandlerWeather() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
-        constantUuids.add(UUID.fromString(Constants.GATT_SERVICE_WEATHER));
-        constantUuids.add(UUID.fromString(Constants.GATT_WEATHER_DAT));
-        constantUuids.add(UUID.fromString(Constants.GATT_WEATHER_TODAY));
-        constantUuids.add(UUID.fromString(Constants.GATT_WEATHER_TOMORROW));
-        constantUuids.add(UUID.fromString(Constants.GATT_WEATHER_QUERY));
+        constantUuids.add(Constants.GATT_SERVICE_WEATHER.getUuid());
+        constantUuids.add(Constants.GATT_WEATHER_DAT.getUuid());
+        constantUuids.add(Constants.GATT_WEATHER_TODAY.getUuid());
+        constantUuids.add(Constants.GATT_WEATHER_TOMORROW.getUuid());
+        constantUuids.add(Constants.GATT_WEATHER_QUERY.getUuid());
         setConstantUuids(constantUuids);
 
-        //        yahooWeather.setExceptionListener(this);
-        //        searchByPlaceName("Stuttgart");
-
-        AndroidAction<View, Void, Void, Void, Void> action = new AndroidAction<View, Void, Void, Void, Void>(new View[0],
-                                                                                                             IGenericAction.class, null) {
-            @Override
-            public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
-                return null;
-            }
-
-            @Override
-            public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
-                OpenWeatherMap owm = new OpenWeatherMap(OpenWeatherMap.Units.IMPERIAL, OpenWeatherMap.Language.fromLangCode(
-                        Resources.getSystem().getConfiguration().locale.getLanguage()), AccessApp.string(R.string.ow_api));
-                try {
-                    DailyForecast fwd = owm.dailyForecastByCityName("Stuttgart", "de", (byte) 3);
-                    for (int i = 0; i < fwd.getForecastCount(); i++) {
-                        if (i == 3) {
-                            break;
-                        }
-                        String descr = fwd.getForecastInstance(i).getWeatherInstance(0).getWeatherDescription();
-                        switch (i) {
-                            case 0:
-                                changeGattChar(UUID.fromString(Constants.GATT_WEATHER_TODAY), descr);
-                                break;
-                            case 1:
-                                changeGattChar(UUID.fromString(Constants.GATT_WEATHER_TOMORROW), descr);
-                                break;
-                            case 2:
-                                changeGattChar(UUID.fromString(Constants.GATT_WEATHER_DAT), descr);
-                                break;
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
-                                          Object[] additionalTags) {
-
-            }
-        };
-        action.invokeSelf();
-
+        new WeatherAction(null, IGenericAction.class, null).invokeSelf();
     }
 
     @Override
     protected void addServices() {
-        BluetoothGattService serviceWeather = new BluetoothGattService(UUID.fromString(Constants.GATT_SERVICE_WEATHER),
+        BluetoothGattService serviceWeather = new BluetoothGattService(Constants.GATT_SERVICE_WEATHER.getUuid(),
                                                                        BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
-        serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_TODAY, BluetoothGattCharacteristic.PROPERTY_READ,
+        serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_TODAY.toString(),
+                                                              BluetoothGattCharacteristic.PROPERTY_READ,
                                                               BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
                         R.string.bl_advert_cloudy).getBytes()));
-        serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_TOMORROW, BluetoothGattCharacteristic.PROPERTY_READ,
+        serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_TOMORROW.toString(),
+                                                              BluetoothGattCharacteristic.PROPERTY_READ,
                                                               BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
                         R.string.bl_advert_rainy).getBytes()));
-        serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_DAT, BluetoothGattCharacteristic.PROPERTY_READ,
+        serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_DAT.toString(),
+                                                              BluetoothGattCharacteristic.PROPERTY_READ,
                                                               BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
                         R.string.bl_advert_sunny).getBytes()));
-        serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_QUERY, BluetoothGattCharacteristic.PROPERTY_WRITE,
+        serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_QUERY.toString(),
+                                                              BluetoothGattCharacteristic.PROPERTY_WRITE,
                                                               BluetoothGattCharacteristic.PERMISSION_WRITE, "blub".getBytes()));
 
         getServer().addService(serviceWeather);
@@ -132,81 +82,6 @@ public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherE
         return null;
     }
 
-    @Override
-    public void onFailConnection(Exception e) {
-        e.printStackTrace();
-    }
-
-    @Override
-    public void onFailParsing(Exception e) {
-        e.printStackTrace();
-    }
-
-    @Override
-    public void onFailFindLocation(Exception e) {
-        e.printStackTrace();
-    }
-
-    private void searchByPlaceName(String location) {
-        yahooWeather.setNeedDownloadIcons(true);
-        yahooWeather.setUnit(YahooWeather.UNIT.CELSIUS);
-        yahooWeather.setSearchMode(YahooWeather.SEARCH_MODE.PLACE_NAME);
-        yahooWeather.queryYahooWeatherByPlaceName(AccessApp.inst(), location, this);
-    }
-
-    @Override
-    public void gotWeatherInfo(WeatherInfo weatherInfo) {
-        if (weatherInfo != null) {
-
-
-            String info = weatherInfo.getTitle() + "\n" + weatherInfo.getWOEIDneighborhood() + ", " + weatherInfo.getWOEIDCounty() + ", " +
-                          weatherInfo.getWOEIDState() + ", " + weatherInfo.getWOEIDCountry();
-            changeGattChar(UUID.fromString(Constants.GATT_WEATHER_TODAY), weatherInfo.getCurrentText());
-            changeGattChar(UUID.fromString(Constants.GATT_WEATHER_TOMORROW), weatherInfo.getForecastInfo1().getForecastText());
-            changeGattChar(UUID.fromString(Constants.GATT_WEATHER_DAT), weatherInfo.getForecastInfo2().getForecastText());
-
-            //            mTvWeather0.setText("====== CURRENT ======" + "\n" +
-            //                                "date: " + weatherInfo.getCurrentConditionDate() + "\n" +
-            //                                "weather: " + weatherInfo.getCurrentText() + "\n" +
-            //                                "temperature in ºC: " + weatherInfo.getCurrentTemp() + "\n" +
-            //                                "wind chill: " + weatherInfo.getWindChill() + "\n" +
-            //                                "wind direction: " + weatherInfo.getWindDirection() + "\n" +
-            //                                "wind speed: " + weatherInfo.getWindSpeed() + "\n" +
-            //                                "Humidity: " + weatherInfo.getAtmosphereHumidity() + "\n" +
-            //                                "Pressure: " + weatherInfo.getAtmospherePressure() + "\n" +
-            //                                "Visibility: " + weatherInfo.getAtmosphereVisibility());
-            //            if (weatherInfo.getCurrentConditionIcon() != null) {
-            //                mIvWeather0.setImageBitmap(weatherInfo.getCurrentConditionIcon());
-            //            }
-            //            for (int i = 0; i < YahooWeather.FORECAST_INFO_MAX_SIZE; i++) {
-            //                final LinearLayout forecastInfoLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.forecastinfo, null);
-            //                final TextView tvWeather = (TextView) forecastInfoLayout.findViewById(R.id.textview_forecast_info);
-            //                final WeatherInfo.ForecastInfo forecastInfo = weatherInfo.getForecastInfoList().get(i);
-            //                tvWeather.setText("====== FORECAST " + (i + 1) + " ======" + "\n" +
-            //                                  "date: " + forecastInfo.getForecastDate() + "\n" +
-            //                                  "weather: " + forecastInfo.getForecastText() + "\n" +
-            //                                  "low  temperature in ºC: " + forecastInfo.getForecastTempLow() + "\n" +
-            //                                  "high temperature in ºC: " + forecastInfo.getForecastTempHigh() + "\n"
-            //                                  //						           "low  temperature in ºF: " + forecastInfo.getForecastTempLowF() + "\n" +
-            //                                  //				                   "high temperature in ºF: " + forecastInfo.getForecastTempHighF() + "\n"
-            //                                 );
-            //                final ImageView ivForecast = (ImageView) forecastInfoLayout.findViewById(R.id.imageview_forecast_info);
-            //                if (forecastInfo.getForecastConditionIcon() != null) {
-            //                    ivForecast.setImageBitmap(forecastInfo.getForecastConditionIcon());
-            //                }
-            //                mWeatherInfosLayout.addView(forecastInfoLayout);
-            //            }
-        }
-    }
-
-    private void changeGattChar(UUID uuid, String value) {
-        BluetoothGattCharacteristic c = getServer().getService(UUID.fromString(Constants.GATT_SERVICE_WEATHER)).getCharacteristic(uuid);
-        c.setValue(value);
-        for (BluetoothDevice dev : connectedDevices) {
-            getServer().notifyCharacteristicChanged(dev, c, false);
-        }
-    }
-
     private class GattCallback extends BluetoothGattServerCallback {
 
         @Override
@@ -214,11 +89,11 @@ public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherE
             super.onConnectionStateChange(device, status, newState);
             switch (status) {
                 case BluetoothGatt.GATT_SUCCESS:
-                    connectedDevices.add(device);
+                    getConnDevices().add(device);
                     break;
                 default:
                     if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        connectedDevices.remove(device);
+                        getConnDevices().remove(device);
                     }
             }
         }
@@ -237,6 +112,10 @@ public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherE
         @Override
         public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic,
                                                  boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
+            characteristic.setValue(value);
+            if (responseNeeded) {
+                getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
+            }
         }
 
         @Override
@@ -256,6 +135,53 @@ public class GattHandlerWeather extends BaseGattHandler implements YahooWeatherE
 
         @Override
         public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
+            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
+        }
+    }
+
+
+    private class WeatherAction extends AndroidAction<View, Void, Void, Void, Void> {
+
+        public WeatherAction(View view, Class<?> actionType, String regMethodName) {
+            super(view, actionType, regMethodName);
+        }
+
+        @Override
+        public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            return null;
+        }
+
+        @Override
+        public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            OpenWeatherMap owm = new OpenWeatherMap(OpenWeatherMap.Units.IMPERIAL, OpenWeatherMap.Language.fromLangCode(
+                    Resources.getSystem().getConfiguration().locale.getLanguage()), AccessApp.string(R.string.ow_api));
+            try {
+                currWeather = owm.currentWeatherByCityName("Stuttgart", "de");
+                forecast = owm.dailyForecastByCityName("Stuttgart", "de", (byte) 2);
+
+                changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_TODAY.getUuid(),
+                               currWeather.getWeatherInstance(0).getWeatherDescription());
+                for (int i = 0; i < forecast.getForecastCount(); i++) {
+                    String descr = forecast.getForecastInstance(i).getWeatherInstance(0).getWeatherDescription();
+                    switch (i) {
+                        case 0:
+                            changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_TODAY.getUuid(), descr);
+                            break;
+                        case 1:
+                            changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_TOMORROW.getUuid(), descr);
+                            break;
+                    }
+                }
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
+                                      Object[] additionalTags) {
+
         }
     }
 }

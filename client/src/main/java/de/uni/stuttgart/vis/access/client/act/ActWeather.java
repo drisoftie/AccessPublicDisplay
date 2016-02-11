@@ -11,28 +11,28 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.accessibility.AccessibilityEvent;
 
 import com.drisoftie.frags.comp.ManagedActivity;
 
 import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.helper.IContextProv;
+import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
+import de.uni.stuttgart.vis.access.client.helper.TtsWrapper;
 import de.uni.stuttgart.vis.access.client.service.IServiceBinder;
 import de.uni.stuttgart.vis.access.client.service.IServiceBlListener;
 import de.uni.stuttgart.vis.access.client.service.ServiceScan;
 
-public class ActWeather extends ManagedActivity implements ServiceConnection, IServiceBlListener, IContextProv, IViewProv {
+public class ActWeather extends ManagedActivity implements ServiceConnection, IServiceBlListener, IContextProv, IViewProv, ITtsProv {
 
     private BroadcastReceiver msgReceiver = new BrdcstReceiver();
 
     private IServiceBinder      service;
     private ConnGattCommWeather gattCommunicator;
+    private ConnGattCommShout   gattCommShout;
+    private TtsWrapper          tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +41,7 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
         setContentView(R.layout.act_weather);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        tts = new TtsWrapper(this);
 
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
     }
@@ -51,18 +52,6 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
 
     @Override
     protected void registerComponents() {
-        Runnable task = new Runnable() {
-
-            @Override
-            public void run() {
-                View current = getCurrentFocus();
-                Objects.requireNonNull(current).clearFocus();
-                findViewById(R.id.txt_headline_today).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
-            }
-        };
-
-        ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
-
         Intent intent = new Intent(getString(R.string.intent_weather_get));
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
@@ -76,7 +65,13 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
         gattCommunicator = new ConnGattCommWeather();
         gattCommunicator.setContextProvider(this);
         gattCommunicator.setViewProvider(this);
-        gattCommunicator.setConn(service.subscribeBlConnection(UUID.fromString(Constants.GATT_SERVICE_WEATHER), gattCommunicator));
+        gattCommunicator.setConn(service.subscribeBlConnection(Constants.GATT_SERVICE_WEATHER.getUuid(), gattCommunicator));
+
+        gattCommShout = new ConnGattCommShout();
+        gattCommShout.setContextProvider(this);
+        gattCommShout.setViewProvider(this);
+        gattCommShout.setTtsProvider(this);
+        gattCommShout.setConn(service.subscribeBlConnection(Constants.GATT_SERVICE_SHOUT.getUuid(), gattCommShout));
     }
 
     @Override
@@ -90,6 +85,11 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
     }
 
     @Override
+    public TtsWrapper provideTts() {
+        return tts;
+    }
+
+    @Override
     public void onServiceDisconnected(ComponentName className) {
         service = null;
     }
@@ -97,21 +97,23 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
     @Override
     public void onConnStopped() {
         // Deactivate updates to us so that we dont get callbacks no more.
-        service.deRegisterServiceListener(this);
-
+        service.deregisterServiceListener(this);
         // Finally stop the service
         unbindService(this);
+        service = null;
     }
 
     @Override
     protected void deregisterComponents() {
         // Deactivate updates to us so that we dont get callbacks no more.
-        service.deRegisterServiceListener(this);
+        service.deregisterServiceListener(this);
 
-        // Finally stop the service
         unbindService(this);
         gattCommunicator.onDetach();
         gattCommunicator = null;
+        gattCommShout.onDetach();
+        gattCommShout = null;
+        tts.shutDown();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
     }
 

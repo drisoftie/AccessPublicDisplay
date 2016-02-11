@@ -1,5 +1,6 @@
 package de.stuttgart.uni.vis.access.server.service;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.os.ParcelUuid;
@@ -11,6 +12,7 @@ import java.util.UUID;
  * @author Alexander Dridiger
  */
 public interface IGattHandler {
+
     BluetoothGattServer getServer();
 
     void setServer(BluetoothGattServer server);
@@ -19,7 +21,13 @@ public interface IGattHandler {
 
     void setConstantUuids(List<UUID> constantUuids);
 
+    List<BluetoothDevice> getConnDevices();
+
     void prepareServer();
+
+    void prepareServices();
+
+    void changeGattChar(UUID servUuid, UUID charUuid, String value);
 
     BluetoothGattServerCallback getCallback(ParcelUuid[] uuids);
 

@@ -16,23 +16,30 @@ import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.server.AccessApp;
+import de.stuttgart.uni.vis.access.server.BuildConfig;
 
 /**
  * @author Alexander Dridiger
  */
 public class GattServerStateHolder {
 
+    private static final String TAG = GattServerStateHolder.class.getSimpleName();
 
     private GattCallback        blGattCallback;
     private BluetoothGattServer blGattServerWeather;
     private BluetoothGattServer blGattServerPubTransp;
+    private BluetoothGattServer blGattServerShout;
 
     private List<IGattHandler> blGattHandler = new ArrayList<>();
 
     public void startGatt(BluetoothManager blManager) {
         blGattCallback = new GattCallback();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Start Weather + Pubtransp + Shout");
+        }
         startGattServerWeather(blManager);
         startGattServerPubTransp(blManager);
+        startGattServerShout(blManager);
     }
 
     public void closeServer() {
@@ -45,6 +52,7 @@ public class GattServerStateHolder {
         blGattServerWeather = blManager.openGattServer(AccessApp.inst(), blGattCallback);
         handler.setServer(blGattServerWeather);
         handler.prepareServer();
+        handler.prepareServices();
         blGattHandler.add(handler);
     }
 
@@ -52,7 +60,15 @@ public class GattServerStateHolder {
         GattHandlerPubTransp handler = new GattHandlerPubTransp();
         blGattServerPubTransp = blManager.openGattServer(AccessApp.inst(), blGattCallback);
         handler.setServer(blGattServerPubTransp);
-        handler.prepareServer();
+        handler.prepareServices();
+        blGattHandler.add(handler);
+    }
+
+    private void startGattServerShout(BluetoothManager blManager) {
+        GattHandlerShout handler = new GattHandlerShout();
+        blGattServerShout = blManager.openGattServer(AccessApp.inst(), blGattCallback);
+        handler.setServer(blGattServerShout);
+        handler.prepareServices();
         blGattHandler.add(handler);
     }
 
@@ -69,11 +85,11 @@ public class GattServerStateHolder {
         //
         // device info
         //
-        BluetoothGattCharacteristic softwareVerCharacteristic = new BluetoothGattCharacteristic(UUID.fromString(
-                Constants.SOFTWARE_REVISION_STRING), BluetoothGattCharacteristic.PROPERTY_READ,
-                                                                                                BluetoothGattCharacteristic.PERMISSION_READ);
+        BluetoothGattCharacteristic softwareVerCharacteristic = new BluetoothGattCharacteristic(
+                Constants.SOFTWARE_REVISION_STRING.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
+                BluetoothGattCharacteristic.PERMISSION_READ);
 
-        BluetoothGattService deviceInfoService = new BluetoothGattService(UUID.fromString(Constants.SERVICE_DEVICE_INFORMATION),
+        BluetoothGattService deviceInfoService = new BluetoothGattService(Constants.SERVICE_DEVICE_INFORMATION.getUuid(),
                                                                           BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
 

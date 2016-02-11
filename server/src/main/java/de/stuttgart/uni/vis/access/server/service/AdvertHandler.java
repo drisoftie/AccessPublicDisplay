@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.server.BuildConfig;
 
 /**
  * Custom callback after Advertising succeeds or fails to start. Broadcasts the error code
@@ -28,8 +29,9 @@ class AdvertHandler extends AdvertiseCallback {
     @Override
     public void onStartFailure(int errorCode) {
         super.onStartFailure(errorCode);
-
-        Log.d(AdvertHandler.TAG, "Advertising failed: " + errorCode);
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Advertising failed: " + errorCode);
+        }
         switch (errorCode) {
             case ADVERTISE_FAILED_ALREADY_STARTED:
                 Toast.makeText(serviceAdvertise.getCntxt(), "Already started", Toast.LENGTH_SHORT).show();
@@ -59,7 +61,9 @@ class AdvertHandler extends AdvertiseCallback {
     @Override
     public void onStartSuccess(AdvertiseSettings settingsInEffect) {
         super.onStartSuccess(settingsInEffect);
-        Log.i(TAG, "Advertising successfully started");
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Advertising successfully started");
+        }
         serviceAdvertise.onStartingSuccess();
     }
 
@@ -91,22 +95,12 @@ class AdvertHandler extends AdvertiseCallback {
         //        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
 
         //        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_WEATHER, advertisement.getBytes());
-        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
-        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_WEATHER, new byte[]{Constants.AdvertiseConst.ADVERTISE_START,
+        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_MULTI);
+        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_MULTI, new byte[]{Constants.AdvertiseConst.ADVERTISE_START,
                 Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag(), Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag(),
-                Constants.AdvertiseConst.ADVERTISE_END});
-
+                Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag(), Constants.AdvertiseConst.ADVERTISE_END});
         return dataBuilder.build();
     }
-
-    //    private AdvertiseData buildAdvertiseDataPubTransp() {
-    //        AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
-    //        //        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
-    //
-    //        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_PUB_TRANSP, "Public Transport".getBytes());
-    //
-    //        return dataBuilder.build();
-    //    }
 
     public interface IAdvertStartListener {
 

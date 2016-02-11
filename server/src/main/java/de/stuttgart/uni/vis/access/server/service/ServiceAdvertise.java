@@ -13,6 +13,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.TaskStackBuilder;
@@ -21,14 +22,18 @@ import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
+import de.stuttgart.uni.vis.access.server.BuildConfig;
 import de.stuttgart.uni.vis.access.server.IAdvertReceiver;
 import de.stuttgart.uni.vis.access.server.R;
 import de.stuttgart.uni.vis.access.server.act.ActServerAdvertise;
-import de.stuttgart.uni.vis.access.server.brcast.BrRcvAdvertRestart;
 import de.stuttgart.uni.vis.access.server.brcast.BrRcvAdvertisement;
 
 /**
@@ -46,45 +51,70 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
      * https://groups.google.com/forum/#!topic/android-developers/jEvXMWgbgzE
      */
     public static        boolean running       = false;
+    private final        Binder  serviceBinder = new ServiceBinder();
     private              String  advertisement = "Weather Forecast";
     private BluetoothManager      blManager;
+    private BluetoothAdapter      blAdapt;
     private BluetoothLeAdvertiser blLeAdvertiser;
+    private List<IServiceBlListener> serviceListeners = new ArrayList<>();
+
     private AdvertHandler         blAdvertHandler;
-
     private GattServerStateHolder blGattServerHolder;
-
-    private Handler  timeoutHandler;
-    private Runnable timeoutRunnable;
+    private Handler               timeoutHandler;
+    private Runnable              timeoutRunnable;
     /**
      * Length of time to allow advertising before automatically shutting off. (10 minutes)
      */
-    private long TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
+    private long              TIMEOUT     = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
     // Our handler for received Intents. This will be called whenever an Intent
     // with an action named "custom-event-name" is broadcasted.
-    private BroadcastReceiver brdRcvr;
+    private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (StringUtils.equals(intent.getAction(), getString(R.string.intent_action_bl_user_stopped)) || StringUtils.equals(
+                    intent.getAction(), getString(R.string.intent_bl_stopped))) {
+                for (IServiceBlListener l : serviceListeners) {
+                    l.onConnStopped();
+                }
+                stopSelf();
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
+        super.onCreate();
         running = true;
         Runnable task = new Runnable() {
 
             @Override
             public void run() {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Initializing GATT && Advertising...");
+                }
                 initialize();
                 startGattServers();
                 startAdvertising();
                 setTimeout();
-                brdRcvr = new BrRcvAdvertRestart(ServiceAdvertise.this);
-                LocalBroadcastManager.getInstance(ServiceAdvertise.this).registerReceiver(brdRcvr, new IntentFilter(getString(
-                        R.string.intent_advert_value)));
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(getString(R.string.intent_bl_stopped));
+                filter.addAction(getString(R.string.intent_action_bl_user_stopped));
+                filter.addAction(getString(R.string.intent_advert_value));
+                LocalBroadcastManager.getInstance(ServiceAdvertise.this).registerReceiver(msgReceiver, filter);
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Sending listeners start notify: " + serviceListeners.size());
+                }
+                for (IServiceBlListener l : serviceListeners) {
+                    l.onBlStarted();
+                }
             }
         };
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Creating Service Components");
+        }
+        timeoutHandler = new Handler();
         ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
-
-
-        super.onCreate();
     }
-
 
     @Override
     public void onDestroy() {
@@ -96,8 +126,8 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
         }
         Intent notify = new Intent(getString(R.string.intent_bl_stopped));
         LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(brdRcvr);
-        brdRcvr = null;
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
+        msgReceiver = null;
         super.onDestroy();
     }
 
@@ -107,7 +137,12 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
      */
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return serviceBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return super.onUnbind(intent);
     }
 
     /**
@@ -115,11 +150,20 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
      */
     private void initialize() {
         if (blLeAdvertiser == null) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "Get BL Manager");
+            }
             blManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             if (blManager != null) {
-                BluetoothAdapter blAdapt = blManager.getAdapter();
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Get BL Adapter");
+                }
+                blAdapt = blManager.getAdapter();
                 if (blAdapt != null) {
                     blLeAdvertiser = blAdapt.getBluetoothLeAdvertiser();
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "Get Advertiser " + blLeAdvertiser);
+                    }
                 } else {
                     Toast.makeText(this, getString(R.string.bt_null), Toast.LENGTH_LONG).show();
                 }
@@ -135,13 +179,15 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
      * set amount of time.
      */
     private void setTimeout() {
-        timeoutHandler = new Handler();
         timeoutRunnable = new Runnable() {
             @Override
             public void run() {
                 Log.d(TAG, "ServiceAdvertise has reached timeout of " + TIMEOUT + " milliseconds, stopping advertising.");
                 sendFailureIntent(Constants.ADVERTISING_TIMED_OUT);
                 stopSelf();
+                for (IServiceBlListener l : serviceListeners) {
+                    l.onConnStopped();
+                }
             }
         };
         timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT);
@@ -152,16 +198,15 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
      */
     private void startAdvertising() {
         Log.d(TAG, "Service: Starting Advertising");
-
         if (blAdvertHandler == null) {
             blAdvertHandler = new AdvertHandler(this);
             AdvertiseSettings settings = blAdvertHandler.buildAdvertiseSettings();
             AdvertiseData dataWeather = blAdvertHandler.buildAdvertiseDataWeather();
-            //            AdvertiseData dataPubTransp = buildAdvertiseDataPubTransp();
-
             if (blLeAdvertiser != null) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Advertisement ready");
+                }
                 blLeAdvertiser.startAdvertising(settings, dataWeather, blAdvertHandler);
-                //                blLeAdvertiser.startAdvertising(settings, dataPubTransp, blAdvertHandler);
                 createStartNotification();
             }
         }
@@ -174,7 +219,6 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
 
     @Override
     public void onStartingSuccess() {
-
     }
 
     @Override
@@ -232,7 +276,9 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
     private void stopAdvertising() {
         Log.d(TAG, "Service: Stopping Advertising");
         if (blLeAdvertiser != null) {
-            blLeAdvertiser.stopAdvertising(blAdvertHandler);
+            if (blAdvertHandler != null) {
+                blLeAdvertiser.stopAdvertising(blAdvertHandler);
+            }
             blAdvertHandler = null;
             removeNotification();
         }
@@ -266,7 +312,34 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
     }
 
     private void startGattServers() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Start GATT Server");
+        }
         blGattServerHolder = new GattServerStateHolder();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "GATT State Holder = " + blGattServerHolder);
+        }
         blGattServerHolder.startGatt(blManager);
+    }
+
+    /**
+     *
+     */
+    public class ServiceBinder extends Binder implements IServiceBinder {
+
+        @Override
+        public void registerServiceListener(IServiceBlListener listener) {
+            serviceListeners.add(listener);
+        }
+
+        @Override
+        public void deregisterServiceListener(IServiceBlListener listener) {
+            serviceListeners.remove(listener);
+        }
+
+        @Override
+        public boolean isConnected(IServiceBlListener listener) {
+            return serviceListeners.contains(listener);
+        }
     }
 }

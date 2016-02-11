@@ -43,8 +43,10 @@ public class ActScan extends ManagedActivity
     private RecyclerView               rcycDevices;
     private AdaptScanResults           rcycAdaptDevices;
     private RecyclerView.LayoutManager rcycLayoutManager;
-    private IServiceBinder             service;
+    private Menu                       menu;
 
+
+    private IServiceBinder   service;
     private BluetoothAdapter blAdapt;
 
     private BroadcastReceiver brdcstRcvr = new BroadcastReceiver() {
@@ -97,7 +99,6 @@ public class ActScan extends ManagedActivity
         rcycAdaptDevices = new AdaptScanResults();
         rcycDevices.setAdapter(rcycAdaptDevices);
 
-
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -135,17 +136,15 @@ public class ActScan extends ManagedActivity
                         @Override
                         public void run() {
                             startService(new Intent(ActScan.this, ServiceScan.class));
+                            bindService(new Intent(ActScan.this, ServiceScan.class), ActScan.this, BIND_AUTO_CREATE);
                         }
                     };
                     ScheduleUtil.scheduleWork(task, 3, TimeUnit.SECONDS);
-
                 } else {
-
                     // User declined to enable Bluetooth, exit the app.
                     Toast.makeText(this, R.string.error_bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
                     finish();
                 }
-
             default:
                 super.onActivityResult(requestCode, resultCode, data);
         }
@@ -158,7 +157,6 @@ public class ActScan extends ManagedActivity
     @Override
     protected void registerComponents() {
         if (blAdapt.isEnabled()) {
-
             Runnable task = new Runnable() {
 
                 @Override
@@ -166,6 +164,7 @@ public class ActScan extends ManagedActivity
                     startService(new Intent(ActScan.this, ServiceScan.class));
                 }
             };
+            bindService(new Intent(ActScan.this, ServiceScan.class), ActScan.this, BIND_AUTO_CREATE);
             ScheduleUtil.scheduleWork(task, 3, TimeUnit.SECONDS);
         }
     }
@@ -174,6 +173,7 @@ public class ActScan extends ManagedActivity
     public void onServiceConnected(ComponentName className, IBinder binder) {
         service = (IServiceBinder) binder;
         service.registerServiceListener(ActScan.this);
+        invalidateOptionsMenu();
     }
 
     @Override
@@ -184,24 +184,28 @@ public class ActScan extends ManagedActivity
 
     @Override
     protected void deregisterComponents() {
+        // Deactivate updates to us so that we dont get callbacks no more.
+        service.deregisterServiceListener(this);
+        unbindService(this);
 
-    }
-
-    @Override
-    protected void onPausing() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(brdcstRcvr);
-        //        scanLeDevice(false);
         rcycAdaptDevices.getResults().clear();
         rcycAdaptDevices.notifyDataSetChanged();
     }
 
     @Override
+    protected void onPausing() {
+
+    }
+
+    @Override
     public void onConnStopped() {
         // Deactivate updates to us so that we dont get callbacks no more.
-        service.deRegisterServiceListener(this);
+        service.deregisterServiceListener(this);
 
         // Finally stop the service
         unbindService(this);
+        service = null;
     }
 
     @Override
@@ -216,18 +220,15 @@ public class ActScan extends ManagedActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.act_main, menu);
-        //        if (!scanning) {
-        //            menu.findItem(R.id.menu_stop).setVisible(false);
-        //            menu.findItem(R.id.menu_scan).setVisible(true);
-        //            menu.findItem(R.id.menu_refresh).setVisible(false);
-        //        } else {
-        //            menu.findItem(R.id.menu_stop).setVisible(true);
-        //            menu.findItem(R.id.menu_scan).setVisible(false);
-        //            menu.findItem(R.id.menu_refresh).setVisible(true);
-        //            menu.findItem(R.id.menu_refresh).setActionView(R.layout.actionbar_indeterminate_progress);
-        //        }
+        this.menu = menu;
+        if (service == null) {
+            menu.findItem(R.id.menu_stop).setVisible(false);
+            menu.findItem(R.id.menu_scan).setVisible(true);
+        } else {
+            menu.findItem(R.id.menu_stop).setVisible(true);
+            menu.findItem(R.id.menu_scan).setVisible(false);
+        }
         return true;
     }
 
@@ -237,14 +238,24 @@ public class ActScan extends ManagedActivity
             case R.id.menu_scan:
                 rcycAdaptDevices.getResults().clear();
                 rcycAdaptDevices.notifyDataSetChanged();
-                //                checkAndScanLeDevices();
-                if (!ServiceScan.running) {
+                if (service == null) {
                     startService(new Intent(this, ServiceScan.class));
+                    bindService(new Intent(ActScan.this, ServiceScan.class), ActScan.this, BIND_AUTO_CREATE);
                 }
+                item.setVisible(false);
+                menu.findItem(R.id.menu_stop).setVisible(true);
                 break;
             case R.id.menu_stop:
+                item.setVisible(false);
+                menu.findItem(R.id.menu_scan).setVisible(true);
                 //                scanLeDevice(false);
                 stopService(new Intent(this, ServiceScan.class));
+                // Deactivate updates to us so that we dont get callbacks no more.
+                service.deregisterServiceListener(this);
+
+                // Finally stop the service
+                unbindService(this);
+                service = null;
                 break;
         }
         return true;

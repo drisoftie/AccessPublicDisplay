@@ -17,8 +17,8 @@
     <!-- Menu items -->
     <string name="menu_connect">Connect</string>
     <string name="menu_disconnect">Disconnect</string>
-    <string name="menu_scan">Scan</string>
-    <string name="menu_stop">Stop</string>
+    <string name="menu_scan">Begin Scan</string>
+    <string name="menu_stop">End Scan</string>
 
     <!-- ================ -->
     <!-- TextView Strings -->
@@ -31,6 +31,8 @@
     <string name="txt_headline_bus">Current bus</string>
     <string name="txt_headline_metro">Current metro</string>
     <string name="txt_headline_train">Current train</string>
+
+    <string name="txt_weather_more_info">Click on button below to get more weather info:</string>
 
     <!-- ==================== -->
     <!-- Notification Strings -->

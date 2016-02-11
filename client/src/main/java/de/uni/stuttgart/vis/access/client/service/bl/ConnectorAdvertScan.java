@@ -1,4 +1,4 @@
-package de.uni.stuttgart.vis.access.client.service;
+package de.uni.stuttgart.vis.access.client.service.bl;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -40,7 +40,7 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
 
     public ConnectorAdvertScan(IContextProv cntxtProv) {
         this.cntxtProv = cntxtProv;
-        connections.add(new ConnWeather());
+        connections.add(new ConnMulti());
     }
 
     public IContextProv getCntxtProv() {
@@ -132,12 +132,16 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
     public List<ScanFilter> buildScanFilters() {
         List<ScanFilter> scanFilters = new ArrayList<>();
 
-        ScanFilter.Builder builder = new ScanFilter.Builder();
-        // Comment out the below line to see all BLE results around you
-        builder.setServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
-        scanFilters.add(builder.build());
+        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_MULTI));
+        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_WEATHER));
+        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_PUB_TRANSP));
+        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_SHOUT));
 
         return scanFilters;
+    }
+
+    private ScanFilter getFilter(ParcelUuid uuid) {
+        return new ScanFilter.Builder().setServiceUuid(uuid).build();
     }
 
     /**
@@ -158,10 +162,10 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         notifyProv.provideNotify().removeAllNotifications();
     }
 
-    public IConnAdvertScanHandler subscribeBlConnection(UUID uuid, IConnAdvertScanHandler.IConnGattSubscriber subscriber) {
+    public IConnGattProvider subscribeBlConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber) {
         for (IConnAdvertScan conn : connections) {
             if (conn.match(uuid)) {
-                return conn.registerConnectionSubscriber(subscriber);
+                return conn.registerConnectionGattSubscriber(subscriber);
             }
         }
         return null;
@@ -196,11 +200,13 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             super.onBatchScanResults(results);
+            ArrayList<IConnAdvertScan> checkedConns = new ArrayList<>(connections);
             for (ScanResult result : results) {
                 if (result.getScanRecord() != null && result.getScanRecord().getServiceUuids() != null) {
                     IConnAdvertScan handler = getConnection(result.getScanRecord().getServiceUuids());
-                    if (handler != null) {
+                    if (handler != null && checkedConns.contains(handler)) {
                         handler.getScanCallback().onBatchScanResults(results);
+                        checkedConns.remove(handler);
                     }
                 }
             }

@@ -15,13 +15,13 @@
     <!-- ================= -->
     <eat-comment/>
 
-    <string name="bl_advert_weather_info">Get the weather forecast!</string>
+    <string name="bl_advert_weather_info">Weather Forecast!</string>
     <string name="bl_advert_cloudy">cloudy</string>
     <string name="bl_advert_sunny">sunny</string>
     <string name="bl_advert_rainy">rainy</string>
-    <string name="info_weather_today">The weather today will be %1$s</string>
-    <string name="info_weather_tomorrow">The weather tomorrow will be %1$s</string>
-    <string name="info_weather_dat">The weather the day after tomorrow will be %1$s</string>
+    <string name="info_weather_today">The weather info for today shows: %1$s</string>
+    <string name="info_weather_tomorrow">The weather info for tomorrow shows: %1$s</string>
+    <string name="info_weather_dat">The weather info for the day after tomorrow shows: %1$s</string>
 
     <!-- ========================== -->
     <!-- Public Transport Constants -->
@@ -55,5 +55,12 @@
     <string name="booking_today">The weather today will be %1$s</string>
     <string name="booking_tomorrow">The weather tomorrow will be %1$s</string>
     <string name="booking_dat">The weather the day after tomorrow will be %1$s</string>
+
+    <!-- =============== -->
+    <!-- Shout Constants -->
+    <!-- =============== -->
+    <eat-comment/>
+
+    <string name="bl_advert_shout">New Shoutouts!</string>
 
 </resources>

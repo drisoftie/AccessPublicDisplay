@@ -9,8 +9,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class ScheduleUtil {
 
-    public static void scheduleWork(Runnable work, long time, TimeUnit unit) {
+    public static ScheduledExecutorService scheduleWork(Runnable work, long time, TimeUnit unit) {
         ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
         worker.schedule(work, time, unit);
+        return worker;
     }
 }
