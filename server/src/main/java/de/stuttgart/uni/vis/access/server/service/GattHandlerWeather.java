@@ -48,8 +48,6 @@ public class GattHandlerWeather extends BaseGattHandler {
         constantUuids.add(Constants.GATT_WEATHER_TOMORROW.getUuid());
         constantUuids.add(Constants.GATT_WEATHER_QUERY.getUuid());
         setConstantUuids(constantUuids);
-
-        new WeatherAction(null, IGenericAction.class, null).invokeSelf();
     }
 
     @Override
@@ -86,6 +84,7 @@ public class GattHandlerWeather extends BaseGattHandler {
 
         @Override
         public void onServiceAdded(int status, BluetoothGattService service) {
+            new WeatherAction(null, IGenericAction.class, null).invokeSelf();
             actionServicesAdd.invokeSelf(service.getUuid());
         }
 

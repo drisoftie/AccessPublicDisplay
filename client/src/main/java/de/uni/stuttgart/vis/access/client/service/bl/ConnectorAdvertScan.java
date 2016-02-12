@@ -165,7 +165,7 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
     public IConnGattProvider subscribeBlConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber) {
         for (IConnAdvertScan conn : connections) {
             if (conn.match(uuid)) {
-                return conn.registerConnectionGattSubscriber(subscriber);
+                return conn.registerConnectionGattSubscriber(uuid, subscriber);
             }
         }
         return null;

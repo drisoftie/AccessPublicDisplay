@@ -65,7 +65,7 @@ public interface IConnAdvertScan {
 
     List<IConnAdvertProvider.IConnAdvertSubscriber> getConnAdvertSubscribers();
 
-    IConnGattProvider registerConnectionGattSubscriber(IConnGattProvider.IConnGattSubscriber subscriber);
+    IConnGattProvider registerConnectionGattSubscriber(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber);
 
     List<IConnGattProvider.IConnGattSubscriber> getConnGattSubscribers();
 

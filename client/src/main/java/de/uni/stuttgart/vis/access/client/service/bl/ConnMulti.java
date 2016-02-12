@@ -45,6 +45,9 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_WEATHER.getUuid());
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_PUB_TRANSP.getUuid());
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_SHOUT.getUuid());
+        constantUuids.add(Constants.GATT_SERVICE_WEATHER.getUuid());
+        constantUuids.add(Constants.GATT_SERVICE_PUB_TRANSP.getUuid());
+        constantUuids.add(Constants.GATT_SERVICE_SHOUT.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());
@@ -67,6 +70,16 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
     }
 
     @Override
+    public IConnGattProvider registerConnectionGattSubscriber(UUID uuid, IConnGattSubscriber subscriber) {
+        for (IConnAdvertScan conn : connections) {
+            if (conn.match(uuid)) {
+                return conn.registerConnectionGattSubscriber(uuid, subscriber);
+            }
+        }
+        return null;
+    }
+
+    @Override
     public void contributeNotification(String notificationDetails, IConnMultiPart part) {
         StringBuilder builder = new StringBuilder();
         boolean       found   = false;
@@ -83,6 +96,7 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
         }
         builder.deleteCharAt(builder.length() - 1);
         getNotifyProv().provideNotify().createDisplayNotification("Some new infos!", builder.toString(),
+                                                                  Constants.UUID_ADVERT_SERVICE_MULTI,
                                                                   part.getAdvertScan().getScanResults().get(
                                                                           part.getAdvertScan().getScanResults().size() - 1), R.id.nid_main);
     }
@@ -198,6 +212,16 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
         }
         cachedDeviceConns.put(device.getAddress(), conns);
         return conns;
+    }
+
+    @Override
+    public boolean match(BluetoothDevice device) {
+        for (IConnAdvertScan handler : connections) {
+            if (handler.match(device)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -224,7 +224,7 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattPr
     }
 
     @Override
-    public IConnGattProvider registerConnectionGattSubscriber(IConnGattSubscriber subscriber) {
+    public IConnGattProvider registerConnectionGattSubscriber(UUID uuid, IConnGattSubscriber subscriber) {
         if (!subsConnGatt.contains(subscriber)) {
             subsConnGatt.add(subscriber);
         }

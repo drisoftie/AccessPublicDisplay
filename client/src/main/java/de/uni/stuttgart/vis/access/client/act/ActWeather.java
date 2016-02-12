@@ -12,6 +12,10 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.drisoftie.action.async.ActionMethod;
+import com.drisoftie.action.async.IGenericAction;
+import com.drisoftie.action.async.RegActionMethod;
+import com.drisoftie.action.async.android.AndroidAction;
 import com.drisoftie.frags.comp.ManagedActivity;
 
 import java.util.Objects;
@@ -30,9 +34,11 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
     private BroadcastReceiver msgReceiver = new BrdcstReceiver();
 
     private IServiceBinder      service;
-    private ConnGattCommWeather gattCommunicator;
+    private ConnGattCommWeather gattCommWeather;
     private ConnGattCommShout   gattCommShout;
     private TtsWrapper          tts;
+    private ActionGattSetup     actionGattSetup;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +48,8 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         tts = new TtsWrapper(this);
+        actionGattSetup = new ActionGattSetup(null, IGenericAction.class, RegActionMethod.NONE.method());
+
 
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
     }
@@ -62,16 +70,8 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
     public void onServiceConnected(ComponentName className, IBinder binder) {
         service = (IServiceBinder) binder;
         service.registerServiceListener(this);
-        gattCommunicator = new ConnGattCommWeather();
-        gattCommunicator.setContextProvider(this);
-        gattCommunicator.setViewProvider(this);
-        gattCommunicator.setConn(service.subscribeBlConnection(Constants.GATT_SERVICE_WEATHER.getUuid(), gattCommunicator));
 
-        gattCommShout = new ConnGattCommShout();
-        gattCommShout.setContextProvider(this);
-        gattCommShout.setViewProvider(this);
-        gattCommShout.setTtsProvider(this);
-        gattCommShout.setConn(service.subscribeBlConnection(Constants.GATT_SERVICE_SHOUT.getUuid(), gattCommShout));
+        actionGattSetup.invokeSelf();
     }
 
     @Override
@@ -109,8 +109,8 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
         service.deregisterServiceListener(this);
 
         unbindService(this);
-        gattCommunicator.onDetach();
-        gattCommunicator = null;
+        gattCommWeather.onDetach();
+        gattCommWeather = null;
         gattCommShout.onDetach();
         gattCommShout = null;
         tts.shutDown();
@@ -124,6 +124,41 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
     private class BrdcstReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+        }
+    }
+
+    private class ActionGattSetup extends AndroidAction<View, Void, Void, Void, Void> {
+
+        public ActionGattSetup(View view, Class<?> actionType, String regMethodName) {
+            super(view, actionType, regMethodName);
+        }
+
+        @Override
+        public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            return null;
+        }
+
+        @Override
+        public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            if (ActionMethod.INVOKE_ACTION.matches(methodName)) {
+                gattCommWeather = new ConnGattCommWeather();
+                gattCommWeather.setContextProvider(ActWeather.this);
+                gattCommWeather.setViewProvider(ActWeather.this);
+                gattCommWeather.setConn(service.subscribeBlConnection(Constants.GATT_SERVICE_WEATHER.getUuid(), gattCommWeather));
+
+                gattCommShout = new ConnGattCommShout();
+                gattCommShout.setContextProvider(ActWeather.this);
+                gattCommShout.setViewProvider(ActWeather.this);
+                gattCommShout.setTtsProvider(ActWeather.this);
+                gattCommShout.setConn(service.subscribeBlConnection(Constants.GATT_SERVICE_SHOUT.getUuid(), gattCommShout));
+            }
+            return null;
+        }
+
+        @Override
+        public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
+                                      Object[] additionalTags) {
+
         }
     }
 }

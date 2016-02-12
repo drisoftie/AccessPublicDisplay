@@ -93,13 +93,13 @@ public class GattHandlerShout extends BaseGattHandler {
         }
     }
 
-    private void stopShouting() {
-        shouter.shutdown();
-    }
-
     private void startShouting() {
         shouter = Executors.newSingleThreadScheduledExecutor();
         shouter.scheduleAtFixedRate(shout, 20, 20, TimeUnit.SECONDS);
+    }
+
+    private void stopShouting() {
+        shouter.shutdown();
     }
 
     private class GattCallback extends BluetoothGattServerCallback {

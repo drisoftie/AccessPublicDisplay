@@ -96,7 +96,7 @@ public class NotifyHolder implements INotificationServiceCreator {
         service.startForeground(nid, n);
     }
 
-    public void createDisplayNotification(String descr, String bigDescr, Parcelable value, int nid) {
+    public void createDisplayNotification(String descr, String bigDescr, Parcelable parcelIntent, Parcelable value, int nid) {
         String txtFound = service.getString(R.string.ntxt_scan_found);
         String txtDescr = service.getString(R.string.ntxt_scan_descr, descr);
 
@@ -105,7 +105,7 @@ public class NotifyHolder implements INotificationServiceCreator {
                                                                                             txtDescr, ActScan.class);
 
         Intent showIntent = new Intent(service, BrRcvScan.class);
-        showIntent.putExtra(service.getString(R.string.bndl_bl_show), descr);
+        showIntent.putExtra(service.getString(R.string.bndl_bl_show), parcelIntent);
         showIntent.putExtra(service.getString(R.string.bndl_bl_scan_result), value);
         NotificationBuilder.addAction(service, nBuilder, R.drawable.ic_action_display_visible, service.getString(R.string.nact_show),
                                       showIntent, NotificationBuilder.BROADCAST_RECEIVER);
