@@ -2,6 +2,7 @@ package de.uni.stuttgart.vis.access.client.service;
 
 import java.util.UUID;
 
+import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
 
 /**
@@ -14,4 +15,6 @@ public interface IServiceBinder {
     void deregisterServiceListener(IServiceBlListener listener);
 
     IConnGattProvider subscribeBlConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber);
+
+    ITtsProv getTtsProvider();
 }

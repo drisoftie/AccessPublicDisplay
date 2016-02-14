@@ -43,7 +43,8 @@ public class ConnGattCommShout implements IConnGattProvider.IConnGattSubscriber 
 
     @Override
     public void onGattValueReceived(byte[] value) {
-
+        provTts.provideTts().queueRead("We have a new sale here!");
+        provTts.provideTts().queueRead(new String(value));
     }
 
     @Override

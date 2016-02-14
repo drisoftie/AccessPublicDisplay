@@ -33,6 +33,8 @@ public interface IGattHandler {
 
     void changeGattChar(UUID servUuid, UUID charUuid, String value);
 
+    BluetoothGattServerCallback getCallback();
+
     BluetoothGattServerCallback getCallback(ParcelUuid[] uuids);
 
     BluetoothGattServerCallback getCallback(UUID[] uuids);

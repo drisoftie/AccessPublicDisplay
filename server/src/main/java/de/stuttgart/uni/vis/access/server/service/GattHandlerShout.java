@@ -54,6 +54,7 @@ public class GattHandlerShout extends BaseGattHandler {
                         count = 0;
                         break;
                 }
+                count++;
             }
         }
     };
@@ -75,6 +76,11 @@ public class GattHandlerShout extends BaseGattHandler {
                                                               BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
                         R.string.bl_advert_cloudy).getBytes()));
         getServer().addService(serviceWeather);
+    }
+
+    @Override
+    public GattCallback getCallback() {
+        return callback;
     }
 
     @Override
@@ -159,6 +165,11 @@ public class GattHandlerShout extends BaseGattHandler {
         @Override
         public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
             getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
+        }
+
+        @Override
+        public void onMtuChanged(BluetoothDevice device, int mtu) {
+            super.onMtuChanged(device, mtu);
         }
     }
 }

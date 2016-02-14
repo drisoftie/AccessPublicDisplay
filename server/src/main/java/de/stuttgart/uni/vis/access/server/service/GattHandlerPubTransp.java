@@ -38,7 +38,7 @@ public class GattHandlerPubTransp extends BaseGattHandler {
         servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_BUS.getUuid(),
                                                                 BluetoothGattCharacteristic.PROPERTY_READ,
                                                                 BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
-                R.string.bl_advert_bus).getBytes()));
+                        R.string.bl_advert_bus).getBytes()));
         servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_METRO.getUuid(),
                                                                 BluetoothGattCharacteristic.PROPERTY_READ,
                                                                 BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
@@ -49,6 +49,11 @@ public class GattHandlerPubTransp extends BaseGattHandler {
                         R.string.bl_advert_train).getBytes()));
 
         getServer().addService(servicePubTransp);
+    }
+
+    @Override
+    public GattCallback getCallback() {
+        return callback;
     }
 
     @Override

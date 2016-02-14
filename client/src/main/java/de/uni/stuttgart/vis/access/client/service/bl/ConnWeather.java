@@ -188,10 +188,15 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 lastGattInst = gatt;
-                if (characteristic.getValue() != null) {
-                    byte[] weather = characteristic.getValue();
-                    for (IConnWeatherSub sub : subs) {
-                        sub.onWeatherInfo(characteristic.getUuid(), weather);
+                for (UUID uuid : getConstantUuids()) {
+                    if (uuid.equals(characteristic.getUuid())) {
+                        if (characteristic.getValue() != null) {
+                            byte[] weather = characteristic.getValue();
+                            for (IConnWeatherSub sub : subs) {
+                                sub.onWeatherInfo(characteristic.getUuid(), weather);
+                            }
+                            break;
+                        }
                     }
                 }
             }

@@ -57,6 +57,11 @@ public class GattHandlerWeather extends BaseGattHandler {
     }
 
     @Override
+    public GattCallback getCallback() {
+        return callback;
+    }
+
+    @Override
     public BluetoothGattServerCallback getCallback(UUID uuid) {
         for (UUID myUuid : getConstantUuids()) {
             if (myUuid.equals(uuid)) {
@@ -146,7 +151,7 @@ public class GattHandlerWeather extends BaseGattHandler {
                 forecast = owm.dailyForecastByCityName("Stuttgart", "de", (byte) 2);
 
                 changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_TODAY.getUuid(),
-                               currWeather.getWeatherInstance(0).getWeatherDescription());
+                               currWeather.getWeatherInstance(0).getWeatherDescription() + " Hello 20 characters more!");
                 for (int i = 0; i < forecast.getForecastCount(); i++) {
                     String descr = forecast.getForecastInstance(i).getWeatherInstance(0).getWeatherDescription();
                     switch (i) {

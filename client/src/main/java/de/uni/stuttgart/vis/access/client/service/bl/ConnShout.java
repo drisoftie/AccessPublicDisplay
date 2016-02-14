@@ -154,10 +154,15 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 lastGattInst = gatt;
-                if (characteristic.getValue() != null) {
-                    byte[] value = characteristic.getValue();
-                    for (IConnGattSubscriber sub : getConnGattSubscribers()) {
-                        sub.onGattValueReceived(value);
+                for (UUID uuid : getConstantUuids()) {
+                    if (uuid.equals(characteristic.getUuid())) {
+                        if (characteristic.getValue() != null) {
+                            byte[] value = characteristic.getValue();
+                            for (IConnGattSubscriber sub : getConnGattSubscribers()) {
+                                sub.onGattValueReceived(value);
+                            }
+                            break;
+                        }
                     }
                 }
             }
@@ -171,8 +176,6 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                     for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                         sub.onGattValueChanged(characteristic.getUuid(), characteristic.getValue());
                     }
-                    getTtsProv().provideTts().queueRead("Cool new news: We have a new sale here!");
-                    getTtsProv().provideTts().queueRead(new String(characteristic.getValue()));
                 }
             }
         }

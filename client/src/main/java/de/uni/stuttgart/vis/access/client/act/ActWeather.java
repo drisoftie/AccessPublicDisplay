@@ -36,8 +36,8 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
     private IServiceBinder      service;
     private ConnGattCommWeather gattCommWeather;
     private ConnGattCommShout   gattCommShout;
-    private TtsWrapper          tts;
     private ActionGattSetup     actionGattSetup;
+    private ITtsProv            ttsProvider;
 
 
     @Override
@@ -47,7 +47,6 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
         setContentView(R.layout.act_weather);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        tts = new TtsWrapper(this);
         actionGattSetup = new ActionGattSetup(null, IGenericAction.class, RegActionMethod.NONE.method());
 
 
@@ -70,7 +69,7 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
     public void onServiceConnected(ComponentName className, IBinder binder) {
         service = (IServiceBinder) binder;
         service.registerServiceListener(this);
-
+        ttsProvider = service.getTtsProvider();
         actionGattSetup.invokeSelf();
     }
 
@@ -86,7 +85,7 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
 
     @Override
     public TtsWrapper provideTts() {
-        return tts;
+        return ttsProvider.provideTts();
     }
 
     @Override
@@ -113,7 +112,7 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
         gattCommWeather = null;
         gattCommShout.onDetach();
         gattCommShout = null;
-        tts.shutDown();
+        ttsProvider = null;
         LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
     }
 

@@ -240,5 +240,10 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         public IConnGattProvider subscribeBlConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber) {
             return connectorAdvertScan.subscribeBlConnection(uuid, subscriber);
         }
+
+        @Override
+        public ITtsProv getTtsProvider() {
+            return ServiceScan.this;
+        }
     }
 }
