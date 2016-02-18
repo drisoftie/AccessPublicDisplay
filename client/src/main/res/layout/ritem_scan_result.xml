@@ -8,6 +8,7 @@
     android:layout_gravity="center_vertical"
     android:layout_margin="5dp"
     android:background="?android:attr/selectableItemBackground"
+    android:focusable="true"
     android:minHeight="40dp"
     android:padding="25dp"
     card_view:cardCornerRadius="4dp">

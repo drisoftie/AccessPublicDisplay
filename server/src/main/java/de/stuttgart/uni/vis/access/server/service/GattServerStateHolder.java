@@ -206,6 +206,11 @@ public class GattServerStateHolder {
             }
             super.onExecuteWrite(device, requestId, execute);
         }
+
+        @Override
+        public void onMtuChanged(BluetoothDevice device, int mtu) {
+            super.onMtuChanged(device, mtu);
+        }
     }
 
 

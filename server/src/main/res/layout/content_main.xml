@@ -22,21 +22,4 @@
         android:text="@string/txt_advert"
         android:textAppearance="?android:attr/textAppearanceLarge"/>
 
-    <EditText
-        android:id="@id/edt_advert"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@id/txt_advert"
-        android:layout_alignParentStart="true"
-        android:layout_below="@id/txt_advert"
-        android:inputType="text"/>
-
-    <Button
-        android:id="@+id/btn_advert"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/edt_advert"
-        android:layout_centerHorizontal="true"
-        android:text="@string/btn_advert"/>
 </RelativeLayout>

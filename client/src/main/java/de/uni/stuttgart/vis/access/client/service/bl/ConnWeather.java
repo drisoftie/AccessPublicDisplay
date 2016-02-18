@@ -10,6 +10,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.client.AccessApp;
+import de.uni.stuttgart.vis.access.client.BuildConfig;
 import de.uni.stuttgart.vis.access.client.R;
 
 /**
@@ -71,6 +73,9 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
                 if (foundRes != null) {
                     removeScanResult(foundRes);
                     addScanResult(scanData);
+                    for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
+                        callback.onRefreshedScanReceived(scanData);
+                    }
                 } else {
                     addScanResult(scanData);
                     connMulti.contributeNotification(AccessApp.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()), this);
@@ -81,6 +86,9 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
                     String txtFoundDescr = AccessApp.inst().getString(R.string.ntxt_scan_descr, AccessApp.string(
                             Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
                     getTtsProv().provideTts().queueRead(txtFound, txtFoundDescr);
+                    for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
+                        callback.onScanResultReceived(scanData);
+                    }
                 }
             } else if (b == Constants.AdvertiseConst.ADVERTISE_END) {
                 start = false;
@@ -132,6 +140,9 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
                         removeScanResult(result);
                         for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
                             callback.onScanLost(result);
+                        }
+                        if (BuildConfig.DEBUG) {
+                            Log.d("Weather", "Scan lost");
                         }
                         break;
                 }

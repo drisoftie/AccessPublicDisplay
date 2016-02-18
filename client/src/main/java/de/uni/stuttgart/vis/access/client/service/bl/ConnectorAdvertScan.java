@@ -162,7 +162,17 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         notifyProv.provideNotify().removeAllNotifications();
     }
 
-    public IConnGattProvider subscribeBlConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber) {
+
+    public IConnAdvertProvider subscribeAdvertConnection(UUID uuid, IConnAdvertProvider.IConnAdvertSubscriber subscriber) {
+        for (IConnAdvertScan conn : connections) {
+            if (conn.match(uuid)) {
+                return conn.registerConnectionAdvertSubscriber(uuid, subscriber);
+            }
+        }
+        return null;
+    }
+
+    public IConnGattProvider subscribeGattConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber) {
         for (IConnAdvertScan conn : connections) {
             if (conn.match(uuid)) {
                 return conn.registerConnectionGattSubscriber(uuid, subscriber);
@@ -244,12 +254,13 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
                 case BluetoothGatt.GATT_SUCCESS:
                     switch (newState) {
                         case BluetoothProfile.STATE_CONNECTED:
-                            gatt.discoverServices();
-                            IConnAdvertScan handler = getConnection(gatt.getDevice());
-                            if (handler != null) {
-                                handler.addConnDevice(gatt.getDevice());
-                                handler.getGattCallback().onConnectionStateChange(gatt, status, newState);
-                            }
+                            gatt.requestMtu(256);
+                            //                            gatt.discoverServices();
+                            //                            IConnAdvertScan handler = getConnection(gatt.getDevice());
+                            //                            if (handler != null) {
+                            //                                handler.addConnDevice(gatt.getDevice());
+                            //                                handler.getGattCallback().onConnectionStateChange(gatt, status, newState);
+                            //                            }
                     }
                     break;
                 case BluetoothGatt.GATT_FAILURE:
@@ -300,6 +311,17 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
             IConnAdvertScan handler = getConnection(gatt.getDevice());
             if (handler != null) {
                 handler.getGattCallback().onCharacteristicChanged(gatt, characteristic);
+            }
+        }
+
+        @Override
+        public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+            super.onMtuChanged(gatt, mtu, status);
+            gatt.discoverServices();
+            IConnAdvertScan handler = getConnection(gatt.getDevice());
+            if (handler != null) {
+                handler.addConnDevice(gatt.getDevice());
+                handler.getGattCallback().onConnectionStateChange(gatt, status, BluetoothProfile.STATE_CONNECTED);
             }
         }
     }

@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.util.Log;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.client.AccessApp;
+import de.uni.stuttgart.vis.access.client.BuildConfig;
 
 /**
  * @author Alexander Dridiger
@@ -62,9 +64,15 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                 if (foundRes != null) {
                     removeScanResult(foundRes);
                     addScanResult(scanData);
+                    for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
+                        callback.onRefreshedScanReceived(scanData);
+                    }
                 } else {
                     addScanResult(scanData);
                     connMulti.contributeNotification(AccessApp.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()), this);
+                    for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
+                        callback.onScanResultReceived(scanData);
+                    }
                 }
             } else if (b == Constants.AdvertiseConst.ADVERTISE_END) {
                 start = false;
@@ -97,6 +105,9 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                         removeScanResult(result);
                         for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
                             callback.onScanLost(result);
+                        }
+                        if (BuildConfig.DEBUG) {
+                            Log.d("Shout", "Scan lost");
                         }
                         break;
                 }
@@ -178,6 +189,11 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                     }
                 }
             }
+        }
+
+        @Override
+        public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+            super.onMtuChanged(gatt, mtu, status);
         }
     }
 }

@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- ==================== -->
+    <!-- Permission Constants -->
+    <!-- ==================== -->
+    <eat-comment/>
+
+    <integer name="perm_access_coarse_location">1</integer>
+
     <!-- ================ -->
     <!-- Intent Constants -->
     <!-- ================ -->

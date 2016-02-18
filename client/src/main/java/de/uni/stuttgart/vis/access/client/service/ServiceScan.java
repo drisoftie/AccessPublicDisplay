@@ -4,7 +4,6 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +32,7 @@ import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
 import de.uni.stuttgart.vis.access.client.helper.NotifyHolder;
 import de.uni.stuttgart.vis.access.client.helper.TtsWrapper;
 import de.uni.stuttgart.vis.access.client.service.bl.ConnectorAdvertScan;
+import de.uni.stuttgart.vis.access.client.service.bl.IConnAdvertProvider;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
 
 /**
@@ -42,14 +42,13 @@ import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
  */
 public class ServiceScan extends Service implements IContextProv, ITtsProv, INotifyProv {
 
-    private static final long    SCAN_PERIOD = TimeUnit.MILLISECONDS.convert(3, TimeUnit.MINUTES);
     /**
      * A global variable to let AdvertiserFragment check if the Service is running without needing
      * to start or bind to it.
      * This is the best practice method as defined here:
      * https://groups.google.com/forum/#!topic/android-developers/jEvXMWgbgzE
      */
-    public static        boolean running     = false;
+    public static boolean running = false;
 
     private final Binder serviceBinder = new ServiceBinder();
 
@@ -57,8 +56,6 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
 
     private ConnectorAdvertScan connectorAdvertScan;
 
-    private ScanResult         currDev;
-    private BluetoothAdapter   blAdapt;
     private BluetoothLeScanner blLeScanner;
     private Handler            handler;
     private Runnable           timeoutRunnable;
@@ -85,7 +82,6 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         notify = new NotifyHolder();
         notify.setService(this);
         handler = new Handler();
-        blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
 
         tts = new TtsWrapper(this);
 
@@ -93,13 +89,8 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         connectorAdvertScan.setNotifyProv(this);
         connectorAdvertScan.setTtsProv(this);
 
-        // Is Bluetooth supported on this device?
-        if (blAdapt != null) {
-            // Is Bluetooth turned on?
-            if (blAdapt.isEnabled()) {
-                blLeScanner = blAdapt.getBluetoothLeScanner();
-            }
-        }
+        BluetoothAdapter blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+        blLeScanner = blAdapt.getBluetoothLeScanner();
         checkAndScanLeDevices();
     }
 
@@ -221,10 +212,7 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         }
     }
 
-    /**
-     *
-     */
-    public class ServiceBinder extends Binder implements IServiceBinder {
+    public class ServiceBinder extends Binder implements IServiceBinderClient {
 
         @Override
         public void registerServiceListener(IServiceBlListener listener) {
@@ -237,8 +225,18 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         }
 
         @Override
-        public IConnGattProvider subscribeBlConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber) {
-            return connectorAdvertScan.subscribeBlConnection(uuid, subscriber);
+        public boolean isConnected(IServiceBlListener listener) {
+            return serviceListeners.contains(listener);
+        }
+
+        @Override
+        public IConnGattProvider subscribeGattConnection(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber) {
+            return connectorAdvertScan.subscribeGattConnection(uuid, subscriber);
+        }
+
+        @Override
+        public IConnAdvertProvider subscribeAdvertConnection(UUID uuid, IConnAdvertProvider.IConnAdvertSubscriber subscriber) {
+            return connectorAdvertScan.subscribeAdvertConnection(uuid, subscriber);
         }
 
         @Override

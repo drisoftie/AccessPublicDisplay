@@ -6,6 +6,8 @@
     <!-- =============== -->
     <eat-comment/>
 
+    <string name="txt_ok">OK</string>
+    <string name="txt_close">Close</string>
     <item name="activity" type="integer">123</item>
     <item name="service" type="integer">213</item>
     <item name="broadcast_receiver" type="integer">312</item>
@@ -16,6 +18,7 @@
     <eat-comment/>
 
     <string name="bl_advert_weather_info">Weather Forecast!</string>
+    <string name="bl_gatt_char_weather_default">no info</string>
     <string name="bl_advert_cloudy">cloudy</string>
     <string name="bl_advert_sunny">sunny</string>
     <string name="bl_advert_rainy">rainy</string>
@@ -62,5 +65,20 @@
     <eat-comment/>
 
     <string name="bl_advert_shout">New Shoutouts!</string>
+
+    <!-- ========== -->
+    <!-- BL Strings -->
+    <!-- ========== -->
+    <eat-comment/>
+
+    <string name="txt_bl_needed_then_stop">This app needs bluetooth functionality to work!</string>
+    <string name="txt_bl_descr_needed_then_stop">Please install this app on a device with bluetooth functionality.</string>
+    <string name="txt_bl_requ_turn_on">This app needs bluetooth turned on to work!</string>
+    <string name="txt_bl_descr_requ_turn_on">Please switch on bluetooth functionality or close the app.</string>
+    <string name="txt_bl_adv_needed">This app needs bluetooth advertising to work!</string>
+    <string name="txt_bl_descr_adv_needed">Please install this app on a device with bluetooth advertising functionality or close the app.</string>
+    <string name="txt_bl_loc_req_turn_on">This app needs finer location access</string>
+    <string name="txt_bl_descr_loc_requ_turn_on">Please grant permission to find bluetooth le devices or close the app.</string>
+    <string name="txt_bl_descr_loc_turn_on_last">Please grant location access so this app can detect bluetooth le devices.</string>
 
 </resources>

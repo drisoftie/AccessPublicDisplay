@@ -25,7 +25,7 @@ import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.helper.IContextProv;
 import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
 import de.uni.stuttgart.vis.access.client.helper.TtsWrapper;
-import de.uni.stuttgart.vis.access.client.service.IServiceBinder;
+import de.uni.stuttgart.vis.access.client.service.IServiceBinderClient;
 import de.uni.stuttgart.vis.access.client.service.IServiceBlListener;
 import de.uni.stuttgart.vis.access.client.service.ServiceScan;
 
@@ -33,11 +33,11 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
 
     private BroadcastReceiver msgReceiver = new BrdcstReceiver();
 
-    private IServiceBinder      service;
-    private ConnGattCommWeather gattCommWeather;
-    private ConnGattCommShout   gattCommShout;
-    private ActionGattSetup     actionGattSetup;
-    private ITtsProv            ttsProvider;
+    private IServiceBinderClient service;
+    private ConnGattCommWeather  gattCommWeather;
+    private ConnGattCommShout    gattCommShout;
+    private ActionGattSetup      actionGattSetup;
+    private ITtsProv             ttsProvider;
 
 
     @Override
@@ -67,7 +67,7 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
 
     @Override
     public void onServiceConnected(ComponentName className, IBinder binder) {
-        service = (IServiceBinder) binder;
+        service = (IServiceBinderClient) binder;
         service.registerServiceListener(this);
         ttsProvider = service.getTtsProvider();
         actionGattSetup.invokeSelf();
@@ -143,13 +143,13 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
                 gattCommWeather = new ConnGattCommWeather();
                 gattCommWeather.setContextProvider(ActWeather.this);
                 gattCommWeather.setViewProvider(ActWeather.this);
-                gattCommWeather.setConn(service.subscribeBlConnection(Constants.GATT_SERVICE_WEATHER.getUuid(), gattCommWeather));
+                gattCommWeather.setConn(service.subscribeGattConnection(Constants.GATT_SERVICE_WEATHER.getUuid(), gattCommWeather));
 
                 gattCommShout = new ConnGattCommShout();
                 gattCommShout.setContextProvider(ActWeather.this);
                 gattCommShout.setViewProvider(ActWeather.this);
                 gattCommShout.setTtsProvider(ActWeather.this);
-                gattCommShout.setConn(service.subscribeBlConnection(Constants.GATT_SERVICE_SHOUT.getUuid(), gattCommShout));
+                gattCommShout.setConn(service.subscribeGattConnection(Constants.GATT_SERVICE_SHOUT.getUuid(), gattCommShout));
             }
             return null;
         }

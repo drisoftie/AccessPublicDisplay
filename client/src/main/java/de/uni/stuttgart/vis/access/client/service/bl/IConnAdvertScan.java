@@ -61,7 +61,7 @@ public interface IConnAdvertScan {
 
     void removeScanResult(ScanResult scanResult);
 
-    IConnAdvertProvider registerConnectionAdvertSubscriber(IConnAdvertProvider.IConnAdvertSubscriber subscriber);
+    IConnAdvertProvider registerConnectionAdvertSubscriber(UUID uuid, IConnAdvertProvider.IConnAdvertSubscriber subscriber);
 
     List<IConnAdvertProvider.IConnAdvertSubscriber> getConnAdvertSubscribers();
 

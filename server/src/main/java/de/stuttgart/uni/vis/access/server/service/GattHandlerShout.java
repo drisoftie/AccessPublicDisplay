@@ -32,23 +32,23 @@ public class GattHandlerShout extends BaseGattHandler {
         @Override
         public void run() {
             if (!getConnDevices().isEmpty()) {
-                switch (count % 5) {
+                switch (count % 10) {
                     case 0:
                         changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(),
                                        "Wall Mart sausages 50% off");
                         break;
-                    case 1:
+                    case 2:
                         changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(),
                                        "Breuninger trousers up to 30% off");
                         break;
-                    case 2:
+                    case 4:
                         changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(), "Prime Mark socks 20% off");
                         break;
-                    case 3:
+                    case 6:
                         changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(),
                                        "Media Markt TVs up to 70% off!");
                         break;
-                    case 4:
+                    case 8:
                         changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(),
                                        "Sportarena everything 10% off");
                         count = 0;

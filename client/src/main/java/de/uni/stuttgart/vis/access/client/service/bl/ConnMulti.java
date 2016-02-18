@@ -70,6 +70,16 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
     }
 
     @Override
+    public IConnAdvertProvider registerConnectionAdvertSubscriber(UUID uuid, IConnAdvertSubscriber subscriber) {
+        for (IConnAdvertScan conn : connections) {
+            if (conn.match(uuid)) {
+                return conn.registerConnectionAdvertSubscriber(uuid, subscriber);
+            }
+        }
+        return null;
+    }
+
+    @Override
     public IConnGattProvider registerConnectionGattSubscriber(UUID uuid, IConnGattSubscriber subscriber) {
         for (IConnAdvertScan conn : connections) {
             if (conn.match(uuid)) {
