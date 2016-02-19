@@ -1,5 +1,6 @@
 package de.uni.stuttgart.vis.access.client.act;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
@@ -35,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.act.ActBasePerms;
+import de.stuttgart.uni.vis.access.common.brcst.BrcstBlAdaptChanged;
 import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.service.IServiceBinderClient;
@@ -52,6 +54,8 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
     private Menu                       menu;
     private IServiceBinderClient       service;
     private ActionListResults          actionListResults;
+
+    private BroadcastReceiver brcstRcvrBlAdapt = new BrcstBlAdaptChanged();
 
     private BroadcastReceiver brdcstRcvr = new BroadcastReceiver() {
         @Override
@@ -75,6 +79,8 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         filter.addAction(getString(R.string.intent_action_bl_user_stopped));
         filter.addAction(getString(R.string.intent_action_bl_user_changing));
         LocalBroadcastManager.getInstance(this).registerReceiver(brdcstRcvr, filter);
+
+        registerReceiver(brcstRcvrBlAdapt, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
         setContentView(R.layout.act_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -164,6 +170,8 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         }
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(brdcstRcvr);
+        unregisterReceiver(brcstRcvrBlAdapt);
+
         rcycAdaptDevices.getResults().clear();
         rcycAdaptDevices.notifyDataSetChanged();
     }

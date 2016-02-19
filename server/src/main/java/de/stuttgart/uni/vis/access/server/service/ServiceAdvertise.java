@@ -37,6 +37,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.brcst.BrcstBlAdaptChanged;
 import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.stuttgart.uni.vis.access.server.BuildConfig;
 import de.stuttgart.uni.vis.access.server.R;
@@ -79,6 +80,8 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
      * Length of time to allow advertising before automatically shutting off. (10 minutes)
      */
     private long TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
+
+    private BroadcastReceiver brcstRcvrBlAdapt = new BrcstBlAdaptChanged();
 
     // Our handler for received Intents. This will be called whenever an Intent
     // with an action named "custom-event-name" is broadcasted.
@@ -142,16 +145,6 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         }
         timeoutHandler = new Handler();
         worker = ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        running = false;
-        Intent notify = new Intent(getString(R.string.intent_bl_stopped));
-        LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
-        msgReceiver = null;
     }
 
     /**
@@ -340,6 +333,19 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         blGattServerHolder.startGatt(blManager, actionServiceSetup.getHandlerImpl(IFinishedHandler.class));
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        running = false;
+        Intent notify = new Intent(getString(R.string.intent_bl_stopped));
+        LocalBroadcastManager.getInstance(this).sendBroadcast(notify);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
+
+        unregisterReceiver(brcstRcvrBlAdapt);
+
+        msgReceiver = null;
+    }
+
     public class ServiceBinder extends Binder implements IServiceBinder {
 
         @Override
@@ -389,6 +395,8 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
                 filter.addAction(getString(R.string.intent_action_bl_user_stopped));
                 filter.addAction(getString(R.string.intent_advert_value));
                 LocalBroadcastManager.getInstance(ServiceAdvertise.this).registerReceiver(msgReceiver, filter);
+                registerReceiver(brcstRcvrBlAdapt, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Sending listeners start notify: " + serviceListeners.size());
                 }

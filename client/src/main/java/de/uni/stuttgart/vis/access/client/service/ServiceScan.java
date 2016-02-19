@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.brcst.BrcstBlAdaptChanged;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.act.ActPubTransp;
 import de.uni.stuttgart.vis.access.client.act.ActWeather;
@@ -60,7 +61,8 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
     private Handler            handler;
     private Runnable           timeoutRunnable;
 
-    private BroadcastReceiver brdRcvr = new BrdcstRcvrService();
+    private BroadcastReceiver brdRcvr          = new BrdcstRcvrService();
+    private BroadcastReceiver brcstRcvrBlAdapt = new BrcstBlAdaptChanged();
 
     private TtsWrapper   tts;
     private NotifyHolder notify;
@@ -74,11 +76,14 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
     public void onCreate() {
         super.onCreate();
         running = true;
+
         IntentFilter filter = new IntentFilter();
         filter.addAction(getString(R.string.intent_advert_value));
         filter.addAction(getString(R.string.intent_action_bl_user_stopped));
         filter.addAction(getString(R.string.intent_action_bl_user_changing));
         LocalBroadcastManager.getInstance(this).registerReceiver(brdRcvr, filter);
+
+        registerReceiver(brcstRcvrBlAdapt, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
         notify = new NotifyHolder();
         notify.setService(this);
@@ -177,6 +182,8 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
 
         running = false;
         LocalBroadcastManager.getInstance(this).unregisterReceiver(brdRcvr);
+        unregisterReceiver(brcstRcvrBlAdapt);
+
         tts.shutDown();
         handler.removeCallbacks(timeoutRunnable);
         stopScanning();
