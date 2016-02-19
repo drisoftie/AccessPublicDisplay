@@ -10,15 +10,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -31,22 +28,24 @@ import android.view.View;
 import com.drisoftie.action.async.IGenericAction;
 import com.drisoftie.action.async.RegActionMethod;
 import com.drisoftie.action.async.android.AndroidAction;
-import com.drisoftie.frags.comp.ManagedActivity;
 
 import org.apache.commons.lang3.StringUtils;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.DialogCreator;
+import de.stuttgart.uni.vis.access.common.act.ActBasePerms;
 import de.stuttgart.uni.vis.access.server.R;
 import de.stuttgart.uni.vis.access.server.service.IServiceBinder;
 import de.stuttgart.uni.vis.access.server.service.IServiceBlListener;
 import de.stuttgart.uni.vis.access.server.service.ServiceAdvertise;
 
-public class ActServerAdvertise extends ManagedActivity
+public class ActServerAdvertise extends ActBasePerms
         implements ServiceConnection, IServiceBlListener, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = ActServerAdvertise.class.getSimpleName();
 
+
+    public  boolean          ok;
     private BluetoothAdapter blAdapt;
     private Menu             menu;
     private IServiceBinder   service;
@@ -108,36 +107,8 @@ public class ActServerAdvertise extends ManagedActivity
     }
 
     @Override
-    protected void registerComponents() {
-        if (blAdapt != null) {
-            // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
-            // fire an intent to display a dialog asking the user to grant permission to enable it.
-            if (blAdapt.isEnabled()) {
-                checkBlFunctAdvert();
-            } else {
-                DialogCreator.createDialogAlert(this, R.string.txt_bl_requ_turn_on, R.string.txt_bl_descr_requ_turn_on, R.string.txt_ok,
-                                                new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                                                        startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
-                                                    }
-                                                }, R.string.txt_close, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                finish();
-                            }
-                        }, null);
-            }
-        } else {
-            DialogCreator.createDialogAlert(this, R.string.txt_bl_needed_then_stop, R.string.txt_bl_descr_needed_then_stop,
-                                            new DialogInterface.OnDismissListener() {
-                                                @Override
-                                                public void onDismiss(DialogInterface dialog) {
-                                                    finish();
-                                                }
-                                            });
-        }
+    protected void onBlAdaptStarted() {
+        checkBlFunctAdvert();
     }
 
     private void checkBlFunctAdvert() {
@@ -157,105 +128,7 @@ public class ActServerAdvertise extends ManagedActivity
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case Constants.REQUEST_ENABLE_BT:
-                if (resultCode == RESULT_OK) {
-                    checkBlFunctAdvert();
-                } else {
-                    DialogCreator.createDialogAlert(this, R.string.txt_bl_requ_turn_on, R.string.txt_bl_descr_requ_turn_on, R.string.txt_ok,
-                                                    new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                                                            startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
-                                                        }
-                                                    }, R.string.txt_close, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    finish();
-                                }
-                            }, new DialogInterface.OnDismissListener() {
-                                @Override
-                                public void onDismiss(DialogInterface dialog) {
-                                    finish();
-                                }
-                            });
-                }
-            default:
-                super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    private void checkPermLocation() {
-        int permScanCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
-        switch (permScanCheck) {
-            case PackageManager.PERMISSION_GRANTED: {
-                startBlServiceConn();
-                break;
-            }
-            case PackageManager.PERMISSION_DENIED: // Should we show an explanation?
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-
-                    DialogCreator.createDialogAlert(this, R.string.txt_bl_loc_req_turn_on, R.string.txt_bl_descr_loc_requ_turn_on,
-                                                    R.string.txt_ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    ActivityCompat.requestPermissions(ActServerAdvertise.this,
-                                                                      new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                                                      getResources().getInteger(R.integer.perm_access_coarse_location));
-                                }
-                            }, R.string.txt_close, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    finish();
-                                }
-                            }, new DialogInterface.OnDismissListener() {
-                                @Override
-                                public void onDismiss(DialogInterface dialog) {
-                                    finish();
-                                }
-                            });
-                } else {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                                      getResources().getInteger(R.integer.perm_access_coarse_location));
-                }
-                break;
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        if (requestCode == getResources().getInteger(R.integer.perm_access_coarse_location)) {
-            // If request is cancelled, the result arrays are empty.
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startBlServiceConn();
-            } else {
-                DialogCreator.createDialogAlert(this, R.string.txt_bl_loc_req_turn_on, R.string.txt_bl_descr_loc_turn_on_last,
-                                                R.string.txt_ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ActivityCompat.requestPermissions(ActServerAdvertise.this,
-                                                                  new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                                                  getResources().getInteger(R.integer.perm_access_coarse_location));
-                            }
-                        }, R.string.txt_close, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                finish();
-                            }
-                        }, new DialogInterface.OnDismissListener() {
-                            @Override
-                            public void onDismiss(DialogInterface dialog) {
-                                finish();
-                            }
-                        });
-            }
-        }
-    }
-
-    private void startBlServiceConn() {
+    protected void startBlServiceConn() {
         startService(new Intent(this, ServiceAdvertise.class));
         bindService(new Intent(this, ServiceAdvertise.class), this, BIND_AUTO_CREATE);
     }
@@ -440,6 +313,44 @@ public class ActServerAdvertise extends ManagedActivity
                 createMenuStart();
             } else {
                 createMenuStop();
+            }
+        }
+    }
+
+    private class DiagBlOkTurnOn implements DialogInterface.OnClickListener {
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            ok = true;
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
+        }
+    }
+
+    private class DiagBlOkPerm implements DialogInterface.OnClickListener {
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            ok = true;
+            ActivityCompat.requestPermissions(ActServerAdvertise.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                                              getResources().getInteger(R.integer.perm_access_coarse_location));
+        }
+    }
+
+    private class DiagBlClose implements DialogInterface.OnClickListener {
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            finish();
+        }
+    }
+
+    private class DiagDismissDefault implements DialogInterface.OnDismissListener {
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            if (!ok) {
+                finish();
             }
         }
     }
