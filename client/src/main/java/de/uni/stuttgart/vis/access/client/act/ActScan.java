@@ -139,26 +139,7 @@ public class ActScan extends ManagedActivity
             } else {
                 ok = false;
                 DialogCreator.createDialogAlert(this, R.string.txt_bl_requ_turn_on, R.string.txt_bl_descr_requ_turn_on, R.string.txt_ok,
-                                                new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        ok = true;
-                                                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                                                        startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
-                                                    }
-                                                }, R.string.txt_close, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                finish();
-                            }
-                        }, new DialogInterface.OnDismissListener() {
-                            @Override
-                            public void onDismiss(DialogInterface dialog) {
-                                if (!ok) {
-                                    finish();
-                                }
-                            }
-                        });
+                                                new DiagBlOkTurnOn(), R.string.txt_close, new DiagBlClose(), new DiagDismissDefault());
             }
         } else {
             DialogCreator.createDialogAlert(this, R.string.txt_bl_needed_then_stop, R.string.txt_bl_descr_needed_then_stop,
@@ -181,26 +162,7 @@ public class ActScan extends ManagedActivity
                 } else {
                     ok = false;
                     DialogCreator.createDialogAlert(this, R.string.txt_bl_requ_turn_on, R.string.txt_bl_descr_requ_turn_on, R.string.txt_ok,
-                                                    new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            ok = true;
-                                                            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                                                            startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
-                                                        }
-                                                    }, R.string.txt_close, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    finish();
-                                }
-                            }, new DialogInterface.OnDismissListener() {
-                                @Override
-                                public void onDismiss(DialogInterface dialog) {
-                                    if (!ok) {
-                                        finish();
-                                    }
-                                }
-                            });
+                                                    new DiagBlOkTurnOn(), R.string.txt_close, new DiagBlClose(), new DiagDismissDefault());
                 }
             default:
                 super.onActivityResult(requestCode, resultCode, data);
@@ -218,27 +180,8 @@ public class ActScan extends ManagedActivity
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
                     ok = false;
                     DialogCreator.createDialogAlert(this, R.string.txt_bl_loc_req_turn_on, R.string.txt_bl_descr_loc_requ_turn_on,
-                                                    R.string.txt_ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    ok = true;
-                                    ActivityCompat.requestPermissions(ActScan.this,
-                                                                      new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                                                      getResources().getInteger(R.integer.perm_access_coarse_location));
-                                }
-                            }, R.string.txt_close, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    finish();
-                                }
-                            }, new DialogInterface.OnDismissListener() {
-                                @Override
-                                public void onDismiss(DialogInterface dialog) {
-                                    if (!ok) {
-                                        finish();
-                                    }
-                                }
-                            });
+                                                    R.string.txt_ok, new DiagBlOkPerm(), R.string.txt_close, new DiagBlClose(),
+                                                    new DiagDismissDefault());
                 } else {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                                                       getResources().getInteger(R.integer.perm_access_coarse_location));
@@ -267,26 +210,8 @@ public class ActScan extends ManagedActivity
             } else {
                 ok = false;
                 DialogCreator.createDialogAlert(this, R.string.txt_bl_loc_req_turn_on, R.string.txt_bl_descr_loc_turn_on_last,
-                                                R.string.txt_ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ok = true;
-                                ActivityCompat.requestPermissions(ActScan.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                                                  getResources().getInteger(R.integer.perm_access_coarse_location));
-                            }
-                        }, R.string.txt_close, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                finish();
-                            }
-                        }, new DialogInterface.OnDismissListener() {
-                            @Override
-                            public void onDismiss(DialogInterface dialog) {
-                                if (!ok) {
-                                    finish();
-                                }
-                            }
-                        });
+                                                R.string.txt_ok, new DiagBlOkPerm(), R.string.txt_close, new DiagBlClose(),
+                                                new DiagDismissDefault());
             }
         }
     }
@@ -468,6 +393,44 @@ public class ActScan extends ManagedActivity
         public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
                                       Object[] additionalTags) {
 
+        }
+    }
+
+    private class DiagBlOkTurnOn implements DialogInterface.OnClickListener {
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            ok = true;
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
+        }
+    }
+
+    private class DiagBlOkPerm implements DialogInterface.OnClickListener {
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            ok = true;
+            ActivityCompat.requestPermissions(ActScan.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                                              getResources().getInteger(R.integer.perm_access_coarse_location));
+        }
+    }
+
+    private class DiagBlClose implements DialogInterface.OnClickListener {
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            finish();
+        }
+    }
+
+    private class DiagDismissDefault implements DialogInterface.OnDismissListener {
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            if (!ok) {
+                finish();
+            }
         }
     }
 }
