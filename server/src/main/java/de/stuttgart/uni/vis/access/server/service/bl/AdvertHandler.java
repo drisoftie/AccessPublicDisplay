@@ -1,9 +1,8 @@
-package de.stuttgart.uni.vis.access.server.service;
+package de.stuttgart.uni.vis.access.server.service.bl;
 
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
-import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -16,7 +15,7 @@ import de.stuttgart.uni.vis.access.server.BuildConfig;
  * Custom callback after Advertising succeeds or fails to start. Broadcasts the error code
  * in an Intent to be picked up by AdvertiserFragment and stops this Service.
  */
-class AdvertHandler extends AdvertiseCallback {
+public class AdvertHandler extends AdvertiseCallback {
 
     private static final String TAG = AdvertHandler.class.getSimpleName();
 
@@ -100,14 +99,5 @@ class AdvertHandler extends AdvertiseCallback {
                 Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag(), Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag(),
                 Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag(), Constants.AdvertiseConst.ADVERTISE_END});
         return dataBuilder.build();
-    }
-
-    public interface IAdvertStartListener {
-
-        Context getCntxt();
-
-        void onStartingFailed(int code);
-
-        void onStartingSuccess();
     }
 }

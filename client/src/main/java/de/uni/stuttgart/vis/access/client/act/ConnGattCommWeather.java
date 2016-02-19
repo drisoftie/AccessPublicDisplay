@@ -8,7 +8,7 @@ import com.drisoftie.action.async.IGenericAction;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.uni.stuttgart.vis.access.client.AccessApp;
+import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.helper.IContextProv;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
@@ -82,15 +82,15 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
     private void setText(UUID uuid, byte[] value) {
         String weather;
         if (Constants.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
-            weather = AccessApp.inst().getString(R.string.info_weather_today, new String(value));
+            weather = App.inst().getString(R.string.info_weather_today, new String(value));
             actionWeatherToday.invokeSelf(weather);
             blWeather.getWeatherInfo(Constants.GATT_WEATHER_TOMORROW.getUuid());
         } else if (Constants.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
-            weather = AccessApp.inst().getString(R.string.info_weather_tomorrow, new String(value));
+            weather = App.inst().getString(R.string.info_weather_tomorrow, new String(value));
             actionWeatherTomorrow.invokeSelf(weather);
             blWeather.getWeatherInfo(Constants.GATT_WEATHER_DAT.getUuid());
         } else if (Constants.GATT_WEATHER_DAT.getUuid().equals(uuid)) {
-            weather = AccessApp.inst().getString(R.string.info_weather_dat, new String(value));
+            weather = App.inst().getString(R.string.info_weather_dat, new String(value));
             actionWeatherDat.invokeSelf(weather);
         }
     }

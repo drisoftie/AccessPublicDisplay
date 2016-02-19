@@ -20,8 +20,19 @@ android {
 }
 
 dependencies {
+    /* local libs*/
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'org.apache.commons:commons-lang3:3.2'
+
+    /* support libs*/
     compile 'com.android.support:appcompat-v7:23.1.1'
+
+    /* db libs*/
+    compile 'com.j256.ormlite:ormlite-core:4.48'
+    compile 'com.j256.ormlite:ormlite-android:4.48'
+
+    /* helper libs*/
+    compile 'org.apache.commons:commons-lang3:3.2'
+    compile 'commons-io:commons-io:2.4'
+
 }

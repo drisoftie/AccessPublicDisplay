@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.uni.stuttgart.vis.access.client.AccessApp;
+import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.BuildConfig;
 import de.uni.stuttgart.vis.access.client.R;
 
@@ -78,12 +78,12 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
                     }
                 } else {
                     addScanResult(scanData);
-                    connMulti.contributeNotification(AccessApp.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()), this);
-                    //                    getNotifyProv().provideNotify().createDisplayNotification(AccessApp.string(
-                    //                            Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()), AccessApp.string(
+                    connMulti.contributeNotification(App.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()), this);
+                    //                    getNotifyProv().provideNotify().createDisplayNotification(App.string(
+                    //                            Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()), App.string(
                     //                            Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()), scanData, R.id.nid_main);
-                    String txtFound = AccessApp.string(R.string.ntxt_scan_found);
-                    String txtFoundDescr = AccessApp.inst().getString(R.string.ntxt_scan_descr, AccessApp.string(
+                    String txtFound = App.string(R.string.ntxt_scan_found);
+                    String txtFoundDescr = App.inst().getString(R.string.ntxt_scan_descr, App.string(
                             Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
                     getTtsProv().provideTts().queueRead(txtFound, txtFoundDescr);
                     for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
@@ -219,9 +219,9 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
             if (Constants.GATT_WEATHER_TODAY.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
                     byte[] weather = characteristic.getValue();
-                    Intent weatherIntent = new Intent(AccessApp.string(R.string.intent_gatt_weather));
-                    weatherIntent.putExtra(AccessApp.string(R.string.bndl_gatt_weather_today), weather);
-                    LocalBroadcastManager.getInstance(AccessApp.inst()).sendBroadcast(weatherIntent);
+                    Intent weatherIntent = new Intent(App.string(R.string.intent_gatt_weather));
+                    weatherIntent.putExtra(App.string(R.string.bndl_gatt_weather_today), weather);
+                    LocalBroadcastManager.getInstance(App.inst()).sendBroadcast(weatherIntent);
 
                     for (IConnWeatherSub sub : subs) {
                         sub.onWeatherInfo(Constants.GATT_WEATHER_TODAY.getUuid(), weather);

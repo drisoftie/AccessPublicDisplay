@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Database version should be updated if schema was changed in major updates. -->
+    <integer name="dbversion">1</integer>
+
+    <!-- Name of the whole database. -->
+    <string name="db_name">ndefmanager.db</string>
+
+    <!-- Package names of all the classes listed in dbtables. -->
+    <string name="classprefix">com.sony.eu.stc.nfc.domain.%1$s</string>
+
+    <!-- Name of the classes to be mapped into database tables. -->
+    <string-array name="dbtables">
+        <item>NdefEntity</item>
+        <item>NdefSecurityKey</item>
+        <item>NdefSignature</item>
+    </string-array>
+
+</resources>

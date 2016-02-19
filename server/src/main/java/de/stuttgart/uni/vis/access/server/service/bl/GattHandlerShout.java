@@ -1,4 +1,4 @@
-package de.stuttgart.uni.vis.access.server.service;
+package de.stuttgart.uni.vis.access.server.service.bl;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -15,7 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.stuttgart.uni.vis.access.server.AccessApp;
+import de.stuttgart.uni.vis.access.server.App;
 import de.stuttgart.uni.vis.access.server.R;
 
 /**
@@ -73,7 +73,7 @@ public class GattHandlerShout extends BaseGattHandler {
 
         serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_SHOUT.toString(),
                                                               BluetoothGattCharacteristic.PROPERTY_BROADCAST,
-                                                              BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
+                                                              BluetoothGattCharacteristic.PERMISSION_READ, App.inst().getString(
                         R.string.bl_advert_cloudy).getBytes()));
         getServer().addService(serviceWeather);
     }

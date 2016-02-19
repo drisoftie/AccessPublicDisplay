@@ -24,5 +24,6 @@
     <item name="txt_bus" type="id"/>
     <item name="txt_metro" type="id"/>
     <item name="txt_train" type="id"/>
+    <item name="txt_headline_displays" type="id">txt_headline_displays</item>
 
 </resources>

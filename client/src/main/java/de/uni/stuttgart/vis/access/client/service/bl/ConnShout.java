@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.uni.stuttgart.vis.access.client.AccessApp;
+import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.BuildConfig;
 
 /**
@@ -69,7 +69,7 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                     }
                 } else {
                     addScanResult(scanData);
-                    connMulti.contributeNotification(AccessApp.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()), this);
+                    connMulti.contributeNotification(App.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()), this);
                     for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
                         callback.onScanResultReceived(scanData);
                     }

@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -61,11 +62,16 @@ public class ActScan extends ManagedActivity
     private IServiceBinderClient       service;
     private BluetoothAdapter           blAdapt;
     private ActionListResults          actionListResults;
+
     private BroadcastReceiver brdcstRcvr = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.hasExtra(getString(R.string.intent_bl_stopped))) {
                 invalidateOptionsMenu();
+            } else if (intent.hasExtra(getString(R.string.intent_action_bl_user_stopped))) {
+                invalidateOptionsMenu();
+            } else if (intent.hasExtra(getString(R.string.intent_action_bl_user_changing))) {
+
             }
         }
     };
@@ -74,7 +80,11 @@ public class ActScan extends ManagedActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(brdcstRcvr);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(getString(R.string.intent_bl_stopped));
+        filter.addAction(getString(R.string.intent_action_bl_user_stopped));
+        filter.addAction(getString(R.string.intent_action_bl_user_changing));
+        LocalBroadcastManager.getInstance(this).registerReceiver(brdcstRcvr, filter);
 
         setContentView(R.layout.act_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -406,12 +416,14 @@ public class ActScan extends ManagedActivity
 
     @Override
     public void onScanResultReceived(ScanResult result) {
+        findViewById(R.id.txt_headline_displays).setVisibility(View.VISIBLE);
         rcycAdaptDevices.getResults().add(result);
         rcycAdaptDevices.notifyDataSetChanged();
     }
 
     @Override
     public void onScanResultsReceived(List<ScanResult> results) {
+        findViewById(R.id.txt_headline_displays).setVisibility(View.VISIBLE);
         rcycAdaptDevices.getResults().addAll(results);
         rcycAdaptDevices.notifyDataSetChanged();
     }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ============== -->
+    <!-- DB Log Strings -->
+    <!-- ============== -->
+    <eat-comment />
+
+    <string name="log_ormlite">NetworkControl OrmLite</string>
+    <string name="log_ormlite_creating">Creating %1$s entity</string>
+
+    <plurals name="log_ormlite_number_of_rows_created">
+        <item quantity="one">%1$d row created.</item>
+        <item quantity="other">%1%d rows created.</item>
+    </plurals>
+
+    <string name="log_ormlite_updating">Updating %1$s entity</string>
+    <string name="log_ormlite_updated">%1$d rows updated</string>
+    <string name="log_ormlite_refreshing">Refreshing %1$s entity</string>
+    <string name="log_ormlite_refreshed">%1$s refreshed</string>
+    <string name="log_ormlite_creating_updating">Creating or updating %1$s entity</string>
+    <string name="log_ormlite_deleting">Deleting %1$s entity</string>
+    <string name="log_ormlite_deleted">%1$s deleted</string>
+    <string name="log_ormlite_no_create_update">Nothing to create or update</string>
+
+    <plurals name="log_ormlite_number_of_rows_deleted">
+        <item quantity="one">%1$d row deleted.</item>
+        <item quantity="other">%1%d rows deleted.</item>
+    </plurals>
+
+</resources>

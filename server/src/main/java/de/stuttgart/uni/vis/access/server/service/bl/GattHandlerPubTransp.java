@@ -1,4 +1,4 @@
-package de.stuttgart.uni.vis.access.server.service;
+package de.stuttgart.uni.vis.access.server.service.bl;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.stuttgart.uni.vis.access.server.AccessApp;
+import de.stuttgart.uni.vis.access.server.App;
 import de.stuttgart.uni.vis.access.server.R;
 
 /**
@@ -37,15 +37,15 @@ public class GattHandlerPubTransp extends BaseGattHandler {
 
         servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_BUS.getUuid(),
                                                                 BluetoothGattCharacteristic.PROPERTY_READ,
-                                                                BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
+                                                                BluetoothGattCharacteristic.PERMISSION_READ, App.inst().getString(
                         R.string.bl_advert_bus).getBytes()));
         servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_METRO.getUuid(),
                                                                 BluetoothGattCharacteristic.PROPERTY_READ,
-                                                                BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
+                                                                BluetoothGattCharacteristic.PERMISSION_READ, App.inst().getString(
                         R.string.bl_advert_metro).getBytes()));
         servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_TRAIN.getUuid(),
                                                                 BluetoothGattCharacteristic.PROPERTY_READ,
-                                                                BluetoothGattCharacteristic.PERMISSION_READ, AccessApp.inst().getString(
+                                                                BluetoothGattCharacteristic.PERMISSION_READ, App.inst().getString(
                         R.string.bl_advert_train).getBytes()));
 
         getServer().addService(servicePubTransp);

@@ -77,6 +77,7 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         IntentFilter filter = new IntentFilter();
         filter.addAction(getString(R.string.intent_advert_value));
         filter.addAction(getString(R.string.intent_action_bl_user_stopped));
+        filter.addAction(getString(R.string.intent_action_bl_user_changing));
         LocalBroadcastManager.getInstance(this).registerReceiver(brdRcvr, filter);
 
         notify = new NotifyHolder();

@@ -1,4 +1,4 @@
-package de.stuttgart.uni.vis.access.server.service;
+package de.stuttgart.uni.vis.access.server.service.bl;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.stuttgart.uni.vis.access.server.AccessApp;
+import de.stuttgart.uni.vis.access.server.App;
 import de.stuttgart.uni.vis.access.server.R;
 
 /**
@@ -150,7 +150,7 @@ public class GattHandlerWeather extends BaseGattHandler {
         @Override
         public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
             OpenWeatherMap owm = new OpenWeatherMap(OpenWeatherMap.Units.IMPERIAL, OpenWeatherMap.Language.fromLangCode(
-                    Resources.getSystem().getConfiguration().locale.getLanguage()), AccessApp.string(R.string.ow_api));
+                    Resources.getSystem().getConfiguration().locale.getLanguage()), App.string(R.string.ow_api));
             try {
                 currWeather = owm.currentWeatherByCityName("Stuttgart", "de");
                 forecast = owm.dailyForecastByCityName("Stuttgart", "de", (byte) 2);
@@ -205,17 +205,17 @@ public class GattHandlerWeather extends BaseGattHandler {
                 serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_TODAY.toString(),
                                                                       BluetoothGattCharacteristic.PROPERTY_READ,
                                                                       BluetoothGattCharacteristic.PERMISSION_READ,
-                                                                      AccessApp.inst().getString(R.string.bl_gatt_char_weather_default)
+                                                                      App.inst().getString(R.string.bl_gatt_char_weather_default)
                                                                                .getBytes()));
                 serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_TOMORROW.toString(),
                                                                       BluetoothGattCharacteristic.PROPERTY_READ,
                                                                       BluetoothGattCharacteristic.PERMISSION_READ,
-                                                                      AccessApp.inst().getString(R.string.bl_gatt_char_weather_default)
+                                                                      App.inst().getString(R.string.bl_gatt_char_weather_default)
                                                                                .getBytes()));
                 serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_DAT.toString(),
                                                                       BluetoothGattCharacteristic.PROPERTY_READ,
                                                                       BluetoothGattCharacteristic.PERMISSION_READ,
-                                                                      AccessApp.inst().getString(R.string.bl_gatt_char_weather_default)
+                                                                      App.inst().getString(R.string.bl_gatt_char_weather_default)
                                                                                .getBytes()));
                 serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_WEATHER_QUERY.toString(),
                                                                       BluetoothGattCharacteristic.PROPERTY_WRITE,

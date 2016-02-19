@@ -1,4 +1,4 @@
-package de.stuttgart.uni.vis.access.server.service;
+package de.stuttgart.uni.vis.access.server.service.bl;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.stuttgart.uni.vis.access.server.AccessApp;
+import de.stuttgart.uni.vis.access.server.App;
 import de.stuttgart.uni.vis.access.server.BuildConfig;
 
 /**
@@ -58,7 +58,7 @@ public class GattServerStateHolder {
     }
 
     private void startGattServer(BluetoothManager blManager) {
-        blGattServer = blManager.openGattServer(AccessApp.inst(), blGattCallback);
+        blGattServer = blManager.openGattServer(App.inst(), blGattCallback);
     }
 
     private void startGattServerWeather() {

@@ -39,17 +39,19 @@ import java.util.concurrent.TimeUnit;
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.stuttgart.uni.vis.access.server.BuildConfig;
-import de.stuttgart.uni.vis.access.server.IAdvertReceiver;
 import de.stuttgart.uni.vis.access.server.R;
 import de.stuttgart.uni.vis.access.server.act.ActServerAdvertise;
 import de.stuttgart.uni.vis.access.server.brcast.BrRcvAdvertisement;
+import de.stuttgart.uni.vis.access.server.service.bl.AdvertHandler;
+import de.stuttgart.uni.vis.access.server.service.bl.GattServerStateHolder;
+import de.stuttgart.uni.vis.access.server.service.bl.IAdvertStartListener;
 
 /**
  * Manages BLE Advertising independent of the main app.
  * If the app goes off screen (or gets killed completely) advertising can continue because this
  * Service is maintaining the necessary Callback in memory.
  */
-public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertStartListener, IAdvertReceiver {
+public class ServiceAdvertise extends Service implements IAdvertStartListener {
 
     private static final String  TAG           = ServiceAdvertise.class.getSimpleName();
     /**
@@ -60,7 +62,6 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
      */
     public static        boolean running       = false;
     private final        Binder  serviceBinder = new ServiceBinder();
-    private              String  advertisement = "Weather Forecast";
     private BluetoothManager      blManager;
     private BluetoothAdapter      blAdapt;
     private BluetoothLeAdvertiser blLeAdvertiser;
@@ -253,8 +254,14 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
         NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this);
         nBuilder.setSmallIcon(R.drawable.ic_action_bl_advert);
         nBuilder.setContentTitle(getString(R.string.ntxt_advert_run));
-        nBuilder.setContentText(getString(R.string.ntxt_advert_run_descr, advertisement) + " + " + getString(
-                R.string.bl_advert_pub_transp));
+
+        nBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(getString(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()) +
+                                                                        System.lineSeparator() + getString(
+                Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()) +
+                                                                        System.lineSeparator() + getString(
+                Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()) +
+                                                                        System.lineSeparator() +
+                                                                        getString(Constants.AdvertiseConst.ADVERTISE_BOOKING.getDescr())));
 
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(this, ActServerAdvertise.class);
@@ -309,16 +316,6 @@ public class ServiceAdvertise extends Service implements AdvertHandler.IAdvertSt
     private void restartAdvertisement() {
         stopAdvertising();
         startAdvertising();
-    }
-
-    @Override
-    public void onNewAdvertisementString(String advert) {
-        advertisement = advert;
-    }
-
-    @Override
-    public void onRestartAdvertisement() {
-        restartAdvertisement();
     }
 
     /**

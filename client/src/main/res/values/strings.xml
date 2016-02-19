@@ -33,6 +33,7 @@
     <string name="txt_headline_train">Current train</string>
 
     <string name="txt_weather_more_info">Click on button below to get more weather info:</string>
+    <string name="txt_range_list">You got in range of displays located nearby, you can get the following information from it:</string>
 
     <!-- ==================== -->
     <!-- Notification Strings -->

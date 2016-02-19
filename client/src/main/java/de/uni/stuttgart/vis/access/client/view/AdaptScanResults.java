@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
 
 /**
@@ -43,11 +44,36 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         ScanResult result = results.get(position);
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
-        byte[] data = result.getScanRecord().getServiceData().get(Constants.UUID_ADVERT_SERVICE_MULTI);
-        holder.txtDeviceName.setText(result.getDevice().getName());
-        holder.txtAdInfo.setText("Advertisement: " + new String(data));
+        boolean    start  = false;
+        //noinspection ConstantConditions
+        for (byte b : result.getScanRecord().getServiceData(Constants.UUID_ADVERT_SERVICE_MULTI)) {
+            if (b == Constants.AdvertiseConst.ADVERTISE_START) {
+                start = true;
+                holder.txtAdInfo.setText("");
+            } else if (b == Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag()) {
+                if (start) {
+                    start = false;
+                } else {
+                    holder.txtAdInfo.append(System.lineSeparator());
+                }
+                holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
+            } else if (b == Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag()) {
+                if (start) {
+                    start = false;
+                } else {
+                    holder.txtAdInfo.append(System.lineSeparator());
+                }
+                holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()));
+            } else if (b == Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag()) {
+                if (start) {
+                    start = false;
+                } else {
+                    holder.txtAdInfo.append(System.lineSeparator());
+                }
+                holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()));
+
+            }
+        }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             private ScanResult result;
 
@@ -73,12 +99,10 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView txtDeviceName;
         public TextView txtAdInfo;
 
         public ViewHolder(View item) {
             super(item);
-            this.txtDeviceName = (TextView) item.findViewById(R.id.ritem_txt_device_name);
             this.txtAdInfo = (TextView) item.findViewById(R.id.ritem_txt_device_adv_content);
         }
     }
