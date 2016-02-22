@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import com.drisoftie.action.async.ActionMethod;
 import com.drisoftie.action.async.IGenericAction;
+import com.drisoftie.action.async.RegActionMethod;
 import com.drisoftie.action.async.android.AndroidAction;
 import com.drisoftie.action.async.handler.IFinishedHandler;
 
@@ -62,9 +63,9 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
      * https://groups.google.com/forum/#!topic/android-developers/jEvXMWgbgzE
      */
     public static        boolean running       = false;
+
     private final        Binder  serviceBinder = new ServiceBinder();
     private BluetoothManager      blManager;
-    private BluetoothAdapter      blAdapt;
     private BluetoothLeAdvertiser blLeAdvertiser;
     private List<IServiceBlListener> serviceListeners = new ArrayList<>();
 
@@ -83,9 +84,9 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
 
     private BroadcastReceiver brcstRcvrBlAdapt = new BrcstBlAdaptChanged();
 
-    // Our handler for received Intents. This will be called whenever an Intent
-    // with an action named "custom-event-name" is broadcasted.
-    private BroadcastReceiver                           msgReceiver        = new BroadcastReceiver() {
+    private ActionUserShutdown actionUserShutdown;
+
+    private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (StringUtils.equals(intent.getAction(), getString(R.string.intent_action_bl_user_stopped)) || StringUtils.equals(
@@ -94,33 +95,6 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
                     l.onConnStopped();
                 }
                 stopSelf();
-            }
-        }
-    };
-    private AndroidAction<View, Void, Void, Void, Void> actionUserShutdown = new AndroidAction<View, Void, Void, Void, Void>(new View[0],
-                                                                                                                             IGenericAction.class,
-                                                                                                                             "") {
-        @Override
-        public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
-            return null;
-        }
-
-        @Override
-        public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
-            worker.shutdown();
-            stopAdvertising();
-            blGattServerHolder.closeServer();
-            if (timeoutHandler != null) {
-                timeoutHandler.removeCallbacks(timeoutRunnable);
-            }
-            return null;
-        }
-
-        @Override
-        public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
-                                      Object[] additionalTags) {
-            for (IServiceBlListener l : serviceListeners) {
-                l.onBlUserShutdownCompleted();
             }
         }
     };
@@ -133,16 +107,11 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
 
             @Override
             public void run() {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Initializing GATT && Advertising...");
-                }
                 actionServiceSetup = new ActionServiceSetup(null, new Class[]{IGenericAction.class, IFinishedHandler.class}, null);
                 actionServiceSetup.invokeSelf();
             }
         };
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Creating Service Components");
-        }
+        actionUserShutdown = new ActionUserShutdown(null, IGenericAction.class, RegActionMethod.NONE.method());
         timeoutHandler = new Handler();
         worker = ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
     }
@@ -166,20 +135,11 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
      */
     private void initialize() {
         if (blLeAdvertiser == null) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "Get BL Manager");
-            }
             blManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             if (blManager != null) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Get BL Adapter");
-                }
-                blAdapt = blManager.getAdapter();
+                BluetoothAdapter blAdapt = blManager.getAdapter();
                 if (blAdapt != null) {
                     blLeAdvertiser = blAdapt.getBluetoothLeAdvertiser();
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "Get Advertiser " + blLeAdvertiser);
-                    }
                 } else {
                     Toast.makeText(this, getString(R.string.bt_null), Toast.LENGTH_LONG).show();
                 }
@@ -306,11 +266,6 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         }
     }
 
-    private void restartAdvertisement() {
-        stopAdvertising();
-        startAdvertising();
-    }
-
     /**
      * Builds and sends a broadcast intent indicating Advertising has failed. Includes the error
      * code as an extra. This is intended to be picked up by the {@code AdvertiserFragment}.
@@ -323,13 +278,8 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
     }
 
     private void startGattServers() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Start GATT Server");
-        }
         blGattServerHolder = new GattServerStateHolder();
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "GATT State Holder = " + blGattServerHolder);
-        }
+        //noinspection unchecked
         blGattServerHolder.startGatt(blManager, actionServiceSetup.getHandlerImpl(IFinishedHandler.class));
     }
 
@@ -369,6 +319,37 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         }
     }
 
+    private class ActionUserShutdown extends AndroidAction<View, Void, Void, Void, Void> {
+
+        public ActionUserShutdown(View view, Class<?> actionType, String regMethodName) {
+            super(view, actionType, regMethodName);
+        }
+
+        @Override
+        public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            return null;
+        }
+
+        @Override
+        public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            worker.shutdown();
+            stopAdvertising();
+            blGattServerHolder.closeServer();
+            if (timeoutHandler != null) {
+                timeoutHandler.removeCallbacks(timeoutRunnable);
+            }
+            return null;
+        }
+
+        @Override
+        public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
+                                      Object[] additionalTags) {
+            for (IServiceBlListener l : serviceListeners) {
+                l.onBlUserShutdownCompleted();
+            }
+        }
+    }
+
     private class ActionServiceSetup extends AndroidAction<View, Void, Void, Void, Void> {
 
         public ActionServiceSetup(View view, Class<?>[] actionTypes, String regMethodName) {
@@ -397,9 +378,6 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
                 LocalBroadcastManager.getInstance(ServiceAdvertise.this).registerReceiver(msgReceiver, filter);
                 registerReceiver(brcstRcvrBlAdapt, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Sending listeners start notify: " + serviceListeners.size());
-                }
                 for (IServiceBlListener l : serviceListeners) {
                     l.onBlStarted();
                 }

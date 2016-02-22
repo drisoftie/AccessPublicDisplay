@@ -44,9 +44,7 @@ public class ActServerAdvertise extends ActBasePerms
 
     private static final String TAG = ActServerAdvertise.class.getSimpleName();
 
-
     public  boolean          ok;
-    private BluetoothAdapter blAdapt;
     private Menu             menu;
     private IServiceBinder   service;
 
@@ -137,8 +135,7 @@ public class ActServerAdvertise extends ActBasePerms
     protected void deregisterComponents() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(msgReceiver);
         if (isServiceBlConnected()) {
-            stopServiceBlConn();
-            removeServiceReferences();
+            stopServiceBl();
         }
     }
 
@@ -175,7 +172,6 @@ public class ActServerAdvertise extends ActBasePerms
     @Override
     public void onConnStopped() {
         stopServiceBl();
-        removeServiceReferences();
         actionMenuServer.invokeSelf(true);
     }
 
@@ -213,16 +209,11 @@ public class ActServerAdvertise extends ActBasePerms
         }
     }
 
-    private void stopServiceBlConn() {
-        if (isServiceBlConnected()) {
-            unbindService(ActServerAdvertise.this);
-        }
-    }
-
     private void stopServiceBl() {
         if (isServiceBlConnected()) {
             unbindService(ActServerAdvertise.this);
         }
+        removeServiceReferences();
     }
 
     @Override

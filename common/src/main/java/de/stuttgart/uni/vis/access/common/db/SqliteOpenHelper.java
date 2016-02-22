@@ -1,17 +1,15 @@
 /*****************************************************************************
- *
  * Copyright 2012-2013 Sony Corporation
- *
+ * <p/>
  * The information contained here-in is the property of Sony corporation and
  * is not to be disclosed or used without the prior written permission of
  * Sony corporation. This copyright extends to all media in which this
  * information may be preserved including magnetic storage, computer
  * print-out or visual display.
- *
+ * <p/>
  * Contains proprietary information, copyright and database rights Sony.
  * Decompilation prohibited save as permitted by law. No using, disclosing,
  * reproducing, accessing or modifying without Sony prior written consent.
- *
  ****************************************************************************/
 
 package de.stuttgart.uni.vis.access.common.db;
@@ -24,7 +22,8 @@ import android.util.Log;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import com.sony.eu.stc.nfc.R;
+
+import de.stuttgart.uni.vis.access.common.R;
 
 /**
  * Central helper class for the SQLite database.

@@ -27,10 +27,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.drisoftie.action.async.IGenericAction;
-import com.drisoftie.action.async.RegActionMethod;
-import com.drisoftie.action.async.android.AndroidAction;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -53,7 +49,6 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
     private RecyclerView.LayoutManager rcycLayoutManager;
     private Menu                       menu;
     private IServiceBinderClient       service;
-    private ActionListResults          actionListResults;
 
     private BroadcastReceiver brcstRcvrBlAdapt = new BrcstBlAdaptChanged();
 
@@ -110,7 +105,6 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         rcycAdaptDevices = new AdaptScanResults();
         rcycDevices.setAdapter(rcycAdaptDevices);
 
-        actionListResults = new ActionListResults(rcycDevices, IGenericAction.class, RegActionMethod.NONE.method());
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
@@ -305,28 +299,4 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
     public void onScanFailed(int errorCode) {
 
     }
-
-    private class ActionListResults extends AndroidAction<View, Void, Void, Void, Void> {
-
-        public ActionListResults(View view, Class<?> actionType, String regMethodName) {
-            super(view, actionType, regMethodName);
-        }
-
-        @Override
-        public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
-            return null;
-        }
-
-        @Override
-        public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
-            return null;
-        }
-
-        @Override
-        public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
-                                      Object[] additionalTags) {
-
-        }
-    }
-
 }
