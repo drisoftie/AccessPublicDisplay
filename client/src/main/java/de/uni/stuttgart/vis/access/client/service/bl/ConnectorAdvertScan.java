@@ -187,6 +187,7 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
             for (IConnAdvertScan conn : connections) {
                 if (result.getScanRecord() != null && conn.match(result.getScanRecord().getServiceUuids())) {
                     result.getDevice().connectGatt(getCntxtProv().provideContext(), false, getGattCallback());
+                    break;
                 }
             }
         }

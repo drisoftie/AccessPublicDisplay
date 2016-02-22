@@ -50,6 +50,7 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
 
     private void analyzeScanData(ScanResult scanData) {
         boolean start = false;
+        //noinspection ConstantConditions
         for (byte b : scanData.getScanRecord().getServiceData(Constants.UUID_ADVERT_SERVICE_MULTI)) {
             if (b == Constants.AdvertiseConst.ADVERTISE_START) {
                 start = true;

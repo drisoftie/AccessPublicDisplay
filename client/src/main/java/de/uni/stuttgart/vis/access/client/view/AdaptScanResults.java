@@ -84,10 +84,12 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
 
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(v.getContext().getString(R.string.intent_bl_device_addr));
-                // You can also include some extra data.
-                intent.putExtra(v.getContext().getString(R.string.bndl_bl_dev_addr), result.getDevice().getAddress());
-                LocalBroadcastManager.getInstance(v.getContext()).sendBroadcast(intent);
+                Intent showIntent = new Intent(v.getContext().getString(R.string.intent_advert_value));
+                showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_show), Constants.UUID_ADVERT_SERVICE_MULTI);
+                showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_scan_result), result);
+                LocalBroadcastManager.getInstance(v.getContext()).sendBroadcast(showIntent);
+                Intent it = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+                v.getContext().sendBroadcast(it);
             }
         }.init(result));
     }

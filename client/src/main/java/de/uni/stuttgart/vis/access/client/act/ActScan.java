@@ -50,7 +50,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
     private Menu                       menu;
     private IServiceBinderClient       service;
 
-    private BroadcastReceiver brcstRcvrBlAdapt = new BrcstBlAdaptChanged();
+    private BroadcastReceiver brcstRcvrBlAdapt;
 
     private BroadcastReceiver brdcstRcvr = new BroadcastReceiver() {
         @Override
@@ -75,7 +75,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         filter.addAction(getString(R.string.intent_action_bl_user_changing));
         LocalBroadcastManager.getInstance(this).registerReceiver(brdcstRcvr, filter);
 
-        registerReceiver(brcstRcvrBlAdapt, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+        brcstRcvrBlAdapt = new BrcstBlAdaptChanged();
 
         setContentView(R.layout.act_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -117,6 +117,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
     @Override
     protected void onResuming() {
+        registerReceiver(brcstRcvrBlAdapt, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
     }
 
     @Override
@@ -164,7 +165,6 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         }
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(brdcstRcvr);
-        unregisterReceiver(brcstRcvrBlAdapt);
 
         rcycAdaptDevices.getResults().clear();
         rcycAdaptDevices.notifyDataSetChanged();
@@ -172,6 +172,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
     @Override
     protected void onPausing() {
+        unregisterReceiver(brcstRcvrBlAdapt);
     }
 
     @Override

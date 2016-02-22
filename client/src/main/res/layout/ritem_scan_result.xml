@@ -17,8 +17,6 @@
         android:id="@id/ritem_txt_device_adv_content"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:clickable="true"
-        android:focusable="true"
         android:paddingBottom="20dp"
         android:paddingEnd="50dp"
         android:paddingLeft="50dp"
