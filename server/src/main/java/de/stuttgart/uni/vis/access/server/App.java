@@ -15,7 +15,10 @@ package de.stuttgart.uni.vis.access.server;
 
 import android.app.Application;
 
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+
 import de.stuttgart.uni.vis.access.common.AppBase;
+import de.stuttgart.uni.vis.access.server.db.SqliteOpenHelper;
 
 /**
  * Central {@link Application} class for handling application states. Uses the Singleton Pattern.
@@ -33,5 +36,10 @@ public class App extends AppBase {
     @Override
     public void onTerminate() {
         super.onTerminate();
+    }
+
+    @Override
+    public Class<? extends OrmLiteSqliteOpenHelper> getSqliteOpenHelperClass() {
+        return SqliteOpenHelper.class;
     }
 }

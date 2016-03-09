@@ -39,7 +39,6 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
     private ActionGattSetup      actionGattSetup;
     private ITtsProv             ttsProvider;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,7 +47,6 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         actionGattSetup = new ActionGattSetup(null, IGenericAction.class, RegActionMethod.NONE.method());
-
 
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
     }

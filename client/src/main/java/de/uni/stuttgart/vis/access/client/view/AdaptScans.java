@@ -1,6 +1,5 @@
 package de.uni.stuttgart.vis.access.client.view;
 
-import android.bluetooth.le.ScanResult;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,25 +14,26 @@ import java.util.List;
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
+import de.uni.stuttgart.vis.access.client.data.BlData;
 
 /**
  * @author Alexander Dridiger
  */
-public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.ViewHolder> {
+public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
 
-    private List<ScanResult> results;
+    private List<BlData> blData;
 
-    public AdaptScanResults() {
-        results = new ArrayList<>();
+    public AdaptScans() {
+        blData = new ArrayList<>();
     }
 
-    public List<ScanResult> getResults() {
-        return results;
+    public List<BlData> getBlData() {
+        return blData;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public AdaptScanResults.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public AdaptScans.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.ritem_scan_result, parent, false);
         // set the view's size, margins, paddings and layout parameters
@@ -43,10 +43,10 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        ScanResult result = results.get(position);
+        BlData data = blData.get(position);
         boolean    start  = false;
         //noinspection ConstantConditions
-        for (byte b : result.getScanRecord().getServiceData(Constants.UUID_ADVERT_SERVICE_MULTI)) {
+        for (byte b : data.getAdvertisement()) {
             if (b == Constants.AdvertiseConst.ADVERTISE_START) {
                 start = true;
                 holder.txtAdInfo.setText("");
@@ -75,10 +75,10 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
             }
         }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
-            private ScanResult result;
+            private BlData data;
 
-            public View.OnClickListener init(ScanResult result) {
-                this.result = result;
+            public View.OnClickListener init(BlData data) {
+                this.data = data;
                 return this;
             }
 
@@ -86,18 +86,18 @@ public class AdaptScanResults extends RecyclerView.Adapter<AdaptScanResults.View
             public void onClick(View v) {
                 Intent showIntent = new Intent(v.getContext().getString(R.string.intent_advert_value));
                 showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_show), Constants.UUID_ADVERT_SERVICE_MULTI);
-                showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_scan_result), result);
+                showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_scan_result), data.getAddress());
                 LocalBroadcastManager.getInstance(v.getContext()).sendBroadcast(showIntent);
                 Intent it = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
                 v.getContext().sendBroadcast(it);
             }
-        }.init(result));
+        }.init(data));
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return results.size();
+        return blData.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

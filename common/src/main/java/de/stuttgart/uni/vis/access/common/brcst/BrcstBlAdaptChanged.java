@@ -23,18 +23,16 @@ public class BrcstBlAdaptChanged extends BroadcastReceiver {
 
             //noinspection ResourceType
             if (btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF) {
-                LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(context.getString(
-                        R.string.intent_action_bl_user_changing)));
+                LocalBroadcastManager.getInstance(context).sendBroadcast(
+                        new Intent(context.getString(R.string.intent_action_bl_user_changing)));
                 return;
             }
 
             //noinspection ResourceType
             if (btAdapter.getState() == BluetoothAdapter.STATE_OFF) {
-                LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(context.getString(
-                        R.string.intent_action_bl_user_changing)));
-                return;
+                LocalBroadcastManager.getInstance(context).sendBroadcast(
+                        new Intent(context.getString(R.string.intent_action_bl_user_changing)));
             }
-
         }
     }
 }

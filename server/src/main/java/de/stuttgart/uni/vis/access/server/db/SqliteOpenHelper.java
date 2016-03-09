@@ -12,7 +12,7 @@
  * reproducing, accessing or modifying without Sony prior written consent.
  ****************************************************************************/
 
-package de.stuttgart.uni.vis.access.common.db;
+package de.stuttgart.uni.vis.access.server.db;
 
 import android.content.Context;
 import android.database.SQLException;

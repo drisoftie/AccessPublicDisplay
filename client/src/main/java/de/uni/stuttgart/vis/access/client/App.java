@@ -13,7 +13,11 @@
  ****************************************************************************/
 package de.uni.stuttgart.vis.access.client;
 
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+
 import de.stuttgart.uni.vis.access.common.AppBase;
+import de.uni.stuttgart.vis.access.client.data.HolderBlData;
+import de.uni.stuttgart.vis.access.client.db.SqliteOpenHelper;
 
 /**
  * Central {@link android.app.Application} class for handling application states. Uses the Singleton Pattern.
@@ -22,13 +26,43 @@ import de.stuttgart.uni.vis.access.common.AppBase;
  */
 public class App extends AppBase {
 
+    private static App inst;
+
+    private HolderBlData holder;
+
+    public static App inst() {
+        return inst.getInst();
+    }
+
+    public static HolderBlData holder() {
+        return inst().holder;
+    }
+
+    public App getInst() {
+        return inst;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+
+        inst = this;
+
+        holder = new HolderBlData();
     }
 
     @Override
     public void onTerminate() {
         super.onTerminate();
+    }
+
+
+    @Override
+    public Class<? extends OrmLiteSqliteOpenHelper> getSqliteOpenHelperClass() {
+        return SqliteOpenHelper.class;
+    }
+
+    public HolderBlData getHolder() {
+        return holder;
     }
 }

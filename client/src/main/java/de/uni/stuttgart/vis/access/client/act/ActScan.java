@@ -28,6 +28,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
@@ -35,17 +36,20 @@ import de.stuttgart.uni.vis.access.common.act.ActBasePerms;
 import de.stuttgart.uni.vis.access.common.brcst.BrcstBlAdaptChanged;
 import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.uni.stuttgart.vis.access.client.R;
+import de.uni.stuttgart.vis.access.client.data.BlData;
+import de.uni.stuttgart.vis.access.client.data.IBlDataSubscriber;
 import de.uni.stuttgart.vis.access.client.service.IServiceBinderClient;
 import de.uni.stuttgart.vis.access.client.service.IServiceBlListener;
 import de.uni.stuttgart.vis.access.client.service.ServiceScan;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnAdvertProvider;
-import de.uni.stuttgart.vis.access.client.view.AdaptScanResults;
+import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
+import de.uni.stuttgart.vis.access.client.view.AdaptScans;
 
 public class ActScan extends ActBasePerms implements NavigationView.OnNavigationItemSelectedListener, ServiceConnection, IServiceBlListener,
-                                                     IConnAdvertProvider.IConnAdvertSubscriber {
+                                                     IConnAdvertProvider.IConnAdvertSubscriber, IBlDataSubscriber {
 
     private RecyclerView               rcycDevices;
-    private AdaptScanResults           rcycAdaptDevices;
+    private AdaptScans                 rcycAdaptDevices;
     private RecyclerView.LayoutManager rcycLayoutManager;
     private Menu                       menu;
     private IServiceBinderClient       service;
@@ -102,9 +106,8 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         rcycDevices.setHasFixedSize(true);
         rcycLayoutManager = new LinearLayoutManager(this);
         rcycDevices.setLayoutManager(rcycLayoutManager);
-        rcycAdaptDevices = new AdaptScanResults();
+        rcycAdaptDevices = new AdaptScans();
         rcycDevices.setAdapter(rcycAdaptDevices);
-
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
@@ -113,6 +116,12 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         if (savedInstanceState == null) {
             blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
         }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        invalidateOptionsMenu();
     }
 
     @Override
@@ -141,7 +150,6 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         ScheduleUtil.scheduleWork(task, 3, TimeUnit.SECONDS);
     }
 
-
     @Override
     public void onServiceConnected(ComponentName className, IBinder binder) {
         service = (IServiceBinderClient) binder;
@@ -166,7 +174,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(brdcstRcvr);
 
-        rcycAdaptDevices.getResults().clear();
+        rcycAdaptDevices.getBlData().clear();
         rcycAdaptDevices.notifyDataSetChanged();
     }
 
@@ -203,12 +211,12 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.act_main, menu);
         this.menu = menu;
-        if (service == null) {
-            menu.findItem(R.id.menu_stop).setVisible(false);
-            menu.findItem(R.id.menu_scan).setVisible(true);
-        } else {
+        if (isServiceBlConnected()) {
             menu.findItem(R.id.menu_stop).setVisible(true);
             menu.findItem(R.id.menu_scan).setVisible(false);
+        } else {
+            menu.findItem(R.id.menu_stop).setVisible(false);
+            menu.findItem(R.id.menu_scan).setVisible(true);
         }
         return true;
     }
@@ -217,7 +225,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_scan:
-                rcycAdaptDevices.getResults().clear();
+                rcycAdaptDevices.getBlData().clear();
                 rcycAdaptDevices.notifyDataSetChanged();
                 if (service == null) {
                     startService(new Intent(this, ServiceScan.class));
@@ -270,14 +278,17 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
     @Override
     public void onScanResultReceived(ScanResult result) {
         findViewById(R.id.txt_headline_displays).setVisibility(View.VISIBLE);
-        rcycAdaptDevices.getResults().add(result);
-        rcycAdaptDevices.notifyDataSetChanged();
+        BlData data = new BlData();
+        data.setActive(true);
+        data.setAddress(result.getDevice().getAddress());
+        //noinspection ConstantConditions
+        data.setAdvertisement(result.getScanRecord().getServiceData(Constants.UUID_ADVERT_SERVICE_MULTI));
+
     }
 
     @Override
     public void onScanResultsReceived(List<ScanResult> results) {
         findViewById(R.id.txt_headline_displays).setVisibility(View.VISIBLE);
-        rcycAdaptDevices.getResults().addAll(results);
         rcycAdaptDevices.notifyDataSetChanged();
     }
 
@@ -299,5 +310,33 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
     @Override
     public void onScanFailed(int errorCode) {
 
+    }
+
+    @Override
+    public void onBlDataAdded(BlData data) {
+
+    }
+
+    private class GattWeather implements IConnGattProvider.IConnGattSubscriber {
+
+        @Override
+        public void onGattReady() {
+
+        }
+
+        @Override
+        public void onServicesReady() {
+
+        }
+
+        @Override
+        public void onGattValueReceived(byte[] value) {
+
+        }
+
+        @Override
+        public void onGattValueChanged(UUID uuid, byte[] value) {
+
+        }
     }
 }

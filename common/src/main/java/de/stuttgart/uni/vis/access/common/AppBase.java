@@ -16,12 +16,12 @@ package de.stuttgart.uni.vis.access.common;
 import android.app.Application;
 
 import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
 
 import java.util.Objects;
 
 import de.stuttgart.uni.vis.access.common.db.DaoProvider;
-import de.stuttgart.uni.vis.access.common.db.SqliteOpenHelper;
 
 /**
  * Central {@link android.app.Application} class for handling application states. Uses the Singleton Pattern.
@@ -38,9 +38,10 @@ public abstract class AppBase extends Application {
     /*-################
      * Database helpers
      * ################*/
-    private SqliteOpenHelper ormLiteSqliteOpenHelper;
+    private OrmLiteSqliteOpenHelper ormLiteSqliteOpenHelper;
+
     @SuppressWarnings("rawtypes")
-    private DaoProvider      daoProvider;
+    private DaoProvider daoProvider;
 
     /**
      * Delegate method for {@link #getInstance()}
@@ -86,8 +87,8 @@ public abstract class AppBase extends Application {
         super.onCreate();
         instance = this; // Singleton pattern
 
-        OpenHelperManager.setOpenHelperClass(SqliteOpenHelper.class);
-        ormLiteSqliteOpenHelper = OpenHelperManager.getHelper(this, SqliteOpenHelper.class);
+        OpenHelperManager.setOpenHelperClass(getSqliteOpenHelperClass());
+        ormLiteSqliteOpenHelper = OpenHelperManager.getHelper(this, getSqliteOpenHelperClass());
         daoProvider = new DaoProvider(ormLiteSqliteOpenHelper.getConnectionSource());
     }
 
@@ -97,12 +98,15 @@ public abstract class AppBase extends Application {
         OpenHelperManager.releaseHelper();
     }
 
+
+    public abstract Class<? extends OrmLiteSqliteOpenHelper> getSqliteOpenHelperClass();
+
     /**
      * The database helper.
      *
      * @return the ormlite helper
      */
-    public SqliteOpenHelper getSqliteHelper() {
+    public OrmLiteSqliteOpenHelper getSqliteHelper() {
         return ormLiteSqliteOpenHelper;
     }
 
