@@ -2,7 +2,6 @@ package de.stuttgart.uni.vis.access.server.act;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -93,11 +92,6 @@ public class ActServerAdvertise extends ActBasePerms
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        // Activity first started, check if Bluetooth is on
-        if (savedInstanceState == null) {
-            blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
-        }
     }
 
     @Override

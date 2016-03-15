@@ -33,28 +33,31 @@ public class ConnGattCommShout implements IConnGattProvider.IConnGattSubscriber 
         blConnection.registerConnGattSub(this);
     }
 
-    @Override
-    public void onGattReady() {
-    }
-
-    @Override
-    public void onServicesReady() {
-    }
-
-    @Override
-    public void onGattValueReceived(byte[] value) {
-        provTts.provideTts().queueRead("We have a new sale here!");
-        provTts.provideTts().queueRead(new String(value));
-    }
-
-    @Override
-    public void onGattValueChanged(UUID uuid, byte[] value) {
-        provTts.provideTts().queueRead("We have a new sale here!");
-        provTts.provideTts().queueRead(new String(value));
-    }
 
     public void onDetach() {
         provCntxt = null;
         blConn.deregisterConnGattSub(this);
+    }
+
+    @Override
+    public void onGattReady(String macAddress) {
+
+    }
+
+    @Override
+    public void onServicesReady(String macAddress) {
+
+    }
+
+    @Override
+    public void onGattValueReceived(String macAddress, byte[] value) {
+        provTts.provideTts().queueRead("We have a new sale here!");
+        provTts.provideTts().queueRead(new String(value));
+    }
+
+    @Override
+    public void onGattValueChanged(String macAddress, UUID uuid, byte[] value) {
+        provTts.provideTts().queueRead("We have a new sale here!");
+        provTts.provideTts().queueRead(new String(value));
     }
 }

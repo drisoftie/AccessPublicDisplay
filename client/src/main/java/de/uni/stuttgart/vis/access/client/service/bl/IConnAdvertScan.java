@@ -72,4 +72,8 @@ public interface IConnAdvertScan {
     List<BluetoothDevice> getConnDevices();
 
     void addConnDevice(BluetoothDevice dev);
+
+    void removeConnDevice(BluetoothDevice device);
+
+    boolean hasConnDevice(BluetoothDevice device);
 }

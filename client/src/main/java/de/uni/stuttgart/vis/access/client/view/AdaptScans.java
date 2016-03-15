@@ -10,11 +10,13 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.data.BlData;
+import de.uni.stuttgart.vis.access.client.data.GattData;
 
 /**
  * @author Alexander Dridiger
@@ -43,8 +45,8 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        BlData data = blData.get(position);
-        boolean    start  = false;
+        BlData  data  = blData.get(position);
+        boolean start = false;
         //noinspection ConstantConditions
         for (byte b : data.getAdvertisement()) {
             if (b == Constants.AdvertiseConst.ADVERTISE_START) {
@@ -56,7 +58,13 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
                 } else {
                     holder.txtAdInfo.append(System.lineSeparator());
                 }
-                holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
+                String g = getGattData(Constants.GATT_WEATHER_TODAY.getUuid(), data);
+                if (g != null) {
+                    holder.txtAdInfo.append("Todays weather is: ");
+                    holder.txtAdInfo.append(g);
+                } else {
+                    holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
+                }
             } else if (b == Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag()) {
                 if (start) {
                     start = false;
@@ -70,8 +78,13 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
                 } else {
                     holder.txtAdInfo.append(System.lineSeparator());
                 }
-                holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()));
-
+                String g = getGattData(Constants.GATT_SHOUT.getUuid(), data);
+                if (g != null) {
+                    holder.txtAdInfo.append("Newest shout: ");
+                    holder.txtAdInfo.append(g);
+                } else {
+                    holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()));
+                }
             }
         }
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -84,7 +97,7 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
 
             @Override
             public void onClick(View v) {
-                Intent showIntent = new Intent(v.getContext().getString(R.string.intent_advert_value));
+                Intent showIntent = new Intent(v.getContext().getString(R.string.intent_advert_gatt_connect_weather));
                 showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_show), Constants.UUID_ADVERT_SERVICE_MULTI);
                 showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_scan_result), data.getAddress());
                 LocalBroadcastManager.getInstance(v.getContext()).sendBroadcast(showIntent);
@@ -92,6 +105,17 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
                 v.getContext().sendBroadcast(it);
             }
         }.init(data));
+    }
+
+    private String getGattData(UUID uuid, BlData data) {
+        String value = null;
+        for (GattData g : data.getGattData()) {
+            if (g.getUuid().equals(uuid)) {
+                value = new String(g.getData());
+                break;
+            }
+        }
+        return value;
     }
 
     // Return the size of your dataset (invoked by the layout manager)

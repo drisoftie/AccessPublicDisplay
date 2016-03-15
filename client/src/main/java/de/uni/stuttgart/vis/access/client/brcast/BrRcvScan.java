@@ -14,7 +14,7 @@ public class BrRcvScan extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent showIntent = new Intent(context.getString(R.string.intent_advert_value));
+        Intent showIntent = new Intent(context.getString(R.string.intent_advert_gatt_connect_weather));
         showIntent.putExtras(intent);
         LocalBroadcastManager.getInstance(context).sendBroadcast(showIntent);
         Intent it = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);

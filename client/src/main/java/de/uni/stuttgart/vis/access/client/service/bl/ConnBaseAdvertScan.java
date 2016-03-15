@@ -1,15 +1,21 @@
 package de.uni.stuttgart.vis.access.client.service.bl;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.os.ParcelUuid;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import de.uni.stuttgart.vis.access.client.helper.INotifyProv;
 import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
@@ -19,6 +25,9 @@ import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
  */
 public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattProvider, IConnAdvertProvider {
 
+    private Queue<AccessGatt> accessGatts = new LinkedList<>();
+    private ScheduledExecutorService e = Executors.newSingleThreadScheduledExecutor();
+    private BluetoothGatt         lastGattInst;
     private List<UUID>            constantUuids;
     private ScanCallback          cllbckAdvertScan;
     private BluetoothGattCallback cllbckGatt;
@@ -29,6 +38,30 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattPr
     private List<IConnGattSubscriber>   subsConnGatt   = new ArrayList<>();
     private INotifyProv notifyProv;
     private ITtsProv    ttsProv;
+
+    public Queue<AccessGatt> getAccessGatts() {
+        return accessGatts;
+    }
+
+    public void setAccessGatts(Queue<AccessGatt> accessGatts) {
+        this.accessGatts = accessGatts;
+    }
+
+    protected ScheduledExecutorService getExecutor() {
+        return e;
+    }
+
+    public void setExecutor(ScheduledExecutorService e) {
+        this.e = e;
+    }
+
+    public void access(AccessGatt access) {
+        e.schedule(access, 500, TimeUnit.MILLISECONDS);
+    }
+
+    public void setGattInst(BluetoothGatt lastGattInst) {
+        this.lastGattInst = lastGattInst;
+    }
 
     @Override
     public List<UUID> getConstantUuids() {
@@ -267,5 +300,40 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattPr
         } else {
             connDevices.add(dev);
         }
+    }
+
+    @Override
+    public void removeConnDevice(BluetoothDevice deviceToRemove) {
+        for (BluetoothDevice dev : connDevices) {
+            if (dev.getAddress().equals(deviceToRemove.getAddress())) {
+                connDevices.remove(dev);
+            }
+        }
+    }
+
+    @Override
+    public boolean hasConnDevice(BluetoothDevice deviceToFind) {
+        boolean has = false;
+        for (BluetoothDevice dev : connDevices) {
+            if (dev.getAddress().equals(deviceToFind.getAddress())) {
+                has = true;
+                break;
+            }
+        }
+        return has;
+    }
+
+    public BluetoothGatt getLastGattInst() {
+        return lastGattInst;
+    }
+
+    public abstract class AccessGatt implements Runnable {
+
+        @Override
+        public void run() {
+            onRun();
+        }
+
+        public abstract void onRun();
     }
 }

@@ -36,8 +36,10 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
     public ConnMulti() {
         ConnWeather weather = new ConnWeather();
         weather.setConnMulti(this);
+        weather.setExecutor(getExecutor());
         ConnShout shout = new ConnShout();
         shout.setConnMulti(this);
+        shout.setExecutor(getExecutor());
         connections.add(weather);
         connections.add(shout);
         ArrayList<UUID> constantUuids = new ArrayList<>();
@@ -106,9 +108,11 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
         }
         builder.deleteCharAt(builder.length() - 1);
         getNotifyProv().provideNotify().createDisplayNotification("Some new infos!", builder.toString(),
-                                                                  Constants.UUID_ADVERT_SERVICE_MULTI,
-                                                                  part.getAdvertScan().getScanResults().get(
-                                                                          part.getAdvertScan().getScanResults().size() - 1), R.id.nid_main);
+                                                                  Constants.UUID_ADVERT_SERVICE_MULTI, part.getAdvertScan().getScanResults()
+                                                                                                           .get(part.getAdvertScan()
+                                                                                                                    .getScanResults()
+                                                                                                                    .size() - 1),
+                                                                  R.id.nid_main);
     }
 
     private IConnAdvertScan getConnection(UUID uuid) {
@@ -242,6 +246,15 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
         }
     }
 
+    @Override
+    public boolean hasConnDevice(BluetoothDevice deviceToFind) {
+        IConnAdvertScan handler = getConnection(deviceToFind);
+        if (handler != null) {
+            return true;
+        }
+        return false;
+    }
+
     private class BlAdvertScanCallback extends ScanCallback {
 
         @Override
@@ -299,6 +312,7 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
                             for (IConnAdvertScan h : handler) {
                                 h.getGattCallback().onConnectionStateChange(gatt, status, newState);
                             }
+                            addConnDevice(gatt.getDevice());
                     }
                     break;
                 case BluetoothGatt.GATT_FAILURE:
@@ -310,6 +324,7 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
                                 h.getGattCallback().onConnectionStateChange(gatt, status, newState);
                             }
                             cachedDeviceConns.remove(gatt.getDevice().getAddress());
+                            removeConnDevice(gatt.getDevice());
                     }
                     break;
                 default:

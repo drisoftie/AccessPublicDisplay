@@ -24,8 +24,8 @@ import de.uni.stuttgart.vis.access.client.BuildConfig;
  */
 public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
 
-    private BluetoothGatt lastGattInst;
-    private IConnMulti    connMulti;
+    private IConnMulti connMulti;
+    private boolean    servicesDiscovered;
 
     public ConnShout() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
@@ -46,6 +46,16 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
     @Override
     public IConnAdvertScan getAdvertScan() {
         return this;
+    }
+
+    @Override
+    public void setServicesDiscovered(boolean discovered) {
+        servicesDiscovered = discovered;
+    }
+
+    @Override
+    public boolean hasServicesDiscovered() {
+        return servicesDiscovered;
     }
 
     private void analyzeScanData(ScanResult scanData) {
@@ -132,9 +142,9 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                 case BluetoothGatt.GATT_SUCCESS:
                     switch (newState) {
                         case BluetoothProfile.STATE_CONNECTED:
-                            lastGattInst = gatt;
+                            setGattInst(gatt);
                             for (IConnGattSubscriber sub : getConnGattSubscribers()) {
-                                sub.onGattReady();
+                                sub.onGattReady(gatt.getDevice().getAddress());
                             }
                     }
                     break;
@@ -142,10 +152,12 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                     switch (newState) {
                         case BluetoothProfile.STATE_DISCONNECTED:
                         case BluetoothProfile.STATE_DISCONNECTING:
+                            setServicesDiscovered(false);
                     }
                     break;
                 default:
                     if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                        setServicesDiscovered(false);
                     }
             }
         }
@@ -153,25 +165,32 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                lastGattInst = gatt;
-                gatt.setCharacteristicNotification(gatt.getService(Constants.GATT_SERVICE_SHOUT.getUuid()).getCharacteristic(
-                        Constants.GATT_SHOUT.getUuid()), true);
+                setGattInst(gatt);
+                access(new AccessGatt() {
+                    @Override
+                    public void onRun() {
+                        getLastGattInst().setCharacteristicNotification(getLastGattInst().getService(Constants.GATT_SERVICE_SHOUT.getUuid())
+                                                                                         .getCharacteristic(Constants.GATT_SHOUT.getUuid()),
+                                                                        true);
+                    }
+                });
                 for (IConnGattSubscriber sub : getConnGattSubscribers()) {
-                    sub.onServicesReady();
+                    sub.onServicesReady(getLastGattInst().getDevice().getAddress());
                 }
+                setServicesDiscovered(true);
             }
         }
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                lastGattInst = gatt;
+                setGattInst(gatt);
                 for (UUID uuid : getConstantUuids()) {
                     if (uuid.equals(characteristic.getUuid())) {
                         if (characteristic.getValue() != null) {
                             byte[] value = characteristic.getValue();
                             for (IConnGattSubscriber sub : getConnGattSubscribers()) {
-                                sub.onGattValueReceived(value);
+                                sub.onGattValueReceived(getLastGattInst().getDevice().getAddress(), value);
                             }
                             break;
                         }
@@ -182,11 +201,12 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            lastGattInst = gatt;
+            setGattInst(gatt);
             if (Constants.GATT_SHOUT.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
                     for (IConnGattSubscriber sub : getConnGattSubscribers()) {
-                        sub.onGattValueChanged(characteristic.getUuid(), characteristic.getValue());
+                        sub.onGattValueChanged(getLastGattInst().getDevice().getAddress(), characteristic.getUuid(),
+                                               characteristic.getValue());
                     }
                 }
             }

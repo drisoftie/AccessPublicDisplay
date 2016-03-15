@@ -28,9 +28,9 @@ import de.uni.stuttgart.vis.access.client.R;
  */
 public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, IConnMultiPart {
 
-    private BluetoothGatt lastGattInst;
     private List<IConnWeatherSub> subs = new ArrayList<>();
     private IConnMulti connMulti;
+    private boolean    servicesDiscovered;
 
     public ConnWeather() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
@@ -54,6 +54,16 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
     @Override
     public IConnAdvertScan getAdvertScan() {
         return this;
+    }
+
+    @Override
+    public void setServicesDiscovered(boolean discovered) {
+        servicesDiscovered = discovered;
+    }
+
+    @Override
+    public boolean hasServicesDiscovered() {
+        return servicesDiscovered;
     }
 
     private void analyzeScanData(ScanResult scanData) {
@@ -83,8 +93,8 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
                     //                            Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()), App.string(
                     //                            Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()), scanData, R.id.nid_main);
                     String txtFound = App.string(R.string.ntxt_scan_found);
-                    String txtFoundDescr = App.inst().getString(R.string.ntxt_scan_descr, App.string(
-                            Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
+                    String txtFoundDescr = App.inst().getString(R.string.ntxt_scan_descr,
+                                                                App.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
                     getTtsProv().provideTts().queueRead(txtFound, txtFoundDescr);
                     for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
                         callback.onScanResultReceived(scanData);
@@ -109,11 +119,24 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
 
     @Override
     public void getWeatherInfo(UUID uuid) {
-        BluetoothGattService        s = lastGattInst.getService(Constants.GATT_SERVICE_WEATHER.getUuid());
-        BluetoothGattCharacteristic c = s.getCharacteristic(uuid);
-        if (c != null) {
-            lastGattInst.readCharacteristic(c);
-        }
+        access(new AccessGatt() {
+
+            private UUID uuid;
+
+            public AccessGatt init(UUID uuid) {
+                this.uuid = uuid;
+                return this;
+            }
+
+            @Override
+            public void onRun() {
+                BluetoothGattService        s = getLastGattInst().getService(Constants.GATT_SERVICE_WEATHER.getUuid());
+                BluetoothGattCharacteristic c = s.getCharacteristic(uuid);
+                if (c != null) {
+                    getLastGattInst().readCharacteristic(c);
+                }
+            }
+        }.init(uuid));
     }
 
     private class BlAdvertScanCallback extends ScanCallback {
@@ -167,9 +190,9 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
                 case BluetoothGatt.GATT_SUCCESS:
                     switch (newState) {
                         case BluetoothProfile.STATE_CONNECTED:
-                            lastGattInst = gatt;
+                            setGattInst(gatt);
                             for (IConnGattSubscriber sub : getConnGattSubscribers()) {
-                                sub.onGattReady();
+                                sub.onGattReady(gatt.getDevice().getAddress());
                             }
                     }
                     break;
@@ -178,9 +201,11 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
                         case BluetoothProfile.STATE_DISCONNECTED:
                         case BluetoothProfile.STATE_DISCONNECTING:
                     }
+                    setServicesDiscovered(false);
                     break;
                 default:
                     if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                        setServicesDiscovered(false);
                     }
             }
         }
@@ -188,23 +213,24 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                lastGattInst = gatt;
+                setGattInst(gatt);
                 for (IConnGattSubscriber sub : getConnGattSubscribers()) {
-                    sub.onServicesReady();
+                    sub.onServicesReady(gatt.getDevice().getAddress());
                 }
+                setServicesDiscovered(true);
             }
         }
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                lastGattInst = gatt;
+                setGattInst(gatt);
                 for (UUID uuid : getConstantUuids()) {
                     if (uuid.equals(characteristic.getUuid())) {
                         if (characteristic.getValue() != null) {
                             byte[] weather = characteristic.getValue();
                             for (IConnWeatherSub sub : subs) {
-                                sub.onWeatherInfo(characteristic.getUuid(), weather);
+                                sub.onWeatherInfo(gatt.getDevice().getAddress(), characteristic.getUuid(), weather);
                             }
                             break;
                         }
@@ -215,16 +241,16 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            lastGattInst = gatt;
+            setGattInst(gatt);
             if (Constants.GATT_WEATHER_TODAY.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
-                    byte[] weather = characteristic.getValue();
+                    byte[] weather       = characteristic.getValue();
                     Intent weatherIntent = new Intent(App.string(R.string.intent_gatt_weather));
                     weatherIntent.putExtra(App.string(R.string.bndl_gatt_weather_today), weather);
                     LocalBroadcastManager.getInstance(App.inst()).sendBroadcast(weatherIntent);
 
                     for (IConnWeatherSub sub : subs) {
-                        sub.onWeatherInfo(Constants.GATT_WEATHER_TODAY.getUuid(), weather);
+                        sub.onWeatherInfo(gatt.getDevice().getAddress(), Constants.GATT_WEATHER_TODAY.getUuid(), weather);
                     }
                 }
             }

@@ -13,12 +13,12 @@ public interface IConnGattProvider {
 
     interface IConnGattSubscriber {
 
-        void onGattReady();
+        void onGattReady(String macAddress);
 
-        void onServicesReady();
+        void onServicesReady(String macAddress);
 
-        void onGattValueReceived(byte[] value);
+        void onGattValueReceived(String macAddress, byte[] value);
 
-        void onGattValueChanged(UUID uuid, byte[] value);
+        void onGattValueChanged(String macAddress, UUID uuid, byte[] value);
     }
 }

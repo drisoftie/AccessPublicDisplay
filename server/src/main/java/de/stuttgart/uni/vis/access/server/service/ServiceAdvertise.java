@@ -55,16 +55,16 @@ import de.stuttgart.uni.vis.access.server.service.bl.IAdvertStartListener;
  */
 public class ServiceAdvertise extends Service implements IAdvertStartListener {
 
-    private static final String  TAG           = ServiceAdvertise.class.getSimpleName();
+    private static final String  TAG     = ServiceAdvertise.class.getSimpleName();
     /**
      * A global variable to let AdvertiserFragment check if the Service is running without needing
      * to start or bind to it.
      * This is the best practice method as defined here:
      * https://groups.google.com/forum/#!topic/android-developers/jEvXMWgbgzE
      */
-    public static        boolean running       = false;
+    public static        boolean running = false;
 
-    private final        Binder  serviceBinder = new ServiceBinder();
+    private final Binder serviceBinder = new ServiceBinder();
     private BluetoothManager      blManager;
     private BluetoothLeAdvertiser blLeAdvertiser;
     private List<IServiceBlListener> serviceListeners = new ArrayList<>();
@@ -176,8 +176,8 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         Log.d(TAG, "Service: Starting Advertising");
         if (blAdvertHandler == null) {
             blAdvertHandler = new AdvertHandler(this);
-            AdvertiseSettings settings = blAdvertHandler.buildAdvertiseSettings();
-            AdvertiseData dataWeather = blAdvertHandler.buildAdvertiseDataWeather();
+            AdvertiseSettings settings    = blAdvertHandler.buildAdvertiseSettings();
+            AdvertiseData     dataWeather = blAdvertHandler.buildAdvertiseDataWeather();
             if (blLeAdvertiser != null) {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Advertisement ready");
@@ -209,10 +209,10 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         nBuilder.setContentTitle(getString(R.string.ntxt_advert_run));
 
         nBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(getString(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()) +
-                                                                        System.lineSeparator() + getString(
-                Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()) +
-                                                                        System.lineSeparator() + getString(
-                Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()) +
+                                                                        System.lineSeparator() +
+                                                                        getString(Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()) +
+                                                                        System.lineSeparator() +
+                                                                        getString(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()) +
                                                                         System.lineSeparator() +
                                                                         getString(Constants.AdvertiseConst.ADVERTISE_BOOKING.getDescr())));
 
@@ -316,6 +316,7 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         @Override
         public void onBlUserShutdown() {
             actionUserShutdown.invokeSelf();
+            stopSelf();
         }
     }
 
@@ -374,7 +375,7 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
                 setTimeout();
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(getString(R.string.intent_action_bl_user_stopped));
-                filter.addAction(getString(R.string.intent_advert_value));
+                filter.addAction(getString(R.string.intent_advert_gatt_connect_weather));
                 LocalBroadcastManager.getInstance(ServiceAdvertise.this).registerReceiver(msgReceiver, filter);
                 registerReceiver(brcstRcvrBlAdapt, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 

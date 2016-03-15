@@ -36,14 +36,41 @@ public class HolderBlData {
     }
 
     private boolean hasData(UUID uuid) {
-        for (BlData data : blDataDb) {
-
+        for (BlData data : getBlDataDb()) {
+            for (GattData g : data.getGattData()) {
+                if (g.getUuid().equals(uuid)) {
+                    return true;
+                }
+            }
         }
         return false;
     }
 
     public void access(HolderAccess access) {
-        e.execute(access);
+        e.submit(access);
+    }
+
+    public void init() {
+        access(new HolderAccess() {
+
+            @Override
+            public void onRun() {
+                for (BlData b : blDataDb) {
+                    b.setActive(false);
+                }
+            }
+        });
+    }
+
+    public void shutdown() {
+        access(new HolderAccess() {
+            @Override
+            public void onRun() {
+                for (BlData b : blDataDb) {
+                    b.setActive(false);
+                }
+            }
+        });
     }
 
     public abstract class HolderAccess implements Runnable {
@@ -60,9 +87,10 @@ public class HolderBlData {
         }
 
         public boolean addData(BlData data) {
-            boolean found = false;
-            while (getData().hasNext()) {
-                BlData d = getData().next();
+            boolean          found = false;
+            Iterator<BlData> it    = getData();
+            while (it.hasNext()) {
+                BlData d = it.next();
                 if (d.getAddress().equals(data.getAddress())) {
                     found = true;
                     break;
@@ -70,7 +98,7 @@ public class HolderBlData {
             }
             if (!found) {
                 getBlDataDb().add(data);
-                for (IBlDataSubscriber s : subs) {
+                for (IBlDataSubscriber s : getSubs()) {
                     s.onBlDataAdded(data);
                 }
             }
@@ -78,9 +106,10 @@ public class HolderBlData {
         }
 
         public BlData getData(String macAddress) {
-            BlData data = null;
-            while (getData().hasNext()) {
-                BlData d = getData().next();
+            BlData           data = null;
+            Iterator<BlData> it   = getData();
+            while (it.hasNext()) {
+                BlData d = it.next();
                 if (d.getAddress().equals(macAddress)) {
                     data = d;
                     break;

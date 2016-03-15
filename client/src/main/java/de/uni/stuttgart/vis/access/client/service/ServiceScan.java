@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.brcst.BrcstBlAdaptChanged;
+import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.act.ActPubTransp;
 import de.uni.stuttgart.vis.access.client.act.ActWeather;
@@ -78,7 +79,8 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         running = true;
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction(getString(R.string.intent_advert_value));
+        filter.addAction(getString(R.string.intent_advert_gatt_connect));
+        filter.addAction(getString(R.string.intent_advert_gatt_connect_weather));
         filter.addAction(getString(R.string.intent_action_bl_user_stopped));
         filter.addAction(getString(R.string.intent_action_bl_user_changing));
         LocalBroadcastManager.getInstance(this).registerReceiver(brdRcvr, filter);
@@ -191,6 +193,8 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         notify = null;
         connectorAdvertScan = null;
 
+        App.holder().shutdown();
+
         for (IServiceBlListener l : serviceListeners) {
             l.onConnStopped();
         }
@@ -199,7 +203,7 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
     private class BrdcstRcvrService extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_value))) {
+            if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_gatt_connect_weather))) {
                 connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)));
                 ParcelUuid startIntent = intent.getParcelableExtra(getString(R.string.bndl_bl_show));
                 if (Constants.UUID_ADVERT_SERVICE_MULTI.getUuid().equals(startIntent.getUuid())) {
@@ -211,6 +215,8 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
                     weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(weatherIntent);
                 }
+            } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_gatt_connect))) {
+                connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)));
             } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_action_bl_user_stopped))) {
                 for (IServiceBlListener l : serviceListeners) {
                     l.onConnStopped();

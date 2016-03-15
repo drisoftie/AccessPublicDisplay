@@ -13,7 +13,8 @@
     <!-- ================ -->
     <eat-comment/>
 
-    <string name="intent_advert_value" translatable="false">value</string>
+    <string name="intent_advert_gatt_connect" translatable="false">gatt connection</string>
+    <string name="intent_advert_gatt_connect_weather" translatable="false">gatt weather connection</string>
     <string name="intent_bl_device_addr" translatable="false">device address</string>
     <string name="intent_action_bl_user_stopped" translatable="false">bl user stopped</string>
     <string name="intent_action_bl_user_changing" translatable="false">bl user changing</string>

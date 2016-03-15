@@ -2,6 +2,10 @@ package de.uni.stuttgart.vis.access.client.data;
 
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author Alexander Dridiger
@@ -22,6 +26,9 @@ public class BlData extends ClientEntityBase {
 
     @DatabaseField(dataType = DataType.SERIALIZABLE)
     private String[] uuids;
+
+    @ForeignCollectionField(eager = true)
+    private Collection<GattData> gattData;
 
     public boolean isActive() {
         return active;
@@ -61,5 +68,16 @@ public class BlData extends ClientEntityBase {
 
     public void setUuids(String[] uuids) {
         this.uuids = uuids;
+    }
+
+    public Collection<GattData> getGattData() {
+        if (gattData == null) {
+            gattData = new ArrayList<>();
+        }
+        return gattData;
+    }
+
+    public void setGattData(Collection<GattData> gattData) {
+        this.gattData = gattData;
     }
 }

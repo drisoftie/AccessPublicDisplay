@@ -5,7 +5,7 @@ import java.util.UUID;
 /**
  * @author Alexander Dridiger
  */
-public interface IConnWeather {
+public interface IConnWeather extends IConnGattProvider {
 
     void registerWeatherSub(IConnWeatherSub sub);
 
@@ -14,8 +14,8 @@ public interface IConnWeather {
     void getWeatherInfo(UUID uuid);
 
 
-    interface IConnWeatherSub {
+    interface IConnWeatherSub extends IConnGattSubscriber {
 
-        void onWeatherInfo(UUID uuid, byte[] value);
+        void onWeatherInfo(String macAddress, UUID uuid, byte[] value);
     }
 }

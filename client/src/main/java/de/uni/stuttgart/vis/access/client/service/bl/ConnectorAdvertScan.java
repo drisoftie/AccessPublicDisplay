@@ -318,12 +318,12 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         @Override
         public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
             super.onMtuChanged(gatt, mtu, status);
-            gatt.discoverServices();
             IConnAdvertScan handler = getConnection(gatt.getDevice());
             if (handler != null) {
                 handler.addConnDevice(gatt.getDevice());
                 handler.getGattCallback().onConnectionStateChange(gatt, status, BluetoothProfile.STATE_CONNECTED);
             }
+            gatt.discoverServices();
         }
     }
 }

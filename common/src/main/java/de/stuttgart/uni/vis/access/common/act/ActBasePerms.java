@@ -1,10 +1,14 @@
 package de.stuttgart.uni.vis.access.common.act;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -18,13 +22,16 @@ import de.stuttgart.uni.vis.access.common.R;
 /**
  * @author Alexander Dridiger
  */
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class ActBasePerms extends ManagedActivity {
 
     public    boolean          ok;
     protected BluetoothAdapter blAdapt;
 
+
     @Override
     protected void registerComponents() {
+        blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
         if (blAdapt != null) {
             // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
             // fire an intent to display a dialog asking the user to grant permission to enable it.

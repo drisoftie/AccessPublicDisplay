@@ -49,27 +49,28 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
     }
 
     @Override
-    public void onGattReady() {
+    public void onGattReady(String macAddress) {
+
     }
 
     @Override
-    public void onServicesReady() {
+    public void onServicesReady(String macAddress) {
         provView.provideView(R.id.txt_headline_today).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
         blWeather.getWeatherInfo(Constants.GATT_WEATHER_TODAY.getUuid());
     }
 
     @Override
-    public void onGattValueReceived(byte[] value) {
+    public void onGattValueReceived(String macAddress, byte[] value) {
 
     }
 
     @Override
-    public void onGattValueChanged(UUID uuid, byte[] value) {
+    public void onGattValueChanged(String macAddress, UUID uuid, byte[] value) {
 
     }
 
     @Override
-    public void onWeatherInfo(UUID uuid, byte[] value) {
+    public void onWeatherInfo(String macAddress, UUID uuid, byte[] value) {
         setText(uuid, value);
     }
 

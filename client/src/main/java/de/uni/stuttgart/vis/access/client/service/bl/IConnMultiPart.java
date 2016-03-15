@@ -8,4 +8,8 @@ public interface IConnMultiPart {
     void setConnMulti(IConnMulti connMulti);
 
     IConnAdvertScan getAdvertScan();
+
+    boolean hasServicesDiscovered();
+
+    void setServicesDiscovered(boolean discovered);
 }
