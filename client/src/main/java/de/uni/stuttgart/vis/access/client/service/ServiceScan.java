@@ -58,16 +58,17 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
 
     private ConnectorAdvertScan connectorAdvertScan;
 
+    private BluetoothAdapter   blAdapt;
     private BluetoothLeScanner blLeScanner;
     private Handler            handler;
-    private Runnable           timeoutRunnable;
 
-    private BroadcastReceiver brdRcvr          = new BrdcstRcvrService();
+    private Runnable timeoutRunnable;
+    private BroadcastReceiver brdRcvr = new BrdcstRcvrService();
+
     private BroadcastReceiver brcstRcvrBlAdapt = new BrcstBlAdaptChanged();
+    private TtsWrapper tts;
 
-    private TtsWrapper   tts;
     private NotifyHolder notify;
-
     /**
      * Length of time to allow advertising scanning before automatically shutting off.
      */
@@ -97,7 +98,7 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         connectorAdvertScan.setNotifyProv(this);
         connectorAdvertScan.setTtsProv(this);
 
-        BluetoothAdapter blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+        blAdapt = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
         blLeScanner = blAdapt.getBluetoothLeScanner();
         checkAndScanLeDevices();
     }
@@ -204,7 +205,11 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         @Override
         public void onReceive(Context context, Intent intent) {
             if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_gatt_connect_weather))) {
-                connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)));
+                if (intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)) != null) {
+                    connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)));
+                } else if (intent.getStringExtra(getString(R.string.bndl_bl_address)) != null) {
+                    connectorAdvertScan.connectGatt(blAdapt, intent.getStringExtra(getString(R.string.bndl_bl_scan_result)));
+                }
                 ParcelUuid startIntent = intent.getParcelableExtra(getString(R.string.bndl_bl_show));
                 if (Constants.UUID_ADVERT_SERVICE_MULTI.getUuid().equals(startIntent.getUuid())) {
                     Intent weatherIntent = new Intent(ServiceScan.this, ActWeather.class);

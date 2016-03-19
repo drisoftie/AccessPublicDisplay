@@ -166,6 +166,7 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 setGattInst(gatt);
+                checkWork();
                 access(new AccessGatt() {
                     @Override
                     public void onRun() {
@@ -188,6 +189,7 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                 for (UUID uuid : getConstantUuids()) {
                     if (uuid.equals(characteristic.getUuid())) {
                         if (characteristic.getValue() != null) {
+                            checkWork();
                             byte[] value = characteristic.getValue();
                             for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                                 sub.onGattValueReceived(getLastGattInst().getDevice().getAddress(), value);
@@ -204,6 +206,7 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
             setGattInst(gatt);
             if (Constants.GATT_SHOUT.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
+                    checkWork();
                     for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                         sub.onGattValueChanged(getLastGattInst().getDevice().getAddress(), characteristic.getUuid(),
                                                characteristic.getValue());

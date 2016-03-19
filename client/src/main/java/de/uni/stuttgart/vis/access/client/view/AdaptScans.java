@@ -99,7 +99,7 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
             public void onClick(View v) {
                 Intent showIntent = new Intent(v.getContext().getString(R.string.intent_advert_gatt_connect_weather));
                 showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_show), Constants.UUID_ADVERT_SERVICE_MULTI);
-                showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_scan_result), data.getAddress());
+                showIntent.putExtra(v.getContext().getString(R.string.bndl_bl_address), data.getAddress());
                 LocalBroadcastManager.getInstance(v.getContext()).sendBroadcast(showIntent);
                 Intent it = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
                 v.getContext().sendBroadcast(it);

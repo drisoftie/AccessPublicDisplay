@@ -33,6 +33,7 @@
     <string name="bndl_bl_dev_addr" translatable="false">device address</string>
     <string name="bndl_bl_show" translatable="false">show content</string>
     <string name="bndl_bl_scan_result" translatable="false">show content scan result</string>
+    <string name="bndl_bl_address" translatable="false">show content device address</string>
     <string name="bndl_gatt_weather_today" translatable="false">today</string>
     <string name="bndl_gatt_weather_tomorrow" translatable="false">tomorrow</string>
     <string name="bndl_gatt_weather_dat" translatable="false">dat</string>

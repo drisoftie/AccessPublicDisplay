@@ -37,9 +37,11 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
         ConnWeather weather = new ConnWeather();
         weather.setConnMulti(this);
         weather.setExecutor(getExecutor());
+        weather.setAccessGatts(getAccessGatts());
         ConnShout shout = new ConnShout();
         shout.setConnMulti(this);
         shout.setExecutor(getExecutor());
+        shout.setAccessGatts(getAccessGatts());
         connections.add(weather);
         connections.add(shout);
         ArrayList<UUID> constantUuids = new ArrayList<>();

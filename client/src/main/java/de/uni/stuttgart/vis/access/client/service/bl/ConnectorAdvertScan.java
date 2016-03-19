@@ -1,5 +1,6 @@
 package de.uni.stuttgart.vis.access.client.service.bl;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -191,6 +192,10 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
                 }
             }
         }
+    }
+
+    public void connectGatt(BluetoothAdapter adapter, String address) {
+        adapter.getRemoteDevice(address).connectGatt(getCntxtProv().provideContext(), false, getGattCallback());
     }
 
     @Override

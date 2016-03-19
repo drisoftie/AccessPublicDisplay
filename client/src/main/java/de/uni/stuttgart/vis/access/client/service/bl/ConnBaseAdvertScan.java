@@ -8,11 +8,11 @@ import android.bluetooth.le.ScanResult;
 import android.os.ParcelUuid;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,8 +25,8 @@ import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
  */
 public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattProvider, IConnAdvertProvider {
 
-    private Queue<AccessGatt> accessGatts = new LinkedList<>();
-    private ScheduledExecutorService e = Executors.newSingleThreadScheduledExecutor();
+    private Queue<AccessGatt>        accessGatts = new ConcurrentLinkedQueue<>();
+    private ScheduledExecutorService e           = Executors.newSingleThreadScheduledExecutor();
     private BluetoothGatt         lastGattInst;
     private List<UUID>            constantUuids;
     private ScanCallback          cllbckAdvertScan;
@@ -56,7 +56,18 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattPr
     }
 
     public void access(AccessGatt access) {
-        e.schedule(access, 500, TimeUnit.MILLISECONDS);
+        if (accessGatts.isEmpty()) {
+            accessGatts.add(access);
+            e.schedule(access, 500, TimeUnit.MILLISECONDS);
+        } else {
+            accessGatts.add(access);
+        }
+    }
+
+    public void checkWork() {
+        if (!accessGatts.isEmpty()) {
+            e.schedule(accessGatts.poll(), 500, TimeUnit.MILLISECONDS);
+        }
     }
 
     public void setGattInst(BluetoothGatt lastGattInst) {

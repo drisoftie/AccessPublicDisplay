@@ -214,6 +214,7 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 setGattInst(gatt);
+                checkWork();
                 for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                     sub.onServicesReady(gatt.getDevice().getAddress());
                 }
@@ -228,6 +229,7 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
                 for (UUID uuid : getConstantUuids()) {
                     if (uuid.equals(characteristic.getUuid())) {
                         if (characteristic.getValue() != null) {
+                            checkWork();
                             byte[] weather = characteristic.getValue();
                             for (IConnWeatherSub sub : subs) {
                                 sub.onWeatherInfo(gatt.getDevice().getAddress(), characteristic.getUuid(), weather);
@@ -244,6 +246,7 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
             setGattInst(gatt);
             if (Constants.GATT_WEATHER_TODAY.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
+                    checkWork();
                     byte[] weather       = characteristic.getValue();
                     Intent weatherIntent = new Intent(App.string(R.string.intent_gatt_weather));
                     weatherIntent.putExtra(App.string(R.string.bndl_gatt_weather_today), weather);
