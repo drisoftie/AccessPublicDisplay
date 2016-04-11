@@ -6,11 +6,29 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
+import android.view.View;
 
+import com.drisoftie.action.async.android.AndroidAction;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.domain.Departure;
 import de.stuttgart.uni.vis.access.server.App;
 import de.stuttgart.uni.vis.access.server.R;
 
@@ -35,18 +53,17 @@ public class GattHandlerPubTransp extends BaseGattHandler {
         BluetoothGattService servicePubTransp = new BluetoothGattService(Constants.GATT_SERVICE_PUB_TRANSP.getUuid(),
                                                                          BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
-        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_BUS.getUuid(),
-                                                                BluetoothGattCharacteristic.PROPERTY_READ,
-                                                                BluetoothGattCharacteristic.PERMISSION_READ, App.inst().getString(
-                        R.string.bl_advert_bus).getBytes()));
-        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_METRO.getUuid(),
-                                                                BluetoothGattCharacteristic.PROPERTY_READ,
-                                                                BluetoothGattCharacteristic.PERMISSION_READ, App.inst().getString(
-                        R.string.bl_advert_metro).getBytes()));
-        servicePubTransp.addCharacteristic(createCharacteristic(Constants.GATT_PUB_TRANSP_TRAIN.getUuid(),
-                                                                BluetoothGattCharacteristic.PROPERTY_READ,
-                                                                BluetoothGattCharacteristic.PERMISSION_READ, App.inst().getString(
-                        R.string.bl_advert_train).getBytes()));
+        servicePubTransp.addCharacteristic(
+                createCharacteristic(Constants.GATT_PUB_TRANSP_BUS.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
+                                     BluetoothGattCharacteristic.PERMISSION_READ, App.inst().getString(R.string.bl_advert_bus).getBytes()));
+        servicePubTransp.addCharacteristic(
+                createCharacteristic(Constants.GATT_PUB_TRANSP_METRO.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
+                                     BluetoothGattCharacteristic.PERMISSION_READ,
+                                     App.inst().getString(R.string.bl_advert_metro).getBytes()));
+        servicePubTransp.addCharacteristic(
+                createCharacteristic(Constants.GATT_PUB_TRANSP_TRAIN.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
+                                     BluetoothGattCharacteristic.PERMISSION_READ,
+                                     App.inst().getString(R.string.bl_advert_train).getBytes()));
 
         getServer().addService(servicePubTransp);
     }
@@ -105,6 +122,73 @@ public class GattHandlerPubTransp extends BaseGattHandler {
 
         @Override
         public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
+        }
+    }
+
+
+    private class PubTranspAction extends AndroidAction<View, Void, Void, Void, Void> {
+
+        public PubTranspAction(View view, Class<?> actionType, String regMethodName) {
+            super(view, actionType, regMethodName);
+        }
+
+        @Override
+        public Object onActionPrepare(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            return null;
+        }
+
+        @Override
+        public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();
+            Type collectionType = new TypeToken<Collection<Departure>>() {
+            }.getType();
+
+            InputStream is = null;
+            try {
+                URL               url  = new URL("https://efa-api.asw.io/api/v1/station/5006008/departures/?format=json");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setReadTimeout(10000 /* milliseconds */);
+                conn.setConnectTimeout(15000 /* milliseconds */);
+                conn.setRequestMethod("GET");
+                conn.setDoInput(true);
+                // Starts the query
+                conn.connect();
+                is = conn.getInputStream();
+
+                Reader reader = null;
+                reader = new InputStreamReader(is, "UTF-8");
+
+                Collection<Departure> departures = gson.fromJson(reader, collectionType);
+
+                StringBuilder sBus   = new StringBuilder();
+                StringBuilder sTrain = new StringBuilder();
+                StringBuilder sMetro = new StringBuilder();
+
+                Calendar c       = Calendar.getInstance();
+                int      minutes = c.get(Calendar.MINUTE);
+
+                if (departures != null) {
+                    for (Departure d : departures) {
+                        if (StringUtils.isNumericSpace(d.number)) {
+                            sBus.append(d.number).append(":").append(
+                                    String.valueOf(Math.min(Integer.valueOf(d.departureTime.minute) - minutes, 0)));
+                        } else if (StringUtils.startsWithIgnoreCase(d.number, "s")) {
+                            sTrain.append(d.number).append(":").append(
+                                    String.valueOf(Math.min(Integer.valueOf(d.departureTime.minute) - minutes, 0)));
+                        }
+                    }
+                }
+                changeGattChar(Constants.GATT_SERVICE_PUB_TRANSP.getUuid(), Constants.GATT_PUB_TRANSP_BUS.getUuid(), sBus.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
+                                      Object[] additionalTags) {
+
         }
     }
 }

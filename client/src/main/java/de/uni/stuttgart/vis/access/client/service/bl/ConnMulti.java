@@ -42,16 +42,31 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
         shout.setConnMulti(this);
         shout.setExecutor(getExecutor());
         shout.setAccessGatts(getAccessGatts());
+        ConnNews news = new ConnNews();
+        news.setConnMulti(this);
+        news.setExecutor(getExecutor());
+        news.setAccessGatts(getAccessGatts());
+        ConnBooking booking = new ConnBooking();
+        booking.setConnMulti(this);
+        booking.setExecutor(getExecutor());
+        booking.setAccessGatts(getAccessGatts());
         connections.add(weather);
         connections.add(shout);
+        connections.add(news);
+        connections.add(booking);
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid());
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_WEATHER.getUuid());
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_PUB_TRANSP.getUuid());
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_SHOUT.getUuid());
+        constantUuids.add(Constants.UUID_ADVERT_SERVICE_NEWS.getUuid());
+        constantUuids.add(Constants.UUID_ADVERT_SERVICE_CHAT.getUuid());
         constantUuids.add(Constants.GATT_SERVICE_WEATHER.getUuid());
         constantUuids.add(Constants.GATT_SERVICE_PUB_TRANSP.getUuid());
         constantUuids.add(Constants.GATT_SERVICE_SHOUT.getUuid());
+        constantUuids.add(Constants.GATT_SERVICE_NEWS.getUuid());
+        constantUuids.add(Constants.GATT_SERVICE_CHAT.getUuid());
+        constantUuids.add(Constants.GATT_SERVICE_BOOKING.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());
@@ -356,6 +371,20 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
             for (IConnAdvertScan h : handler) {
                 h.getGattCallback().onCharacteristicRead(gatt, characteristic, status);
             }
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(gatt, characteristic, status);
+            List<IConnAdvertScan> handler = getConnections(gatt.getDevice());
+            for (IConnAdvertScan h : handler) {
+                h.getGattCallback().onCharacteristicWrite(gatt, characteristic, status);
+            }
+        }
+
+        @Override
+        public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
+            super.onReliableWriteCompleted(gatt, status);
         }
 
         @Override

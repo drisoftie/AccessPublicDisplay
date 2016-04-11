@@ -36,5 +36,9 @@ dependencies {
     /* helper libs*/
     compile 'org.apache.commons:commons-lang3:3.2'
     compile 'commons-io:commons-io:2.4'
-
+    compile('org.simpleframework:simple-xml:2.7.1') {
+        exclude module: 'stax'
+        exclude module: 'stax-api'
+        exclude module: 'xpp3'
+    }
 }

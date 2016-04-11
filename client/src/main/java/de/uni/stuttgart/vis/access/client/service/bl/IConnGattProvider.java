@@ -11,13 +11,19 @@ public interface IConnGattProvider {
 
     void deregisterConnGattSub(IConnGattSubscriber sub);
 
+    void getGattCharacteristicRead(UUID service, UUID characteristic);
+
+    void writeGattCharacteristic(UUID service, UUID characteristic, byte[] write);
+
     interface IConnGattSubscriber {
 
         void onGattReady(String macAddress);
 
         void onServicesReady(String macAddress);
 
-        void onGattValueReceived(String macAddress, byte[] value);
+        void onGattValueReceived(String macAddress, UUID uuid, byte[] value);
+
+        void onGattValueWriteReceived(String macAddress, UUID uuid, byte[] value);
 
         void onGattValueChanged(String macAddress, UUID uuid, byte[] value);
     }

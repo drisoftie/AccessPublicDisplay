@@ -31,7 +31,8 @@ dependencies {
     compile project(':common')
 
     /* support libs*/
-    compile 'com.android.support:design:23.1.1'
+    compile 'com.android.support:design:23.3.0'
 
     /* helper libs*/
+    compile 'com.google.code.gson:gson:2.6.2'
 }

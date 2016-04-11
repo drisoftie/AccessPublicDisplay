@@ -28,7 +28,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".service.ServiceAdvertise"
+            android:name=".service.ServiceBlConn"
             android:enabled="true"
             android:exported="false">
         </service>

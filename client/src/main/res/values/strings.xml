@@ -41,8 +41,8 @@
     <!-- ==================== -->
     <eat-comment/>
 
-    <string name="ntxt_scan">Scanning for public displays...</string>
-    <string name="ntxt_scan_found">Public Display found!</string>
+    <string name="ntxt_scan">Scanning for public displays…</string>
+    <string name="ntxt_scan_found">Public Display at large hall!</string>
     <string name="ntxt_scan_descr">Get: %1$s</string>
     <string name="nact_show">Show me!</string>
     <string name="nact_stop">Stop scan</string>

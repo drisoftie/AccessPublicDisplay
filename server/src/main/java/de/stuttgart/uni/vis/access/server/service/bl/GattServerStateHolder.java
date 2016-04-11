@@ -84,6 +84,39 @@ public class GattServerStateHolder {
         blGattHandler.add(handler);
     }
 
+    private void startGattServerNews() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Start News");
+        }
+        GattHandlerNews handler = new GattHandlerNews();
+        handler.setServer(blGattServer);
+        //noinspection unchecked
+        handler.prepareServices(actionServicesAdd.getHandlerImpl(IFinishedHandler.class));
+        blGattHandler.add(handler);
+    }
+
+    private void startGattServerChat() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Start Chat");
+        }
+        GattHandlerChat handler = new GattHandlerChat();
+        handler.setServer(blGattServer);
+        //noinspection unchecked
+        handler.prepareServices(actionServicesAdd.getHandlerImpl(IFinishedHandler.class));
+        blGattHandler.add(handler);
+    }
+
+    private void startGattServerBooking() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Start Booking");
+        }
+        GattHandlerBooking handler = new GattHandlerBooking();
+        handler.setServer(blGattServer);
+        //noinspection unchecked
+        handler.prepareServices(actionServicesAdd.getHandlerImpl(IFinishedHandler.class));
+        blGattHandler.add(handler);
+    }
+
     private void startGattServerShout() {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Start Shout");
@@ -235,6 +268,12 @@ public class GattServerStateHolder {
                 if (Constants.GATT_SERVICE_WEATHER.getUuid().equals(methodArgs[0])) {
                     startGattServerPubTransp();
                 } else if (Constants.GATT_SERVICE_PUB_TRANSP.getUuid().equals(methodArgs[0])) {
+                    startGattServerNews();
+                } else if (Constants.GATT_SERVICE_NEWS.getUuid().equals(methodArgs[0])) {
+                    startGattServerChat();
+                } else if (Constants.GATT_SERVICE_CHAT.getUuid().equals(methodArgs[0])) {
+                    startGattServerBooking();
+                } else if (Constants.GATT_SERVICE_BOOKING.getUuid().equals(methodArgs[0])) {
                     startGattServerShout();
                 } else if (Constants.GATT_SERVICE_SHOUT.getUuid().equals(methodArgs[0])) {
                     finishedHandler.onFinished(null);

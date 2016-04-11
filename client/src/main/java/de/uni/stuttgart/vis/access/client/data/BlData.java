@@ -27,6 +27,9 @@ public class BlData extends ClientEntityBase {
     @DatabaseField(dataType = DataType.SERIALIZABLE)
     private String[] uuids;
 
+    @DatabaseField
+    private int rssi;
+
     @ForeignCollectionField(eager = true)
     private Collection<GattData> gattData;
 
@@ -68,6 +71,14 @@ public class BlData extends ClientEntityBase {
 
     public void setUuids(String[] uuids) {
         this.uuids = uuids;
+    }
+
+    public int getRssi() {
+        return rssi;
+    }
+
+    public void setRssi(int rssi) {
+        this.rssi = rssi;
     }
 
     public Collection<GattData> getGattData() {

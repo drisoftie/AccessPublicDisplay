@@ -22,17 +22,18 @@ import de.uni.stuttgart.vis.access.client.BuildConfig;
 /**
  * @author Alexander Dridiger
  */
-public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
+public class ConnBooking extends ConnBaseAdvertScan implements IConnMultiPart {
 
     private IConnMulti connMulti;
     private boolean    servicesDiscovered;
 
-    public ConnShout() {
+    public ConnBooking() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_SHOUT.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_SHOUT.getUuid());
-        constantUuids.add(Constants.GATT_SHOUT.getUuid());
+        constantUuids.add(Constants.UUID_ADVERT_SERVICE_BOOKING.getUuid());
+        constantUuids.add(Constants.GATT_SERVICE_BOOKING.getUuid());
+        constantUuids.add(Constants.GATT_BOOKING_WRITE.getUuid());
+        constantUuids.add(Constants.GATT_BOOKING_NOTIFY.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());
@@ -61,10 +62,12 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
     private void analyzeScanData(ScanResult scanData) {
         boolean start = false;
         //noinspection ConstantConditions
-        for (byte b : scanData.getScanRecord().getServiceData(Constants.UUID_ADVERT_SERVICE_MULTI)) {
+        byte[] advert = scanData.getScanRecord().getServiceData(Constants.UUID_ADVERT_SERVICE_MULTI);
+        for (int i = 0; i < advert.length; i++) {
+            byte b = advert[i];
             if (b == Constants.AdvertiseConst.ADVERTISE_START) {
                 start = true;
-            } else if (b == Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag()) {
+            } else if (b == Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag()) {
                 ScanResult foundRes = null;
                 for (ScanResult res : getScanResults()) {
                     if (StringUtils.equals(scanData.getDevice().getAddress(), res.getDevice().getAddress())) {
@@ -80,7 +83,7 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                     }
                 } else {
                     addScanResult(scanData);
-                    connMulti.contributeNotification(App.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()), this);
+                    connMulti.contributeNotification(App.string(Constants.AdvertiseConst.ADVERTISE_BOOKING.getDescr()), this);
                     for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
                         callback.onScanResultReceived(scanData);
                     }
@@ -166,14 +169,6 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 setGattInst(gatt);
-                access(new AccessGatt() {
-                    @Override
-                    public void onRun() {
-                        getLastGattInst().setCharacteristicNotification(getLastGattInst().getService(Constants.GATT_SERVICE_SHOUT.getUuid())
-                                                                                         .getCharacteristic(Constants.GATT_SHOUT.getUuid()),
-                                                                        true);
-                    }
-                });
                 for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                     sub.onServicesReady(getLastGattInst().getDevice().getAddress());
                 }
@@ -200,9 +195,27 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
         }
 
         @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                setGattInst(gatt);
+                for (UUID uuid : getConstantUuids()) {
+                    if (uuid.equals(characteristic.getUuid())) {
+                        if (characteristic.getValue() != null) {
+                            byte[] value = characteristic.getValue();
+                            for (IConnGattSubscriber sub : getConnGattSubscribers()) {
+                                sub.onGattValueWriteReceived(getLastGattInst().getDevice().getAddress(), characteristic.getUuid(), value);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             setGattInst(gatt);
-            if (Constants.GATT_SHOUT.getUuid().equals(characteristic.getUuid())) {
+            if (Constants.GATT_BOOKING_NOTIFY.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
                     for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                         sub.onGattValueChanged(getLastGattInst().getDevice().getAddress(), characteristic.getUuid(),

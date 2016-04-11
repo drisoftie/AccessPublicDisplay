@@ -137,6 +137,9 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_WEATHER));
         scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_PUB_TRANSP));
         scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_SHOUT));
+        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_NEWS));
+        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_CHAT));
+        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_BOOKING));
 
         return scanFilters;
     }

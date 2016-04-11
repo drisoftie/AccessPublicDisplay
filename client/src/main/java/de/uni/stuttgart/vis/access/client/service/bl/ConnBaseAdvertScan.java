@@ -3,6 +3,8 @@ package de.uni.stuttgart.vis.access.client.service.bl;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.os.ParcelUuid;
@@ -334,6 +336,61 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattPr
         return has;
     }
 
+    @Override
+    public void getGattCharacteristicRead(UUID service, UUID characteristic) {
+        access(new AccessGatt() {
+
+            private UUID service;
+            private UUID characteristic;
+
+            public AccessGatt init(UUID service, UUID characteristic) {
+                this.service = service;
+                this.characteristic = characteristic;
+                return this;
+            }
+
+            @Override
+            public void onRun() {
+                BluetoothGattService s = getLastGattInst().getService(service);
+                if (s != null) {
+                    BluetoothGattCharacteristic c = s.getCharacteristic(characteristic);
+                    if (c != null) {
+                        getLastGattInst().readCharacteristic(c);
+                    }
+                }
+            }
+        }.init(service, characteristic));
+    }
+
+    @Override
+    public void writeGattCharacteristic(UUID service, UUID characteristic, byte[] write) {
+        access(new AccessGatt() {
+
+            private byte[] write;
+            private UUID service;
+            private UUID characteristic;
+
+            public AccessGatt init(UUID service, UUID characteristic, byte[] write) {
+                this.service = service;
+                this.characteristic = characteristic;
+                this.write = write;
+                return this;
+            }
+
+            @Override
+            public void onRun() {
+                BluetoothGattService s = getLastGattInst().getService(service);
+                if (s != null) {
+                    BluetoothGattCharacteristic c = s.getCharacteristic(characteristic);
+                    if (c != null) {
+                        c.setValue(write);
+                        getLastGattInst().writeCharacteristic(c);
+                    }
+                }
+            }
+        }.init(service, characteristic, write));
+    }
+
     public BluetoothGatt getLastGattInst() {
         return lastGattInst;
     }
@@ -343,6 +400,7 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattPr
         @Override
         public void run() {
             onRun();
+            checkWork();
         }
 
         public abstract void onRun();

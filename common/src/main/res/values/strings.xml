@@ -66,6 +66,13 @@
 
     <string name="bl_advert_shout">New Shoutouts!</string>
 
+    <!-- =============== -->
+    <!-- Shout Constants -->
+    <!-- =============== -->
+    <eat-comment/>
+
+    <string name="bl_advert_chat">New Chats!</string>
+
     <!-- ========== -->
     <!-- BL Strings -->
     <!-- ========== -->

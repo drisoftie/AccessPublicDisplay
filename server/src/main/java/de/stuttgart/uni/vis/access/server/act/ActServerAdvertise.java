@@ -1,7 +1,5 @@
 package de.stuttgart.uni.vis.access.server.act;
 
-import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,7 +12,6 @@ import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -30,22 +27,21 @@ import com.drisoftie.action.async.android.AndroidAction;
 
 import org.apache.commons.lang3.StringUtils;
 
-import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.DialogCreator;
 import de.stuttgart.uni.vis.access.common.act.ActBasePerms;
 import de.stuttgart.uni.vis.access.server.R;
 import de.stuttgart.uni.vis.access.server.service.IServiceBinder;
 import de.stuttgart.uni.vis.access.server.service.IServiceBlListener;
-import de.stuttgart.uni.vis.access.server.service.ServiceAdvertise;
+import de.stuttgart.uni.vis.access.server.service.ServiceBlConn;
 
 public class ActServerAdvertise extends ActBasePerms
         implements ServiceConnection, IServiceBlListener, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = ActServerAdvertise.class.getSimpleName();
 
-    public  boolean          ok;
-    private Menu             menu;
-    private IServiceBinder   service;
+    public  boolean        ok;
+    private Menu           menu;
+    private IServiceBinder service;
 
     private ActionMenuServer actionMenuServer = new ActionMenuServer(null, IGenericAction.class, RegActionMethod.NONE.method());
 
@@ -121,8 +117,8 @@ public class ActServerAdvertise extends ActBasePerms
 
     @Override
     protected void startBlServiceConn() {
-        startService(new Intent(this, ServiceAdvertise.class));
-        bindService(new Intent(this, ServiceAdvertise.class), this, BIND_AUTO_CREATE);
+        startService(new Intent(this, ServiceBlConn.class));
+        bindService(new Intent(this, ServiceBlConn.class), this, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -144,6 +140,7 @@ public class ActServerAdvertise extends ActBasePerms
 
     @Override
     public void onBlUserShutdownCompleted() {
+        stopServiceBl();
         actionMenuServer.invokeSelf(true);
     }
 
@@ -215,7 +212,7 @@ public class ActServerAdvertise extends ActBasePerms
         getMenuInflater().inflate(R.menu.act_main, menu);
         this.menu = menu;
         menu.findItem(R.id.menu_refresh).setActionView(R.layout.actionbar_indeterminate_progress);
-        if (ServiceAdvertise.running) {
+        if (ServiceBlConn.running) {
             menu.findItem(R.id.menu_stop).setVisible(true);
             menu.findItem(R.id.menu_advertise).setVisible(false);
         } else {
@@ -238,7 +235,6 @@ public class ActServerAdvertise extends ActBasePerms
             case R.id.menu_stop:
                 if (isServiceBlConnected()) {
                     service.onBlUserShutdown();
-                    stopServiceBl();
                 }
                 menu.findItem(R.id.menu_advertise).setVisible(true);
                 menu.findItem(R.id.menu_stop).setVisible(false);
@@ -298,44 +294,6 @@ public class ActServerAdvertise extends ActBasePerms
                 createMenuStart();
             } else {
                 createMenuStop();
-            }
-        }
-    }
-
-    private class DiagBlOkTurnOn implements DialogInterface.OnClickListener {
-
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            ok = true;
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
-        }
-    }
-
-    private class DiagBlOkPerm implements DialogInterface.OnClickListener {
-
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            ok = true;
-            ActivityCompat.requestPermissions(ActServerAdvertise.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                              getResources().getInteger(R.integer.perm_access_coarse_location));
-        }
-    }
-
-    private class DiagBlClose implements DialogInterface.OnClickListener {
-
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            finish();
-        }
-    }
-
-    private class DiagDismissDefault implements DialogInterface.OnDismissListener {
-
-        @Override
-        public void onDismiss(DialogInterface dialog) {
-            if (!ok) {
-                finish();
             }
         }
     }

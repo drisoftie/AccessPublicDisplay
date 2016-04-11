@@ -50,9 +50,14 @@ public class ConnGattCommShout implements IConnGattProvider.IConnGattSubscriber 
     }
 
     @Override
-    public void onGattValueReceived(String macAddress, byte[] value) {
+    public void onGattValueReceived(String macAddress, UUID uuid, byte[] value) {
         provTts.provideTts().queueRead("We have a new sale here!");
         provTts.provideTts().queueRead(new String(value));
+    }
+
+    @Override
+    public void onGattValueWriteReceived(String macAddress, UUID uuid, byte[] value) {
+
     }
 
     @Override

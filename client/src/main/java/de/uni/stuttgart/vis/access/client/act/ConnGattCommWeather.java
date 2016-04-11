@@ -60,7 +60,12 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
     }
 
     @Override
-    public void onGattValueReceived(String macAddress, byte[] value) {
+    public void onGattValueReceived(String macAddress, UUID uuid, byte[] value) {
+
+    }
+
+    @Override
+    public void onGattValueWriteReceived(String macAddress, UUID uuid, byte[] value) {
 
     }
 

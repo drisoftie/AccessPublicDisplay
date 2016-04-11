@@ -33,21 +33,38 @@ public class Constants {
     public static final ParcelUuid UUID_ADVERT_SERVICE_WEATHER    = ParcelUuid.fromString("0000b81b-0000-1000-8000-00805f9b34fb");
     public static final ParcelUuid UUID_ADVERT_SERVICE_PUB_TRANSP = ParcelUuid.fromString("0000b81c-0000-1000-8000-00805f9b34fb");
     public static final ParcelUuid UUID_ADVERT_SERVICE_SHOUT      = ParcelUuid.fromString("0000b81d-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid UUID_ADVERT_SERVICE_NEWS       = ParcelUuid.fromString("0000b81e-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid UUID_ADVERT_SERVICE_CHAT       = ParcelUuid.fromString("0000b81f-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid UUID_ADVERT_SERVICE_BOOKING    = ParcelUuid.fromString("0000b819-0000-1000-8000-00805f9b34fb");
 
-    public static final int        ACTIVITY                = 123;
-    public static final int        SERVICE                 = 213;
-    public static final int        BROADCAST_RECEIVER      = 312;
-    public static final ParcelUuid GATT_SERVICE_WEATHER    = ParcelUuid.fromString("0000fff0-0000-1000-8000-00805f9b34fb");
-    public static final ParcelUuid GATT_WEATHER_TODAY      = ParcelUuid.fromString("00fff1-0000-1000-8000-00805f9b34fb");
-    public static final ParcelUuid GATT_WEATHER_TOMORROW   = ParcelUuid.fromString("00fff2-0000-1000-8000-00805f9b34fb");
-    public static final ParcelUuid GATT_WEATHER_DAT        = ParcelUuid.fromString("00fff3-0000-1000-8000-00805f9b34fb");
-    public static final ParcelUuid GATT_WEATHER_QUERY      = ParcelUuid.fromString("00fff4-0000-1000-8000-00805f9b34fb");
+    public static final int ACTIVITY           = 123;
+    public static final int SERVICE            = 213;
+    public static final int BROADCAST_RECEIVER = 312;
+
+    public static final ParcelUuid GATT_SERVICE_WEATHER  = ParcelUuid.fromString("0000fff0-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_WEATHER_TODAY    = ParcelUuid.fromString("00fff1-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_WEATHER_TOMORROW = ParcelUuid.fromString("00fff2-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_WEATHER_DAT      = ParcelUuid.fromString("00fff3-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_WEATHER_QUERY    = ParcelUuid.fromString("00fff4-0000-1000-8000-00805f9b34fb");
+
     public static final ParcelUuid GATT_SERVICE_PUB_TRANSP = ParcelUuid.fromString("0000eff0-0000-1000-8000-00805f9b34fb");
     public static final ParcelUuid GATT_PUB_TRANSP_BUS     = ParcelUuid.fromString("00eff1-0000-1000-8000-00805f9b34fb");
     public static final ParcelUuid GATT_PUB_TRANSP_METRO   = ParcelUuid.fromString("00eff2-0000-1000-8000-00805f9b34fb");
     public static final ParcelUuid GATT_PUB_TRANSP_TRAIN   = ParcelUuid.fromString("00eff3-0000-1000-8000-00805f9b34fb");
-    public static final ParcelUuid GATT_SERVICE_SHOUT      = ParcelUuid.fromString("0000dff0-0000-1000-8000-00805f9b34fb");
-    public static final ParcelUuid GATT_SHOUT              = ParcelUuid.fromString("00dff1-0000-1000-8000-00805f9b34fb");
+
+    public static final ParcelUuid GATT_SERVICE_SHOUT = ParcelUuid.fromString("0000dff0-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_SHOUT         = ParcelUuid.fromString("00dff1-0000-1000-8000-00805f9b34fb");
+
+    public static final ParcelUuid GATT_SERVICE_NEWS = ParcelUuid.fromString("0000fef0-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_NEWS         = ParcelUuid.fromString("00ffe1-0000-1000-8000-00805f9b34fb");
+
+    public static final ParcelUuid GATT_SERVICE_CHAT = ParcelUuid.fromString("0000fdf0-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_CHAT_WRITE   = ParcelUuid.fromString("00ffd1-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_CHAT_NOTIFY  = ParcelUuid.fromString("00ffd2-0000-1000-8000-00805f9b34fb");
+
+    public static final ParcelUuid GATT_SERVICE_BOOKING = ParcelUuid.fromString("0000fcf0-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_BOOKING_WRITE   = ParcelUuid.fromString("00ffc1-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid GATT_BOOKING_NOTIFY  = ParcelUuid.fromString("00ffc2-0000-1000-8000-00805f9b34fb");
 
 
     public static final ParcelUuid SERVICE_DEVICE_INFORMATION = ParcelUuid.fromString("0000180a-0000-1000-8000-00805f9b34ff");
@@ -56,10 +73,14 @@ public class Constants {
     public enum AdvertiseConst {
 
         ADVERTISE_WEATHER((byte) 0x10, R.string.bl_advert_weather_info),
+        ADVERTISE_WEATHER_DATA((byte) 0x11, R.string.bl_advert_weather_info),
         ADVERTISE_TRANSP((byte) 0x20, R.string.bl_advert_pub_transp),
         ADVERTISE_NEWS((byte) 0x30, R.string.bl_advert_news_info),
+        ADVERTISE_NEWS_DATA((byte) 0x31, R.string.bl_advert_news_info),
         ADVERTISE_BOOKING((byte) 0x40, R.string.bl_advert_booking_info),
-        ADVERTISE_SHOUT((byte) 0x50, R.string.bl_advert_shout);
+        ADVERTISE_SHOUT((byte) 0x50, R.string.bl_advert_shout),
+        ADVERTISE_CHAT((byte) 0x60, R.string.bl_advert_chat),
+        ADVERTISE_CHAT_DATA((byte) 0x61, R.string.bl_advert_chat);
 
         public static final byte ADVERTISE_START = (byte) 0xfe;
         public static final byte ADVERTISE_END   = (byte) 0xff;

@@ -18,21 +18,22 @@ import java.util.UUID;
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.BuildConfig;
+import de.uni.stuttgart.vis.access.client.R;
 
 /**
  * @author Alexander Dridiger
  */
-public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
+public class ConnNews extends ConnBaseAdvertScan implements IConnMultiPart {
 
     private IConnMulti connMulti;
     private boolean    servicesDiscovered;
 
-    public ConnShout() {
+    public ConnNews() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_SHOUT.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_SHOUT.getUuid());
-        constantUuids.add(Constants.GATT_SHOUT.getUuid());
+        constantUuids.add(Constants.UUID_ADVERT_SERVICE_NEWS.getUuid());
+        constantUuids.add(Constants.GATT_SERVICE_NEWS.getUuid());
+        constantUuids.add(Constants.GATT_NEWS.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());
@@ -61,10 +62,12 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
     private void analyzeScanData(ScanResult scanData) {
         boolean start = false;
         //noinspection ConstantConditions
-        for (byte b : scanData.getScanRecord().getServiceData(Constants.UUID_ADVERT_SERVICE_MULTI)) {
+        byte[] advert = scanData.getScanRecord().getServiceData(Constants.UUID_ADVERT_SERVICE_MULTI);
+        for (int i = 0; i < advert.length; i++) {
+            byte b = advert[i];
             if (b == Constants.AdvertiseConst.ADVERTISE_START) {
                 start = true;
-            } else if (b == Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag()) {
+            } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS.getFlag()) {
                 ScanResult foundRes = null;
                 for (ScanResult res : getScanResults()) {
                     if (StringUtils.equals(scanData.getDevice().getAddress(), res.getDevice().getAddress())) {
@@ -80,7 +83,33 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                     }
                 } else {
                     addScanResult(scanData);
-                    connMulti.contributeNotification(App.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()), this);
+                    connMulti.contributeNotification(App.string(Constants.AdvertiseConst.ADVERTISE_NEWS.getDescr()), this);
+                    for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
+                        callback.onScanResultReceived(scanData);
+                    }
+                }
+            } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS_DATA.getFlag()) {
+                ScanResult foundRes = null;
+                for (ScanResult res : getScanResults()) {
+                    if (StringUtils.equals(scanData.getDevice().getAddress(), res.getDevice().getAddress())) {
+                        foundRes = res;
+                        break;
+                    }
+                }
+
+                if (foundRes != null) {
+                    removeScanResult(foundRes);
+                    addScanResult(scanData);
+                    for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
+                        callback.onRefreshedScanReceived(scanData);
+                    }
+                } else {
+                    addScanResult(scanData);
+                    connMulti.contributeNotification("News: " + String.valueOf(advert[i + 1]), this);
+                    String txtFound = App.string(R.string.ntxt_scan_found);
+                    String txtFoundDescr = App.inst().getString(R.string.ntxt_scan_descr,
+                                                                App.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
+                    //                    getTtsProv().provideTts().queueRead(txtFound, txtFoundDescr);
                     for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
                         callback.onScanResultReceived(scanData);
                     }
@@ -166,14 +195,14 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 setGattInst(gatt);
-                access(new AccessGatt() {
-                    @Override
-                    public void onRun() {
-                        getLastGattInst().setCharacteristicNotification(getLastGattInst().getService(Constants.GATT_SERVICE_SHOUT.getUuid())
-                                                                                         .getCharacteristic(Constants.GATT_SHOUT.getUuid()),
-                                                                        true);
-                    }
-                });
+                //                access(new AccessGatt() {
+                //                    @Override
+                //                    public void onRun() {
+                //                        getLastGattInst().setCharacteristicNotification(getLastGattInst().getService(Constants.GATT_SERVICE_NEWS.getUuid())
+                //                                                                                         .getCharacteristic(Constants.GATT_NEWS.getUuid()),
+                //                                                                        true);
+                //                    }
+                //                });
                 for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                     sub.onServicesReady(getLastGattInst().getDevice().getAddress());
                 }
@@ -202,7 +231,7 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             setGattInst(gatt);
-            if (Constants.GATT_SHOUT.getUuid().equals(characteristic.getUuid())) {
+            if (Constants.GATT_NEWS.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
                     for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                         sub.onGattValueChanged(getLastGattInst().getDevice().getAddress(), characteristic.getUuid(),

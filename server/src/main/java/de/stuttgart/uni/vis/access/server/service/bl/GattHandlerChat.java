@@ -12,8 +12,6 @@ import android.view.View;
 import com.drisoftie.action.async.IGenericAction;
 import com.drisoftie.action.async.android.AndroidAction;
 
-import net.aksingh.owmjapis.DailyForecast;
-
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
@@ -26,20 +24,18 @@ import de.stuttgart.uni.vis.access.server.R;
 /**
  * @author Alexander Dridiger
  */
-public class GattHandlerWeather extends BaseGattHandler {
+public class GattHandlerChat extends BaseGattHandler {
 
-    private static final String TAG = GattHandlerWeather.class.getSimpleName();
+    private static final String TAG = GattHandlerChat.class.getSimpleName();
 
     private GattCallback callback = new GattCallback();
     private ActionServicesAdd actionServicesAdd;
 
-    public GattHandlerWeather() {
+    public GattHandlerChat() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
-        constantUuids.add(Constants.GATT_SERVICE_WEATHER.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_DAT.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_TODAY.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_TOMORROW.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_QUERY.getUuid());
+        constantUuids.add(Constants.GATT_SERVICE_CHAT.getUuid());
+        constantUuids.add(Constants.GATT_CHAT_NOTIFY.getUuid());
+        constantUuids.add(Constants.GATT_CHAT_WRITE.getUuid());
         setConstantUuids(constantUuids);
     }
 
@@ -64,29 +60,13 @@ public class GattHandlerWeather extends BaseGattHandler {
         return null;
     }
 
-    private void setWeatherInfo() {
-        ProviderWeather provider = ProviderWeather.inst();
-        provider.createForecasts();
-        if (provider.hasWeatherInfo()) {
-            if (provider.getCurrWeather().hasWeatherInstance()) {
-                changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_TODAY.getUuid(),
-                               provider.getCurrWeather().getWeatherInstance(0).getWeatherDescription());
-            }
-            if (provider.getForecast().hasForecastCount()) {
-                DailyForecast forecast = provider.getForecast();
-                for (int i = 0; i < forecast.getForecastCount(); i++) {
-                    String descr = forecast.getForecastInstance(i).getWeatherInstance(0).getWeatherDescription();
-                    switch (i) {
-                        case 0:
-                            changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_TOMORROW.getUuid(), descr);
-                            break;
-                        case 1:
-                            changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_DAT.getUuid(), descr);
-                            break;
-                    }
-                }
-            }
+    private void setNewsInfo() {
+        ProviderNews provider = ProviderNews.inst();
+        provider.createNews();
+        if (provider.hasNewsInfo()) {
+            changeGattChar(Constants.GATT_SERVICE_CHAT.getUuid(), Constants.GATT_CHAT_NOTIFY.getUuid(), provider.getFeedNews().getLink());
         }
+
     }
 
     private class GattCallback extends BluetoothGattServerCallback {
@@ -107,7 +87,7 @@ public class GattHandlerWeather extends BaseGattHandler {
 
         @Override
         public void onServiceAdded(int status, BluetoothGattService service) {
-            setWeatherInfo();
+            setNewsInfo();
             actionServicesAdd.invokeSelf(service.getUuid());
         }
 
@@ -167,24 +147,18 @@ public class GattHandlerWeather extends BaseGattHandler {
         @Override
         public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
             if (ArrayUtils.isEmpty(stripMethodArgs(methodArgs))) {
-                BluetoothGattService serviceWeather = new BluetoothGattService(Constants.GATT_SERVICE_WEATHER.getUuid(),
-                                                                               BluetoothGattService.SERVICE_TYPE_PRIMARY);
-                serviceWeather.addCharacteristic(
-                        createCharacteristic(Constants.GATT_WEATHER_TODAY.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
-                                             BluetoothGattCharacteristic.PERMISSION_READ,
+                BluetoothGattService serviceChat = new BluetoothGattService(Constants.GATT_SERVICE_CHAT.getUuid(),
+                                                                            BluetoothGattService.SERVICE_TYPE_PRIMARY);
+                serviceChat.addCharacteristic(
+                        createCharacteristic(Constants.GATT_CHAT_WRITE.getUuid(), BluetoothGattCharacteristic.PROPERTY_WRITE,
+                                             BluetoothGattCharacteristic.PERMISSION_WRITE,
                                              App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
-                serviceWeather.addCharacteristic(
-                        createCharacteristic(Constants.GATT_WEATHER_TOMORROW.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
+                serviceChat.addCharacteristic(
+                        createCharacteristic(Constants.GATT_CHAT_NOTIFY.toString(), BluetoothGattCharacteristic.PROPERTY_BROADCAST,
                                              BluetoothGattCharacteristic.PERMISSION_READ,
-                                             App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
-                serviceWeather.addCharacteristic(
-                        createCharacteristic(Constants.GATT_WEATHER_DAT.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
-                                             BluetoothGattCharacteristic.PERMISSION_READ,
-                                             App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
-                serviceWeather.addCharacteristic(
-                        createCharacteristic(Constants.GATT_WEATHER_QUERY.getUuid(), BluetoothGattCharacteristic.PROPERTY_WRITE,
-                                             BluetoothGattCharacteristic.PERMISSION_WRITE, "blub".getBytes()));
-                getServer().addService(serviceWeather);
+                                             App.inst().getString(R.string.bl_advert_cloudy).getBytes()));
+
+                getServer().addService(serviceChat);
             } else {
                 Object[] args = stripMethodArgs(methodArgs);
                 getServicesReadyListener().onFinished((UUID) args[0]);

@@ -53,9 +53,9 @@ import de.stuttgart.uni.vis.access.server.service.bl.IAdvertStartListener;
  * If the app goes off screen (or gets killed completely) advertising can continue because this
  * Service is maintaining the necessary Callback in memory.
  */
-public class ServiceAdvertise extends Service implements IAdvertStartListener {
+public class ServiceBlConn extends Service implements IAdvertStartListener {
 
-    private static final String  TAG     = ServiceAdvertise.class.getSimpleName();
+    private static final String  TAG     = ServiceBlConn.class.getSimpleName();
     /**
      * A global variable to let AdvertiserFragment check if the Service is running without needing
      * to start or bind to it.
@@ -94,7 +94,7 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
                 for (IServiceBlListener l : serviceListeners) {
                     l.onConnStopped();
                 }
-                stopSelf();
+                onShuttingDown();
             }
         }
     };
@@ -158,9 +158,9 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         timeoutRunnable = new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "ServiceAdvertise has reached timeout of " + TIMEOUT + " milliseconds, stopping advertising.");
+                Log.d(TAG, "ServiceBlConn has reached timeout of " + TIMEOUT + " milliseconds, stopping advertising.");
                 sendFailureIntent(Constants.ADVERTISING_TIMED_OUT);
-                stopSelf();
+                onShuttingDown();
                 for (IServiceBlListener l : serviceListeners) {
                     l.onConnStopped();
                 }
@@ -199,7 +199,7 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
 
     @Override
     public void onStartingFailed(int code) {
-        stopSelf();
+        onShuttingDown();
     }
 
     private void createStartNotification() {
@@ -296,6 +296,12 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         msgReceiver = null;
     }
 
+    public void onShuttingDown() {
+        stopAdvertising();
+        blGattServerHolder.closeServer();
+        stopSelf();
+    }
+
     public class ServiceBinder extends Binder implements IServiceBinder {
 
         @Override
@@ -316,7 +322,7 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
         @Override
         public void onBlUserShutdown() {
             actionUserShutdown.invokeSelf();
-            stopSelf();
+            onShuttingDown();
         }
     }
 
@@ -376,7 +382,7 @@ public class ServiceAdvertise extends Service implements IAdvertStartListener {
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(getString(R.string.intent_action_bl_user_stopped));
                 filter.addAction(getString(R.string.intent_advert_gatt_connect_weather));
-                LocalBroadcastManager.getInstance(ServiceAdvertise.this).registerReceiver(msgReceiver, filter);
+                LocalBroadcastManager.getInstance(ServiceBlConn.this).registerReceiver(msgReceiver, filter);
                 registerReceiver(brcstRcvrBlAdapt, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
                 for (IServiceBlListener l : serviceListeners) {

@@ -8,7 +8,11 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.util.ParserData;
 import de.stuttgart.uni.vis.access.server.BuildConfig;
 
 /**
@@ -91,13 +95,34 @@ public class AdvertHandler extends AdvertiseCallback {
          */
 
         AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
-        //        dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_WEATHER);
-
-        //        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_WEATHER, advertisement.getBytes());
         dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_MULTI);
-        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_MULTI, new byte[]{Constants.AdvertiseConst.ADVERTISE_START,
-                Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag(), Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag(),
-                Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag(), Constants.AdvertiseConst.ADVERTISE_END});
+        ByteArrayOutputStream advert = new ByteArrayOutputStream();
+        advert.write(Constants.AdvertiseConst.ADVERTISE_START);
+        if (ProviderWeather.inst().hasWeatherInfo()) {
+            advert.write(Constants.AdvertiseConst.ADVERTISE_WEATHER_DATA.getFlag());
+            try {
+                advert.write(ParserData.parseFloatToByte(
+                        (ProviderWeather.inst().getCurrWeather().getMainInstance().getTemperature() - 32) * 5.f / 9.f));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            advert.write(Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag());
+        }
+        if (ProviderNews.inst().hasNewsInfo()) {
+            advert.write(Constants.AdvertiseConst.ADVERTISE_NEWS_DATA.getFlag());
+            advert.write(ProviderNews.inst().getFeedNews().getItems().size());
+        } else {
+            advert.write(Constants.AdvertiseConst.ADVERTISE_NEWS.getFlag());
+        }
+        try {
+            advert.write(new byte[]{Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag(), Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag(),
+                    Constants.AdvertiseConst.ADVERTISE_CHAT.getFlag(), Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag(),
+                    Constants.AdvertiseConst.ADVERTISE_END});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_MULTI, advert.toByteArray());
         return dataBuilder.build();
     }
 }

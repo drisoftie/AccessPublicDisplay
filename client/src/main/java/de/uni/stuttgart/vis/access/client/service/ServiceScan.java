@@ -208,7 +208,7 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
                 if (intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)) != null) {
                     connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)));
                 } else if (intent.getStringExtra(getString(R.string.bndl_bl_address)) != null) {
-                    connectorAdvertScan.connectGatt(blAdapt, intent.getStringExtra(getString(R.string.bndl_bl_scan_result)));
+                    connectorAdvertScan.connectGatt(blAdapt, intent.getStringExtra(getString(R.string.bndl_bl_address)));
                 }
                 ParcelUuid startIntent = intent.getParcelableExtra(getString(R.string.bndl_bl_show));
                 if (Constants.UUID_ADVERT_SERVICE_MULTI.getUuid().equals(startIntent.getUuid())) {
