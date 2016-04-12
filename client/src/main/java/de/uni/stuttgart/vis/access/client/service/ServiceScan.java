@@ -26,7 +26,7 @@ import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.brcst.BrcstBlAdaptChanged;
 import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
-import de.uni.stuttgart.vis.access.client.act.ActPubTransp;
+import de.uni.stuttgart.vis.access.client.act.ActMulti;
 import de.uni.stuttgart.vis.access.client.act.ActWeather;
 import de.uni.stuttgart.vis.access.client.helper.IContextProv;
 import de.uni.stuttgart.vis.access.client.helper.INotifyProv;
@@ -212,13 +212,13 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
                 }
                 ParcelUuid startIntent = intent.getParcelableExtra(getString(R.string.bndl_bl_show));
                 if (Constants.UUID_ADVERT_SERVICE_MULTI.getUuid().equals(startIntent.getUuid())) {
-                    Intent weatherIntent = new Intent(ServiceScan.this, ActWeather.class);
-                    weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(weatherIntent);
+                    Intent intentMulti = new Intent(ServiceScan.this, ActMulti.class);
+                    intentMulti.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intentMulti);
                 } else if (Constants.UUID_ADVERT_SERVICE_WEATHER.getUuid().equals(startIntent.getUuid())) {
-                    Intent weatherIntent = new Intent(ServiceScan.this, ActPubTransp.class);
-                    weatherIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(weatherIntent);
+                    Intent intentWeather = new Intent(ServiceScan.this, ActWeather.class);
+                    intentWeather.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intentWeather);
                 }
             } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_gatt_connect))) {
                 connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)));

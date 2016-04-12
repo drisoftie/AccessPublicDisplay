@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    package="de.uni.stuttgart.vis.access.client"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest package="de.uni.stuttgart.vis.access.client"
+          xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true"/>
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
@@ -22,7 +21,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="de.uni.stuttgart.vis.access.client.act.ActScan"
+            android:name=".act.ActScan"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar">
@@ -34,29 +33,38 @@
         </activity>
 
         <service
-            android:name="de.uni.stuttgart.vis.access.client.service.ServiceScan"
+            android:name=".service.ServiceScan"
             android:enabled="true"
             android:exported="false">
         </service>
 
-        <receiver android:name="de.uni.stuttgart.vis.access.client.brcast.BrRcvScan"/>
-        <receiver android:name="de.uni.stuttgart.vis.access.client.brcast.BrRcvStop"/>
+        <receiver android:name=".brcast.BrRcvScan"/>
+        <receiver android:name=".brcast.BrRcvStop"/>
 
         <activity
-            android:name="de.uni.stuttgart.vis.access.client.act.ActWeather"
+            android:name=".act.ActWeather"
             android:label="@string/title_activity_act_weather"
             android:launchMode="singleTop"
-            android:parentActivityName="de.uni.stuttgart.vis.access.client.act.ActScan"
+            android:parentActivityName=".act.ActScan"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.uni.stuttgart.vis.access.client.act.ActScan"/>
         </activity>
         <activity
-            android:name="de.uni.stuttgart.vis.access.client.act.ActPubTransp"
+            android:name=".act.ActPubTransp"
             android:label="@string/title_activity_act_pub_transport"
             android:launchMode="singleTop"
-            android:parentActivityName="de.uni.stuttgart.vis.access.client.act.ActScan"
+            android:parentActivityName=".act.ActScan"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="de.uni.stuttgart.vis.access.client.act.ActScan"/>
+        </activity>
+        <activity
+            android:name=".act.ActMulti"
+            android:label="@string/title_activity_act_multi"
+            android:parentActivityName=".act.ActScan"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

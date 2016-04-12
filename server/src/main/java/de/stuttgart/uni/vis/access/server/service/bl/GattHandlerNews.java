@@ -64,7 +64,7 @@ public class GattHandlerNews extends BaseGattHandler {
         provider.createNews();
         if (provider.hasNewsInfo()) {
             changeGattChar(Constants.GATT_SERVICE_NEWS.getUuid(), Constants.GATT_NEWS.getUuid(),
-                           provider.getFeedNews().getItems().iterator().next().getDescription());
+                           provider.getFeedNews().getItems().iterator().next().getTitle());
         }
     }
 

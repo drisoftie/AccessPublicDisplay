@@ -22,6 +22,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -60,14 +61,13 @@ import de.uni.stuttgart.vis.access.client.view.AdaptScans;
 public class ActScan extends ActBasePerms implements NavigationView.OnNavigationItemSelectedListener, ServiceConnection, IServiceBlListener,
                                                      IConnAdvertProvider.IConnAdvertSubscriber {
 
+    private static final String TAG = "ActScan";
     private RecyclerView               rcycDevices;
     private AdaptScans                 rcycAdaptDevices;
     private RecyclerView.LayoutManager rcycLayoutManager;
     private Menu                       menu;
     private IServiceBinderClient       service;
-
-    private BroadcastReceiver brcstRcvrBlAdapt;
-
+    private BroadcastReceiver          brcstRcvrBlAdapt;
     private BroadcastReceiver brdcstRcvr = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -80,7 +80,6 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
             }
         }
     };
-
     private GattWeather       gattListenWeather;
     private IConnWeather      gattProviderWeather;
     private GattShout         gattListenShout;
@@ -204,7 +203,6 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         service = null;
     }
 
-
     @Override
     protected void deregisterComponents() {
         if (isServiceBlConnected()) {
@@ -318,6 +316,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
     @Override
     public void onScanResultReceived(ScanResult result) {
+        Log.d(TAG, "onScanResultReceived: " + result.getDevice().getAddress());
         findViewById(R.id.txt_headline_displays).setVisibility(View.VISIBLE);
         for (BlData b : rcycAdaptDevices.getBlData()) {
             if (b.isActive() && b.getAddress().equals(result.getDevice().getAddress())) {
