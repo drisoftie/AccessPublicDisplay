@@ -29,6 +29,7 @@ import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.domain.Departure;
+import de.stuttgart.uni.vis.access.common.domain.PublicTransport;
 import de.stuttgart.uni.vis.access.server.App;
 import de.stuttgart.uni.vis.access.server.R;
 
@@ -83,6 +84,34 @@ public class GattHandlerPubTransp extends BaseGattHandler {
         return null;
     }
 
+    private void setInfoPubTransp() {
+        ProviderPubTransp provider = ProviderPubTransp.inst();
+        provider.createTransportInfo();
+        if (provider.hasTransportInfo()) {
+            StringBuilder infoTranspBus   = new StringBuilder();
+            StringBuilder infoTranspMetro = new StringBuilder();
+            StringBuilder infoTranspTrain = new StringBuilder();
+            for (PublicTransport t : provider.getTransports()) {
+                switch (t.getType()) {
+                    case BUS:
+                        infoTranspBus.append(t.getLine()).append(": ").append(t.getTime());
+                        break;
+                    case METRO:
+                        infoTranspMetro.append(t.getLine()).append(": ").append(t.getTime());
+                        break;
+                    case TRAIN:
+                        infoTranspTrain.append(t.getLine()).append(": ").append(t.getTime());
+                        break;
+                }
+            }
+            changeGattChar(Constants.GATT_SERVICE_PUB_TRANSP.getUuid(), Constants.GATT_PUB_TRANSP_BUS.getUuid(), infoTranspBus.toString());
+            changeGattChar(Constants.GATT_SERVICE_PUB_TRANSP.getUuid(), Constants.GATT_PUB_TRANSP_METRO.getUuid(),
+                           infoTranspMetro.toString());
+            changeGattChar(Constants.GATT_SERVICE_PUB_TRANSP.getUuid(), Constants.GATT_PUB_TRANSP_TRAIN.getUuid(),
+                           infoTranspTrain.toString());
+        }
+    }
+
     private class GattCallback extends BluetoothGattServerCallback {
 
         @Override
@@ -91,6 +120,7 @@ public class GattHandlerPubTransp extends BaseGattHandler {
 
         @Override
         public void onServiceAdded(int status, BluetoothGattService service) {
+            setInfoPubTransp();
             getServicesReadyListener().onFinished(service.getUuid());
         }
 

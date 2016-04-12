@@ -94,7 +94,12 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
 
     @Override
     public void onConnStopped() {
+        // Deactivate updates to us so that we dont get callbacks no more.
+        service.deregisterServiceListener(this);
 
+        // Finally stop the service
+        unbindService(this);
+        service = null;
     }
 
     @Override

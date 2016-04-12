@@ -13,11 +13,14 @@ import java.io.Reader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.List;
 
 import de.stuttgart.uni.vis.access.common.domain.Departure;
-import de.stuttgart.uni.vis.access.common.domain.Feed;
+import de.stuttgart.uni.vis.access.common.domain.PubTranspType;
+import de.stuttgart.uni.vis.access.common.domain.PublicTransport;
 
 /**
  * @author Alexander Dridiger
@@ -26,7 +29,8 @@ public class ProviderPubTransp {
 
     private static ProviderPubTransp inst;
 
-    private Feed feedNews;
+
+    private List<PublicTransport> transports = new ArrayList<>();
 
     private ProviderPubTransp() {
         inst = this;
@@ -40,11 +44,11 @@ public class ProviderPubTransp {
     }
 
     public boolean hasTransportInfo() {
-        return feedNews != null;
+        return !transports.isEmpty();
     }
 
-    public Feed getFeedNews() {
-        return feedNews;
+    public List<PublicTransport> getTransports() {
+        return transports;
     }
 
     public void createTransportInfo() {
@@ -69,24 +73,27 @@ public class ProviderPubTransp {
 
             Collection<Departure> departures = gson.fromJson(reader, collectionType);
 
-            StringBuilder sBus   = new StringBuilder();
-            StringBuilder sTrain = new StringBuilder();
-            StringBuilder sMetro = new StringBuilder();
+            transports = new ArrayList<>();
 
             Calendar c       = Calendar.getInstance();
             int      minutes = c.get(Calendar.MINUTE);
 
             if (departures != null) {
                 for (Departure d : departures) {
+                    PublicTransport t = new PublicTransport();
+                    t.setLine(d.number);
+                    t.setTime(d.departureTime.hour + ":" + d.departureTime.minute);
                     if (StringUtils.isNumericSpace(d.number)) {
-                        sBus.append(d.number).append(":").append(
-                                String.valueOf(Math.min(Integer.valueOf(d.departureTime.minute) - minutes, 0)));
+                        t.setType(PubTranspType.BUS);
+                        transports.add(t);
+                        //                        .append(d.number).append(":").append(
+                        //                                String.valueOf(Math.min(Integer.valueOf(d.departureTime.minute) - minutes, 0)));
                     } else if (StringUtils.startsWithIgnoreCase(d.number, "s")) {
-                        sTrain.append(d.number).append(":").append(
-                                String.valueOf(Math.min(Integer.valueOf(d.departureTime.minute) - minutes, 0)));
+                        t.setType(PubTranspType.TRAIN);
+                        transports.add(t);
                     } else if (StringUtils.startsWithIgnoreCase(d.number, "u")) {
-                        sMetro.append(d.number).append(":").append(
-                                String.valueOf(Math.min(Integer.valueOf(d.departureTime.minute) - minutes, 0)));
+                        t.setType(PubTranspType.METRO);
+                        transports.add(t);
                     }
                 }
             }
