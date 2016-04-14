@@ -26,4 +26,8 @@
     <item name="txt_train" type="id"/>
     <item name="txt_headline_displays" type="id">txt_headline_displays</item>
 
+
+    <item name="lyt_multi_select" type="id"/>
+    <item name="lyt_booking" type="id"/>
+
 </resources>

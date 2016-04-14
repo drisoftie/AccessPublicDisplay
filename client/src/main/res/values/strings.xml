@@ -71,6 +71,7 @@
     <string name="hint_metro">Looking for metro schedules.</string>
     <string name="hint_train">Looking for train schedules..</string>
     <string name="title_activity_act_multi">Public Display</string>
+    <string name="title_activity_act_booking">ActBooking</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

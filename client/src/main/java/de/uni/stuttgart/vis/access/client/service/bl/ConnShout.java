@@ -30,9 +30,9 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
     public ConnShout() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_SHOUT.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_SHOUT.getUuid());
-        constantUuids.add(Constants.GATT_SHOUT.getUuid());
+        constantUuids.add(Constants.SHOUT.UUID_ADVERT_SERVICE_SHOUT.getUuid());
+        constantUuids.add(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid());
+        constantUuids.add(Constants.SHOUT.GATT_SHOUT.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());
@@ -169,9 +169,9 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
                 access(new AccessGatt() {
                     @Override
                     public void onRun() {
-                        getLastGattInst().setCharacteristicNotification(getLastGattInst().getService(Constants.GATT_SERVICE_SHOUT.getUuid())
-                                                                                         .getCharacteristic(Constants.GATT_SHOUT.getUuid()),
-                                                                        true);
+                        getLastGattInst().setCharacteristicNotification(
+                                getLastGattInst().getService(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid())
+                                                 .getCharacteristic(Constants.SHOUT.GATT_SHOUT.getUuid()), true);
                     }
                 });
                 for (IConnGattSubscriber sub : getConnGattSubscribers()) {
@@ -202,7 +202,7 @@ public class ConnShout extends ConnBaseAdvertScan implements IConnMultiPart {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             setGattInst(gatt);
-            if (Constants.GATT_SHOUT.getUuid().equals(characteristic.getUuid())) {
+            if (Constants.SHOUT.GATT_SHOUT.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
                     for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                         sub.onGattValueChanged(getLastGattInst().getDevice().getAddress(), characteristic.getUuid(),

@@ -70,6 +70,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="de.uni.stuttgart.vis.access.client.act.ActScan"/>
         </activity>
+        <activity
+            android:name=".act.ActBooking"
+            android:label="@string/title_activity_act_booking"
+            android:parentActivityName=".act.ActMulti"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="de.uni.stuttgart.vis.access.client.act.ActMulti"/>
+        </activity>
     </application>
 
 </manifest>

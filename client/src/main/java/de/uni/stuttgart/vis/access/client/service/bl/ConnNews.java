@@ -31,9 +31,9 @@ public class ConnNews extends ConnBaseAdvertScan implements IConnMultiPart {
     public ConnNews() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_NEWS.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_NEWS.getUuid());
-        constantUuids.add(Constants.GATT_NEWS.getUuid());
+        constantUuids.add(Constants.NEWS.UUID_ADVERT_SERVICE_NEWS.getUuid());
+        constantUuids.add(Constants.NEWS.GATT_SERVICE_NEWS.getUuid());
+        constantUuids.add(Constants.NEWS.GATT_NEWS.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());
@@ -231,7 +231,7 @@ public class ConnNews extends ConnBaseAdvertScan implements IConnMultiPart {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             setGattInst(gatt);
-            if (Constants.GATT_NEWS.getUuid().equals(characteristic.getUuid())) {
+            if (Constants.NEWS.GATT_NEWS.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
                     for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                         sub.onGattValueChanged(getLastGattInst().getDevice().getAddress(), characteristic.getUuid(),

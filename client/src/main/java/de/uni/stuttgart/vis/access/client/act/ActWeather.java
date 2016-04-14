@@ -141,13 +141,13 @@ public class ActWeather extends ManagedActivity implements ServiceConnection, IS
                 gattCommWeather = new ConnGattCommWeather();
                 gattCommWeather.setContextProvider(ActWeather.this);
                 gattCommWeather.setViewProvider(ActWeather.this);
-                gattCommWeather.setConn(service.subscribeGattConnection(Constants.GATT_SERVICE_WEATHER.getUuid(), gattCommWeather));
+                gattCommWeather.setConn(service.subscribeGattConnection(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(), gattCommWeather));
 
                 gattCommShout = new ConnGattCommShout();
                 gattCommShout.setContextProvider(ActWeather.this);
                 gattCommShout.setViewProvider(ActWeather.this);
                 gattCommShout.setTtsProvider(ActWeather.this);
-                gattCommShout.setConn(service.subscribeGattConnection(Constants.GATT_SERVICE_SHOUT.getUuid(), gattCommShout));
+                gattCommShout.setConn(service.subscribeGattConnection(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), gattCommShout));
             }
             return null;
         }

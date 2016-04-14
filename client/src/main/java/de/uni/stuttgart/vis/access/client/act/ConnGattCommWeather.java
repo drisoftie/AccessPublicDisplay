@@ -56,7 +56,7 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
     @Override
     public void onServicesReady(String macAddress) {
         provView.provideView(R.id.txt_headline_today).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
-        blWeather.getWeatherInfo(Constants.GATT_WEATHER_TODAY.getUuid());
+        blWeather.getWeatherInfo(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
     }
 
     @Override
@@ -87,15 +87,15 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
 
     private void setText(UUID uuid, byte[] value) {
         String weather;
-        if (Constants.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
+        if (Constants.WEATHER.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
             weather = App.inst().getString(R.string.info_weather_today, new String(value));
             actionWeatherToday.invokeSelf(weather);
-            blWeather.getWeatherInfo(Constants.GATT_WEATHER_TOMORROW.getUuid());
-        } else if (Constants.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
+            blWeather.getWeatherInfo(Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid());
+        } else if (Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
             weather = App.inst().getString(R.string.info_weather_tomorrow, new String(value));
             actionWeatherTomorrow.invokeSelf(weather);
-            blWeather.getWeatherInfo(Constants.GATT_WEATHER_DAT.getUuid());
-        } else if (Constants.GATT_WEATHER_DAT.getUuid().equals(uuid)) {
+            blWeather.getWeatherInfo(Constants.WEATHER.GATT_WEATHER_DAT.getUuid());
+        } else if (Constants.WEATHER.GATT_WEATHER_DAT.getUuid().equals(uuid)) {
             weather = App.inst().getString(R.string.info_weather_dat, new String(value));
             actionWeatherDat.invokeSelf(weather);
         }

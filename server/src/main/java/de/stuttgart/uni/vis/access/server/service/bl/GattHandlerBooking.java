@@ -37,9 +37,9 @@ public class GattHandlerBooking extends BaseGattHandler {
 
     public GattHandlerBooking() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
-        constantUuids.add(Constants.GATT_SERVICE_BOOKING.getUuid());
-        constantUuids.add(Constants.GATT_BOOKING_WRITE.getUuid());
-        constantUuids.add(Constants.GATT_BOOKING_NOTIFY.getUuid());
+        constantUuids.add(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid());
+        constantUuids.add(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid());
+        constantUuids.add(Constants.BOOKING.GATT_BOOKING_NOTIFY.getUuid());
         setConstantUuids(constantUuids);
     }
 
@@ -65,7 +65,7 @@ public class GattHandlerBooking extends BaseGattHandler {
     }
 
     private void setBookingInfo() {
-        changeGattChar(Constants.GATT_SERVICE_BOOKING.getUuid(), Constants.GATT_BOOKING_NOTIFY.getUuid(),
+        changeGattChar(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid(), Constants.BOOKING.GATT_BOOKING_NOTIFY.getUuid(),
                        "Book your lunch table in El " + "Mero Mexicano!");
     }
 
@@ -131,6 +131,7 @@ public class GattHandlerBooking extends BaseGattHandler {
             switch (status) {
                 case BluetoothGatt.GATT_SUCCESS:
                     getConnDevices().add(device);
+                    setBookingInfo();
                     break;
                 default:
                     if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -207,16 +208,16 @@ public class GattHandlerBooking extends BaseGattHandler {
         @Override
         public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
             if (ArrayUtils.isEmpty(stripMethodArgs(methodArgs))) {
-                BluetoothGattService serviceChat = new BluetoothGattService(Constants.GATT_SERVICE_BOOKING.getUuid(),
+                BluetoothGattService serviceChat = new BluetoothGattService(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid(),
                                                                             BluetoothGattService.SERVICE_TYPE_PRIMARY);
                 serviceChat.addCharacteristic(
-                        createCharacteristic(Constants.GATT_BOOKING_WRITE.getUuid(), BluetoothGattCharacteristic.PROPERTY_WRITE,
+                        createCharacteristic(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(), BluetoothGattCharacteristic.PROPERTY_WRITE,
                                              BluetoothGattCharacteristic.PERMISSION_WRITE,
                                              App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
-                serviceChat.addCharacteristic(
-                        createCharacteristic(Constants.GATT_BOOKING_NOTIFY.getUuid(), BluetoothGattCharacteristic.PROPERTY_BROADCAST,
-                                             BluetoothGattCharacteristic.PERMISSION_READ,
-                                             App.inst().getString(R.string.bl_advert_cloudy).getBytes()));
+                serviceChat.addCharacteristic(createCharacteristic(Constants.BOOKING.GATT_BOOKING_NOTIFY.getUuid(),
+                                                                   BluetoothGattCharacteristic.PROPERTY_BROADCAST,
+                                                                   BluetoothGattCharacteristic.PERMISSION_READ,
+                                                                   App.inst().getString(R.string.bl_advert_cloudy).getBytes()));
 
                 getServer().addService(serviceChat);
             } else {

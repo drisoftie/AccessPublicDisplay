@@ -33,9 +33,9 @@ public class GattHandlerChat extends BaseGattHandler {
 
     public GattHandlerChat() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
-        constantUuids.add(Constants.GATT_SERVICE_CHAT.getUuid());
-        constantUuids.add(Constants.GATT_CHAT_NOTIFY.getUuid());
-        constantUuids.add(Constants.GATT_CHAT_WRITE.getUuid());
+        constantUuids.add(Constants.CHAT.GATT_SERVICE_CHAT.getUuid());
+        constantUuids.add(Constants.CHAT.GATT_CHAT_NOTIFY.getUuid());
+        constantUuids.add(Constants.CHAT.GATT_CHAT_WRITE.getUuid());
         setConstantUuids(constantUuids);
     }
 
@@ -64,7 +64,8 @@ public class GattHandlerChat extends BaseGattHandler {
         ProviderNews provider = ProviderNews.inst();
         provider.createNews();
         if (provider.hasNewsInfo()) {
-            changeGattChar(Constants.GATT_SERVICE_CHAT.getUuid(), Constants.GATT_CHAT_NOTIFY.getUuid(), provider.getFeedNews().getLink());
+            changeGattChar(Constants.CHAT.GATT_SERVICE_CHAT.getUuid(), Constants.CHAT.GATT_CHAT_NOTIFY.getUuid(),
+                           provider.getFeedNews().getLink());
         }
 
     }
@@ -147,14 +148,14 @@ public class GattHandlerChat extends BaseGattHandler {
         @Override
         public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
             if (ArrayUtils.isEmpty(stripMethodArgs(methodArgs))) {
-                BluetoothGattService serviceChat = new BluetoothGattService(Constants.GATT_SERVICE_CHAT.getUuid(),
+                BluetoothGattService serviceChat = new BluetoothGattService(Constants.CHAT.GATT_SERVICE_CHAT.getUuid(),
                                                                             BluetoothGattService.SERVICE_TYPE_PRIMARY);
                 serviceChat.addCharacteristic(
-                        createCharacteristic(Constants.GATT_CHAT_WRITE.getUuid(), BluetoothGattCharacteristic.PROPERTY_WRITE,
+                        createCharacteristic(Constants.CHAT.GATT_CHAT_WRITE.getUuid(), BluetoothGattCharacteristic.PROPERTY_WRITE,
                                              BluetoothGattCharacteristic.PERMISSION_WRITE,
                                              App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
                 serviceChat.addCharacteristic(
-                        createCharacteristic(Constants.GATT_CHAT_NOTIFY.toString(), BluetoothGattCharacteristic.PROPERTY_BROADCAST,
+                        createCharacteristic(Constants.CHAT.GATT_CHAT_NOTIFY.toString(), BluetoothGattCharacteristic.PROPERTY_BROADCAST,
                                              BluetoothGattCharacteristic.PERMISSION_READ,
                                              App.inst().getString(R.string.bl_advert_cloudy).getBytes()));
 

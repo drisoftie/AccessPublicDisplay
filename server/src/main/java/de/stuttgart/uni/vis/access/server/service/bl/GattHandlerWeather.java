@@ -35,11 +35,11 @@ public class GattHandlerWeather extends BaseGattHandler {
 
     public GattHandlerWeather() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
-        constantUuids.add(Constants.GATT_SERVICE_WEATHER.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_DAT.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_TODAY.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_TOMORROW.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_QUERY.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_WEATHER_DAT.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_WEATHER_QUERY.getUuid());
         setConstantUuids(constantUuids);
     }
 
@@ -69,7 +69,7 @@ public class GattHandlerWeather extends BaseGattHandler {
         provider.createForecasts();
         if (provider.hasWeatherInfo()) {
             if (provider.getCurrWeather().hasWeatherInstance()) {
-                changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_TODAY.getUuid(),
+                changeGattChar(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(), Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(),
                                provider.getCurrWeather().getWeatherInstance(0).getWeatherDescription());
             }
             if (provider.getForecast().hasForecastCount()) {
@@ -78,10 +78,12 @@ public class GattHandlerWeather extends BaseGattHandler {
                     String descr = forecast.getForecastInstance(i).getWeatherInstance(0).getWeatherDescription();
                     switch (i) {
                         case 0:
-                            changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_TOMORROW.getUuid(), descr);
+                            changeGattChar(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
+                                           Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid(), descr);
                             break;
                         case 1:
-                            changeGattChar(Constants.GATT_SERVICE_WEATHER.getUuid(), Constants.GATT_WEATHER_DAT.getUuid(), descr);
+                            changeGattChar(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(), Constants.WEATHER.GATT_WEATHER_DAT.getUuid(),
+                                           descr);
                             break;
                     }
                 }
@@ -97,6 +99,7 @@ public class GattHandlerWeather extends BaseGattHandler {
             switch (status) {
                 case BluetoothGatt.GATT_SUCCESS:
                     getConnDevices().add(device);
+                    setWeatherInfo();
                     break;
                 default:
                     if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -167,22 +170,22 @@ public class GattHandlerWeather extends BaseGattHandler {
         @Override
         public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
             if (ArrayUtils.isEmpty(stripMethodArgs(methodArgs))) {
-                BluetoothGattService serviceWeather = new BluetoothGattService(Constants.GATT_SERVICE_WEATHER.getUuid(),
+                BluetoothGattService serviceWeather = new BluetoothGattService(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
                                                                                BluetoothGattService.SERVICE_TYPE_PRIMARY);
                 serviceWeather.addCharacteristic(
-                        createCharacteristic(Constants.GATT_WEATHER_TODAY.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
+                        createCharacteristic(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
                                              BluetoothGattCharacteristic.PERMISSION_READ,
                                              App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
                 serviceWeather.addCharacteristic(
-                        createCharacteristic(Constants.GATT_WEATHER_TOMORROW.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
+                        createCharacteristic(Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
                                              BluetoothGattCharacteristic.PERMISSION_READ,
                                              App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
                 serviceWeather.addCharacteristic(
-                        createCharacteristic(Constants.GATT_WEATHER_DAT.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
+                        createCharacteristic(Constants.WEATHER.GATT_WEATHER_DAT.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
                                              BluetoothGattCharacteristic.PERMISSION_READ,
                                              App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
                 serviceWeather.addCharacteristic(
-                        createCharacteristic(Constants.GATT_WEATHER_QUERY.getUuid(), BluetoothGattCharacteristic.PROPERTY_WRITE,
+                        createCharacteristic(Constants.WEATHER.GATT_WEATHER_QUERY.getUuid(), BluetoothGattCharacteristic.PROPERTY_WRITE,
                                              BluetoothGattCharacteristic.PERMISSION_WRITE, "blub".getBytes()));
                 getServer().addService(serviceWeather);
             } else {

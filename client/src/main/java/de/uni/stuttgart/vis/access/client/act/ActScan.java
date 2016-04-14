@@ -160,6 +160,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                             rcycAdaptDevices.getBlData().add(b);
                         }
                         rcycAdaptDevices.notifyDataSetChanged();
+                        checkVisibleScans();
                     }
                 });
             }
@@ -369,17 +370,18 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         }.init(data, result));
 
         if (gattListenWeather == null) {
-            gattProviderWeather = (IConnWeather) service.subscribeGattConnection(Constants.GATT_SERVICE_WEATHER.getUuid(),
+            gattProviderWeather = (IConnWeather) service.subscribeGattConnection(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
                                                                                  gattListenWeather = new GattWeather());
         }
         if (gattListenShout == null) {
-            gattProviderShout = service.subscribeGattConnection(Constants.GATT_SERVICE_SHOUT.getUuid(), gattListenShout = new GattShout());
+            gattProviderShout = service.subscribeGattConnection(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(),
+                                                                gattListenShout = new GattShout());
         }
         if (gattListenNews == null) {
-            gattProviderNews = service.subscribeGattConnection(Constants.GATT_SERVICE_NEWS.getUuid(), gattListenNews = new GattNews());
+            gattProviderNews = service.subscribeGattConnection(Constants.NEWS.GATT_SERVICE_NEWS.getUuid(), gattListenNews = new GattNews());
         }
         if (gattListenBooking == null) {
-            gattProviderBooking = service.subscribeGattConnection(Constants.GATT_SERVICE_BOOKING.getUuid(),
+            gattProviderBooking = service.subscribeGattConnection(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid(),
                                                                   gattListenBooking = new GattBooking());
         }
     }
@@ -431,7 +433,36 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
     @Override
     public void onScanLost(ScanResult lostResult) {
+        App.holder().access(App.holder().new HolderAccess() {
+            private ScanResult result;
 
+            public HolderBlData.HolderAccess init(ScanResult result) {
+                this.result = result;
+                return this;
+            }
+
+            @Override
+            public void onRun() {
+                Iterator<BlData> i = getData();
+                while (i.hasNext()) {
+                    BlData b = i.next();
+                    if (b.getAddress().equals(result.getDevice().getAddress())) {
+                        b.setActive(false);
+                    }
+                    ActScan.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (BlData b : rcycAdaptDevices.getBlData()) {
+                                if (b.isActive() && b.getAddress().equals(result.getDevice().getAddress())) {
+                                    rcycAdaptDevices.getBlData().remove(b);
+                                    rcycAdaptDevices.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }.init(lostResult));
     }
 
     @Override
@@ -482,6 +513,13 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         }.init(macAddress, uuid, value));
     }
 
+    private void checkVisibleScans() {
+        if (rcycAdaptDevices.getItemCount() > 0) {
+            rcycDevices.setVisibility(View.VISIBLE);
+            ((TextView) findViewById(R.id.txt_headline_displays)).setText(R.string.txt_range_list);
+        }
+    }
+
     private class GattWeather implements IConnWeather.IConnWeatherSub {
 
         @Override
@@ -491,7 +529,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         @Override
         public void onServicesReady(String macAddress) {
             gattProviderWeather.registerWeatherSub(gattListenWeather);
-            gattProviderWeather.getWeatherInfo(Constants.GATT_WEATHER_TODAY.getUuid());
+            gattProviderWeather.getWeatherInfo(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
         }
 
         @Override
@@ -511,7 +549,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
         @Override
         public void onWeatherInfo(String macAddress, UUID uuid, byte[] value) {
-            if (Constants.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
+            if (Constants.WEATHER.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
                 updateHolderData(macAddress, uuid, value);
             }
         }
@@ -521,7 +559,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
         @Override
         public void onGattValueChanged(String macAddress, UUID uuid, byte[] value) {
-            if (Constants.GATT_SHOUT.getUuid().equals(uuid)) {
+            if (Constants.SHOUT.GATT_SHOUT.getUuid().equals(uuid)) {
                 updateHolderData(macAddress, uuid, value);
             }
         }
@@ -532,12 +570,12 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         @Override
         public void onServicesReady(String macAddress) {
             gattProviderNews.registerConnGattSub(gattListenNews);
-            gattProviderNews.getGattCharacteristicRead(Constants.GATT_SERVICE_NEWS.getUuid(), Constants.GATT_NEWS.getUuid());
+            gattProviderNews.getGattCharacteristicRead(Constants.NEWS.GATT_SERVICE_NEWS.getUuid(), Constants.NEWS.GATT_NEWS.getUuid());
         }
 
         @Override
         public void onGattValueReceived(String macAddress, UUID uuid, byte[] value) {
-            if (Constants.GATT_NEWS.getUuid().equals(uuid)) {
+            if (Constants.NEWS.GATT_NEWS.getUuid().equals(uuid)) {
                 updateHolderData(macAddress, uuid, value);
             }
         }
@@ -548,13 +586,14 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         @Override
         public void onServicesReady(String macAddress) {
             gattProviderBooking.registerConnGattSub(gattListenBooking);
-            gattProviderBooking.writeGattCharacteristic(Constants.GATT_SERVICE_BOOKING.getUuid(), Constants.GATT_BOOKING_WRITE.getUuid(),
+            gattProviderBooking.writeGattCharacteristic(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid(),
+                                                        Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(),
                                                         ConstantsBooking.StateBooking.START.getState().getBytes());
         }
 
         @Override
         public void onGattValueWriteReceived(String macAddress, UUID uuid, byte[] value) {
-            if (Constants.GATT_BOOKING_WRITE.getUuid().equals(uuid)) {
+            if (Constants.BOOKING.GATT_BOOKING_WRITE.getUuid().equals(uuid)) {
                 updateHolderData(macAddress, uuid, value);
             }
         }
@@ -582,10 +621,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
             if (StringUtils.equals(methodName, "onBlDataAdded")) {
                 rcycAdaptDevices.getBlData().add((BlData) methodArgs[0]);
                 rcycAdaptDevices.notifyDataSetChanged();
-                if (rcycAdaptDevices.getItemCount() > 0) {
-                    rcycDevices.setVisibility(View.VISIBLE);
-                    ((TextView) findViewById(R.id.txt_headline_displays)).setText(R.string.txt_range_list);
-                }
+                checkVisibleScans();
             }
         }
     }

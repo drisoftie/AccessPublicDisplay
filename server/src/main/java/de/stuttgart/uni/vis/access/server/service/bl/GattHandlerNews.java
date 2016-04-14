@@ -33,8 +33,8 @@ public class GattHandlerNews extends BaseGattHandler {
 
     public GattHandlerNews() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
-        constantUuids.add(Constants.GATT_SERVICE_NEWS.getUuid());
-        constantUuids.add(Constants.GATT_NEWS.getUuid());
+        constantUuids.add(Constants.NEWS.GATT_SERVICE_NEWS.getUuid());
+        constantUuids.add(Constants.NEWS.GATT_NEWS.getUuid());
         setConstantUuids(constantUuids);
     }
 
@@ -63,7 +63,7 @@ public class GattHandlerNews extends BaseGattHandler {
         ProviderNews provider = ProviderNews.inst();
         provider.createNews();
         if (provider.hasNewsInfo()) {
-            changeGattChar(Constants.GATT_SERVICE_NEWS.getUuid(), Constants.GATT_NEWS.getUuid(),
+            changeGattChar(Constants.NEWS.GATT_SERVICE_NEWS.getUuid(), Constants.NEWS.GATT_NEWS.getUuid(),
                            provider.getFeedNews().getItems().iterator().next().getTitle());
         }
     }
@@ -76,6 +76,7 @@ public class GattHandlerNews extends BaseGattHandler {
             switch (status) {
                 case BluetoothGatt.GATT_SUCCESS:
                     getConnDevices().add(device);
+                    setNewsInfo();
                     break;
                 default:
                     if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -146,11 +147,12 @@ public class GattHandlerNews extends BaseGattHandler {
         @Override
         public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
             if (ArrayUtils.isEmpty(stripMethodArgs(methodArgs))) {
-                BluetoothGattService serviceNews = new BluetoothGattService(Constants.GATT_SERVICE_NEWS.getUuid(),
+                BluetoothGattService serviceNews = new BluetoothGattService(Constants.NEWS.GATT_SERVICE_NEWS.getUuid(),
                                                                             BluetoothGattService.SERVICE_TYPE_PRIMARY);
-                serviceNews.addCharacteristic(createCharacteristic(Constants.GATT_NEWS.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
-                                                                   BluetoothGattCharacteristic.PERMISSION_READ,
-                                                                   App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
+                serviceNews.addCharacteristic(
+                        createCharacteristic(Constants.NEWS.GATT_NEWS.getUuid(), BluetoothGattCharacteristic.PROPERTY_READ,
+                                             BluetoothGattCharacteristic.PERMISSION_READ,
+                                             App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
                 getServer().addService(serviceNews);
             } else {
                 Object[] args = stripMethodArgs(methodArgs);
@@ -162,7 +164,6 @@ public class GattHandlerNews extends BaseGattHandler {
         @Override
         public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
                                       Object[] additionalTags) {
-
         }
     }
 }

@@ -56,17 +56,17 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
         connections.add(booking);
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_WEATHER.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_PUB_TRANSP.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_SHOUT.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_NEWS.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_CHAT.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_WEATHER.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_PUB_TRANSP.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_SHOUT.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_NEWS.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_CHAT.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_BOOKING.getUuid());
+        constantUuids.add(Constants.WEATHER.UUID_ADVERT_SERVICE_WEATHER.getUuid());
+        constantUuids.add(Constants.PUBTRANSP.UUID_ADVERT_SERVICE_PUB_TRANSP.getUuid());
+        constantUuids.add(Constants.SHOUT.UUID_ADVERT_SERVICE_SHOUT.getUuid());
+        constantUuids.add(Constants.NEWS.UUID_ADVERT_SERVICE_NEWS.getUuid());
+        constantUuids.add(Constants.CHAT.UUID_ADVERT_SERVICE_CHAT.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid());
+        constantUuids.add(Constants.PUBTRANSP.GATT_SERVICE_PUB_TRANSP.getUuid());
+        constantUuids.add(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid());
+        constantUuids.add(Constants.NEWS.GATT_SERVICE_NEWS.getUuid());
+        constantUuids.add(Constants.CHAT.GATT_SERVICE_CHAT.getUuid());
+        constantUuids.add(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());
@@ -270,6 +270,24 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onScanningStopped() {
+        for (IConnAdvertScan conn : connections) {
+            conn.onScanningStopped();
+        }
+    }
+
+    @Override
+    public void onScanLost(ScanResult result) {
+        if (result.getScanRecord() != null && result.getScanRecord().getServiceUuids() != null) {
+            List<IConnAdvertScan> handler = getConnections(result.getScanRecord().getServiceUuids());
+            for (IConnAdvertScan h : handler) {
+                // don't send results to a handler multiple times
+                h.onScanLost(result);
+            }
+        }
     }
 
     private class BlAdvertScanCallback extends ScanCallback {

@@ -66,9 +66,10 @@ public class HolderBlData {
         access(new HolderAccess() {
             @Override
             public void onRun() {
-                for (BlData b : blDataDb) {
-                    b.setActive(false);
-                }
+                blDataDb.clear();
+//                for (BlData b : blDataDb) {
+//                    b.setActive(false);
+//                }
             }
         });
     }

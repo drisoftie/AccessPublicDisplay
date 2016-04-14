@@ -62,7 +62,7 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
                 } else {
                     holder.txtAdInfo.append(System.lineSeparator());
                 }
-                String g = getGattData(Constants.GATT_WEATHER_TODAY.getUuid(), data);
+                String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), data);
                 if (g != null) {
                     holder.txtAdInfo.append("Todays weather is: ");
                     holder.txtAdInfo.append(g);
@@ -75,7 +75,7 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
                 } else {
                     holder.txtAdInfo.append(System.lineSeparator());
                 }
-                String g = getGattData(Constants.GATT_WEATHER_TODAY.getUuid(), data);
+                String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), data);
                 if (g != null) {
                     holder.txtAdInfo.append("Todays weather is: ");
                     holder.txtAdInfo.append(g);
@@ -97,7 +97,7 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
                 } else {
                     holder.txtAdInfo.append(System.lineSeparator());
                 }
-                String g = getGattData(Constants.GATT_SHOUT.getUuid(), data);
+                String g = getGattData(Constants.SHOUT.GATT_SHOUT.getUuid(), data);
                 if (g != null) {
                     holder.txtAdInfo.append("Newest shout: ");
                     holder.txtAdInfo.append(g);
@@ -110,7 +110,7 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
                 } else {
                     holder.txtAdInfo.append(System.lineSeparator());
                 }
-                String g = getGattData(Constants.GATT_NEWS.getUuid(), data);
+                String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), data);
                 if (g != null) {
                     holder.txtAdInfo.append(g);
                 } else {
@@ -122,7 +122,7 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
                 } else {
                     holder.txtAdInfo.append(System.lineSeparator());
                 }
-                String g = getGattData(Constants.GATT_NEWS.getUuid(), data);
+                String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), data);
                 if (g != null) {
                     holder.txtAdInfo.append(g);
                 } else {
@@ -135,7 +135,7 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
                 } else {
                     holder.txtAdInfo.append(System.lineSeparator());
                 }
-                String g = getGattData(Constants.GATT_BOOKING_WRITE.getUuid(), data);
+                String g = getGattData(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(), data);
                 if (g != null) {
                     holder.txtAdInfo.append(g);
                 } else {

@@ -15,7 +15,6 @@ public class GattData extends ClientEntityBase {
     private byte[] data;
 
     public GattData() {
-
     }
 
     public GattData(UUID uuid, byte[] data) {

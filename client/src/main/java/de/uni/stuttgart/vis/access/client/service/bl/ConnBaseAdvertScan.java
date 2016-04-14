@@ -27,8 +27,8 @@ import de.uni.stuttgart.vis.access.client.helper.ITtsProv;
  */
 public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattProvider, IConnAdvertProvider {
 
-    private Queue<AccessGatt>        accessGatts = new ConcurrentLinkedQueue<>();
-    private ScheduledExecutorService e           = Executors.newSingleThreadScheduledExecutor();
+    private Queue<AccessGatt>        accessGatts   = new ConcurrentLinkedQueue<>();
+    private ScheduledExecutorService e             = Executors.newSingleThreadScheduledExecutor();
     private BluetoothGatt         lastGattInst;
     private List<UUID>            constantUuids;
     private ScanCallback          cllbckAdvertScan;
@@ -261,6 +261,10 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattPr
     public void registerConnAdvertSub(IConnAdvertSubscriber subscriber) {
         if (!subsConnAdvert.contains(subscriber)) {
             subsConnAdvert.add(subscriber);
+            for (ScanResult s : scanHistory) {
+                subscriber.onScanResultReceived(s);
+                break;
+            }
         }
     }
 
@@ -389,6 +393,21 @@ public abstract class ConnBaseAdvertScan implements IConnAdvertScan, IConnGattPr
                 }
             }
         }.init(service, characteristic, write));
+    }
+
+    @Override
+    public void onScanningStopped() {
+        accessGatts.clear();
+        subsConnAdvert.clear();
+        subsConnGatt.clear();
+        connDevices.clear();
+    }
+
+    @Override
+    public void onScanLost(ScanResult result) {
+        for (IConnAdvertSubscriber callback : getConnAdvertSubscribers()) {
+            callback.onScanLost(result);
+        }
     }
 
     public BluetoothGatt getLastGattInst() {

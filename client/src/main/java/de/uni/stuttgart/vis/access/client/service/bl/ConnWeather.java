@@ -31,6 +31,8 @@ import de.uni.stuttgart.vis.access.client.R;
  */
 public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, IConnMultiPart {
 
+    private static final String TAG = "ConnWeather";
+
     private List<IConnWeatherSub> subs = new ArrayList<>();
     private IConnMulti connMulti;
     private boolean    servicesDiscovered;
@@ -38,12 +40,12 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
     public ConnWeather() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_WEATHER.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_WEATHER.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_DAT.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_TODAY.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_TOMORROW.getUuid());
-        constantUuids.add(Constants.GATT_WEATHER_QUERY.getUuid());
+        constantUuids.add(Constants.WEATHER.UUID_ADVERT_SERVICE_WEATHER.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_WEATHER_DAT.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid());
+        constantUuids.add(Constants.WEATHER.GATT_WEATHER_QUERY.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());
@@ -163,7 +165,7 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
 
             @Override
             public void onRun() {
-                BluetoothGattService        s = getLastGattInst().getService(Constants.GATT_SERVICE_WEATHER.getUuid());
+                BluetoothGattService        s = getLastGattInst().getService(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid());
                 BluetoothGattCharacteristic c = s.getCharacteristic(uuid);
                 if (c != null) {
                     getLastGattInst().readCharacteristic(c);
@@ -275,7 +277,7 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             setGattInst(gatt);
-            if (Constants.GATT_WEATHER_TODAY.getUuid().equals(characteristic.getUuid())) {
+            if (Constants.WEATHER.GATT_WEATHER_TODAY.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
                     byte[] weather       = characteristic.getValue();
                     Intent weatherIntent = new Intent(App.string(R.string.intent_gatt_weather));
@@ -283,7 +285,7 @@ public class ConnWeather extends ConnBaseAdvertScan implements IConnWeather, ICo
                     LocalBroadcastManager.getInstance(App.inst()).sendBroadcast(weatherIntent);
 
                     for (IConnWeatherSub sub : subs) {
-                        sub.onWeatherInfo(gatt.getDevice().getAddress(), Constants.GATT_WEATHER_TODAY.getUuid(), weather);
+                        sub.onWeatherInfo(gatt.getDevice().getAddress(), Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), weather);
                     }
                 }
             }

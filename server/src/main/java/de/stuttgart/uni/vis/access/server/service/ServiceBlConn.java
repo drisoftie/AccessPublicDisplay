@@ -14,7 +14,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -71,16 +70,16 @@ public class ServiceBlConn extends Service implements IAdvertStartListener {
 
     private AdvertHandler            blAdvertHandler;
     private GattServerStateHolder    blGattServerHolder;
-    private Handler                  timeoutHandler;
-    private Runnable                 timeoutRunnable;
+    //    private Handler                  timeoutHandler;
+    //    private Runnable                 timeoutRunnable;
     private ScheduledExecutorService worker;
 
     private ActionServiceSetup actionServiceSetup;
 
-    /**
-     * Length of time to allow advertising before automatically shutting off. (10 minutes)
-     */
-    private long TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
+    //    /**
+    //     * Length of time to allow advertising before automatically shutting off. (10 minutes)
+    //     */
+    //    private long TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);
 
     private BroadcastReceiver brcstRcvrBlAdapt = new BrcstBlAdaptChanged();
 
@@ -112,7 +111,7 @@ public class ServiceBlConn extends Service implements IAdvertStartListener {
             }
         };
         actionUserShutdown = new ActionUserShutdown(null, IGenericAction.class, RegActionMethod.NONE.method());
-        timeoutHandler = new Handler();
+        //        timeoutHandler = new Handler();
         worker = ScheduleUtil.scheduleWork(task, 1, TimeUnit.SECONDS);
     }
 
@@ -155,18 +154,18 @@ public class ServiceBlConn extends Service implements IAdvertStartListener {
      * set amount of time.
      */
     private void setTimeout() {
-        timeoutRunnable = new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "ServiceBlConn has reached timeout of " + TIMEOUT + " milliseconds, stopping advertising.");
-                sendFailureIntent(Constants.ADVERTISING_TIMED_OUT);
-                onShuttingDown();
-                for (IServiceBlListener l : serviceListeners) {
-                    l.onConnStopped();
-                }
-            }
-        };
-        timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT);
+        //        timeoutRunnable = new Runnable() {
+        //            @Override
+        //            public void run() {
+        //                Log.d(TAG, "ServiceBlConn has reached timeout of " + TIMEOUT + " milliseconds, stopping advertising.");
+        //                sendFailureIntent(Constants.ADVERTISING_TIMED_OUT);
+        //                onShuttingDown();
+        //                for (IServiceBlListener l : serviceListeners) {
+        //                    l.onConnStopped();
+        //                }
+        //            }
+        //        };
+        //        timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT);
     }
 
     /**
@@ -266,16 +265,16 @@ public class ServiceBlConn extends Service implements IAdvertStartListener {
         }
     }
 
-    /**
-     * Builds and sends a broadcast intent indicating Advertising has failed. Includes the error
-     * code as an extra. This is intended to be picked up by the {@code AdvertiserFragment}.
-     */
-    private void sendFailureIntent(int errorCode) {
-        Intent failureIntent = new Intent();
-        failureIntent.setAction(Constants.ADVERTISING_FAILED);
-        failureIntent.putExtra(Constants.ADVERTISING_FAILED_EXTRA_CODE, errorCode);
-        sendBroadcast(failureIntent);
-    }
+    //    /**
+    //     * Builds and sends a broadcast intent indicating Advertising has failed. Includes the error
+    //     * code as an extra. This is intended to be picked up by the {@code AdvertiserFragment}.
+    //     */
+    //    private void sendFailureIntent(int errorCode) {
+    //        Intent failureIntent = new Intent();
+    //        failureIntent.setAction(Constants.ADVERTISING_FAILED);
+    //        failureIntent.putExtra(Constants.ADVERTISING_FAILED_EXTRA_CODE, errorCode);
+    //        sendBroadcast(failureIntent);
+    //    }
 
     private void startGattServers() {
         blGattServerHolder = new GattServerStateHolder();
@@ -342,9 +341,9 @@ public class ServiceBlConn extends Service implements IAdvertStartListener {
             worker.shutdown();
             stopAdvertising();
             blGattServerHolder.closeServer();
-            if (timeoutHandler != null) {
-                timeoutHandler.removeCallbacks(timeoutRunnable);
-            }
+            //            if (timeoutHandler != null) {
+            //                timeoutHandler.removeCallbacks(timeoutRunnable);
+            //            }
             return null;
         }
 

@@ -265,17 +265,17 @@ public class GattServerStateHolder {
                     startGattServerWeather();
                 }
             } else if (StringUtils.equals(methodName, "onFinished")) {
-                if (Constants.GATT_SERVICE_WEATHER.getUuid().equals(methodArgs[0])) {
+                if (Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid().equals(methodArgs[0])) {
                     startGattServerPubTransp();
-                } else if (Constants.GATT_SERVICE_PUB_TRANSP.getUuid().equals(methodArgs[0])) {
+                } else if (Constants.PUBTRANSP.GATT_SERVICE_PUB_TRANSP.getUuid().equals(methodArgs[0])) {
                     startGattServerNews();
-                } else if (Constants.GATT_SERVICE_NEWS.getUuid().equals(methodArgs[0])) {
+                } else if (Constants.NEWS.GATT_SERVICE_NEWS.getUuid().equals(methodArgs[0])) {
                     startGattServerChat();
-                } else if (Constants.GATT_SERVICE_CHAT.getUuid().equals(methodArgs[0])) {
+                } else if (Constants.CHAT.GATT_SERVICE_CHAT.getUuid().equals(methodArgs[0])) {
                     startGattServerBooking();
-                } else if (Constants.GATT_SERVICE_BOOKING.getUuid().equals(methodArgs[0])) {
+                } else if (Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid().equals(methodArgs[0])) {
                     startGattServerShout();
-                } else if (Constants.GATT_SERVICE_SHOUT.getUuid().equals(methodArgs[0])) {
+                } else if (Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid().equals(methodArgs[0])) {
                     finishedHandler.onFinished(null);
                 }
             }

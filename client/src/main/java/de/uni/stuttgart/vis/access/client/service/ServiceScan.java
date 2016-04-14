@@ -4,6 +4,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -205,19 +206,25 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
         @Override
         public void onReceive(Context context, Intent intent) {
             if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_gatt_connect_weather))) {
+                String macAddress = null;
                 if (intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)) != null) {
+                    ScanResult result = intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result));
+                    macAddress = result.getDevice().getAddress();
                     connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)));
                 } else if (intent.getStringExtra(getString(R.string.bndl_bl_address)) != null) {
+                    macAddress = intent.getStringExtra(getString(R.string.bndl_bl_address));
                     connectorAdvertScan.connectGatt(blAdapt, intent.getStringExtra(getString(R.string.bndl_bl_address)));
                 }
                 ParcelUuid startIntent = intent.getParcelableExtra(getString(R.string.bndl_bl_show));
                 if (Constants.UUID_ADVERT_SERVICE_MULTI.getUuid().equals(startIntent.getUuid())) {
                     Intent intentMulti = new Intent(ServiceScan.this, ActMulti.class);
                     intentMulti.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intentMulti.putExtra(getString(R.string.bndl_bl_address), macAddress);
                     startActivity(intentMulti);
-                } else if (Constants.UUID_ADVERT_SERVICE_WEATHER.getUuid().equals(startIntent.getUuid())) {
+                } else if (Constants.WEATHER.UUID_ADVERT_SERVICE_WEATHER.getUuid().equals(startIntent.getUuid())) {
                     Intent intentWeather = new Intent(ServiceScan.this, ActWeather.class);
                     intentWeather.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intentWeather.putExtra(getString(R.string.bndl_bl_address), macAddress);
                     startActivity(intentWeather);
                 }
             } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_gatt_connect))) {

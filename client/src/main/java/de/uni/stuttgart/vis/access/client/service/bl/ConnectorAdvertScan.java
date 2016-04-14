@@ -12,10 +12,16 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
+import android.util.Log;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.uni.stuttgart.vis.access.client.R;
@@ -30,6 +36,8 @@ import de.uni.stuttgart.vis.access.client.helper.TtsWrapper;
  */
 public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
 
+    private static final String TAG = "ConnectorAdvertScan";
+
     private ScanCallback          cllbckAdvertScan = new BlAdvertScanCallback();
     private BluetoothGattCallback cllbckGatt       = new BlGattCallback();
 
@@ -38,6 +46,10 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
     private IContextProv cntxtProv;
     private ITtsProv     ttsProv;
     private INotifyProv  notifyProv;
+
+    private ScheduledExecutorService                           executerAliveChecker = Executors.newSingleThreadScheduledExecutor();
+    private List<AbstractMap.SimpleEntry<ScanResult, Integer>> scanCounter          = Collections.synchronizedList(
+            new ArrayList<AbstractMap.SimpleEntry<ScanResult, Integer>>());
 
     public ConnectorAdvertScan(IContextProv cntxtProv) {
         this.cntxtProv = cntxtProv;
@@ -134,12 +146,12 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         List<ScanFilter> scanFilters = new ArrayList<>();
 
         scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_MULTI));
-        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_WEATHER));
-        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_PUB_TRANSP));
-        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_SHOUT));
-        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_NEWS));
-        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_CHAT));
-        scanFilters.add(getFilter(Constants.UUID_ADVERT_SERVICE_BOOKING));
+        scanFilters.add(getFilter(Constants.WEATHER.UUID_ADVERT_SERVICE_WEATHER));
+        scanFilters.add(getFilter(Constants.PUBTRANSP.UUID_ADVERT_SERVICE_PUB_TRANSP));
+        scanFilters.add(getFilter(Constants.SHOUT.UUID_ADVERT_SERVICE_SHOUT));
+        scanFilters.add(getFilter(Constants.NEWS.UUID_ADVERT_SERVICE_NEWS));
+        scanFilters.add(getFilter(Constants.CHAT.UUID_ADVERT_SERVICE_CHAT));
+        scanFilters.add(getFilter(Constants.BOOKING.UUID_ADVERT_SERVICE_BOOKING));
 
         return scanFilters;
     }
@@ -160,10 +172,31 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
     public void startingAdvertScan() {
         notifyProv.provideNotify().createScanNotification();
         ttsProv.provideTts().queueRead(cntxtProv.provideContext().getString(R.string.ntxt_scan));
+        executerAliveChecker.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < scanCounter.size(); i++) {
+                    ScanResult result = scanCounter.get(i).getKey();
+                    if (scanCounter.get(i).getValue() == 0) {
+                        if (result.getScanRecord() != null && result.getScanRecord().getServiceUuids() != null) {
+                            IConnAdvertScan handler = getConnection(result.getScanRecord().getServiceUuids());
+                            if (handler != null) {
+                                handler.onScanLost(result);
+                            }
+                        }
+                    }
+                }
+                countingOrResetting(false, null);
+            }
+        }, 1, 1, TimeUnit.MINUTES);
     }
 
     public void scanningStopped() {
         notifyProv.provideNotify().removeAllNotifications();
+        for (IConnAdvertScan conn : connections) {
+            conn.onScanningStopped();
+        }
+        connections.clear();
     }
 
 
@@ -211,6 +244,23 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         return getTtsProv().provideTts();
     }
 
+    private synchronized void countingOrResetting(boolean counting, ScanResult result) {
+        if (counting) {
+            boolean  found = false;
+            for (int i = 0; i < scanCounter.size(); i++) {
+                if (scanCounter.get(i).getKey().getDevice().getAddress().equals(result.getDevice().getAddress())) {
+                    scanCounter.get(i).setValue(scanCounter.get(i).getValue() + 1);
+                    found = true;
+                }
+            }
+            if (!found) {
+                scanCounter.add(new AbstractMap.SimpleEntry<>(result, 1));
+            }
+        } else {
+            scanCounter.clear();
+        }
+    }
+
     /**
      *
      */
@@ -221,6 +271,7 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
             super.onBatchScanResults(results);
             ArrayList<IConnAdvertScan> checkedConns = new ArrayList<>(connections);
             for (ScanResult result : results) {
+                countingOrResetting(true, result);
                 if (result.getScanRecord() != null && result.getScanRecord().getServiceUuids() != null) {
                     IConnAdvertScan handler = getConnection(result.getScanRecord().getServiceUuids());
                     if (handler != null && checkedConns.contains(handler)) {
@@ -234,6 +285,9 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
+            String address = result.getDevice().getAddress();
+            countingOrResetting(true, result);
+            Log.d(TAG, "onScanResult: " + address);
             if (result.getScanRecord() != null && result.getScanRecord().getServiceUuids() != null) {
                 IConnAdvertScan handler = getConnection(result.getScanRecord().getServiceUuids());
                 if (handler != null) {
@@ -264,12 +318,6 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
                     switch (newState) {
                         case BluetoothProfile.STATE_CONNECTED:
                             gatt.requestMtu(256);
-                            //                            gatt.discoverServices();
-                            //                            IConnAdvertScan handler = getConnection(gatt.getDevice());
-                            //                            if (handler != null) {
-                            //                                handler.addConnDevice(gatt.getDevice());
-                            //                                handler.getGattCallback().onConnectionStateChange(gatt, status, newState);
-                            //                            }
                     }
                     break;
                 case BluetoothGatt.GATT_FAILURE:
@@ -331,7 +379,9 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
                 handler.addConnDevice(gatt.getDevice());
                 handler.getGattCallback().onConnectionStateChange(gatt, status, BluetoothProfile.STATE_CONNECTED);
             }
-            gatt.discoverServices();
+            if (gatt.getServices() == null || (gatt.getServices() != null && gatt.getServices().isEmpty())) {
+                gatt.discoverServices();
+            }
         }
     }
 }

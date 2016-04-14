@@ -34,22 +34,23 @@ public class GattHandlerShout extends BaseGattHandler {
             if (!getConnDevices().isEmpty()) {
                 switch (count % 10) {
                     case 0:
-                        changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(),
+                        changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
                                        "Wall Mart sausages 50% off");
                         break;
                     case 2:
-                        changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(),
+                        changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
                                        "Breuninger trousers up to 30% off");
                         break;
                     case 4:
-                        changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(), "Prime Mark socks 20% off");
+                        changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
+                                       "Prime Mark socks 20% off");
                         break;
                     case 6:
-                        changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(),
+                        changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
                                        "Media Markt TVs up to 70% off!");
                         break;
                     case 8:
-                        changeGattChar(Constants.GATT_SERVICE_SHOUT.getUuid(), Constants.GATT_SHOUT.getUuid(),
+                        changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
                                        "Sportarena everything 10% off");
                         count = 0;
                         break;
@@ -61,20 +62,20 @@ public class GattHandlerShout extends BaseGattHandler {
 
     public GattHandlerShout() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
-        constantUuids.add(Constants.GATT_SERVICE_SHOUT.getUuid());
-        constantUuids.add(Constants.GATT_SHOUT.getUuid());
+        constantUuids.add(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid());
+        constantUuids.add(Constants.SHOUT.GATT_SHOUT.getUuid());
         setConstantUuids(constantUuids);
     }
 
     @Override
     protected void addServices() {
-        BluetoothGattService serviceWeather = new BluetoothGattService(Constants.GATT_SERVICE_SHOUT.getUuid(),
+        BluetoothGattService serviceWeather = new BluetoothGattService(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(),
                                                                        BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
-        serviceWeather.addCharacteristic(createCharacteristic(Constants.GATT_SHOUT.toString(),
-                                                              BluetoothGattCharacteristic.PROPERTY_BROADCAST,
-                                                              BluetoothGattCharacteristic.PERMISSION_READ, App.inst().getString(
-                        R.string.bl_advert_cloudy).getBytes()));
+        serviceWeather.addCharacteristic(
+                createCharacteristic(Constants.SHOUT.GATT_SHOUT.toString(), BluetoothGattCharacteristic.PROPERTY_BROADCAST,
+                                     BluetoothGattCharacteristic.PERMISSION_READ,
+                                     App.inst().getString(R.string.bl_advert_cloudy).getBytes()));
         getServer().addService(serviceWeather);
     }
 

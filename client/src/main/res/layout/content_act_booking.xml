@@ -6,11 +6,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="de.uni.stuttgart.vis.access.client.act.ActMulti"
-    tools:showIn="@layout/act_multi">
+    tools:context="de.uni.stuttgart.vis.access.client.act.ActBooking"
+    tools:showIn="@layout/act_booking">
 
     <LinearLayout
-        android:id="@id/lyt_multi_select"
+        android:id="@id/lyt_booking"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"

@@ -30,10 +30,10 @@ public class ConnBooking extends ConnBaseAdvertScan implements IConnMultiPart {
     public ConnBooking() {
         ArrayList<UUID> constantUuids = new ArrayList<>();
         constantUuids.add(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid());
-        constantUuids.add(Constants.UUID_ADVERT_SERVICE_BOOKING.getUuid());
-        constantUuids.add(Constants.GATT_SERVICE_BOOKING.getUuid());
-        constantUuids.add(Constants.GATT_BOOKING_WRITE.getUuid());
-        constantUuids.add(Constants.GATT_BOOKING_NOTIFY.getUuid());
+        constantUuids.add(Constants.BOOKING.UUID_ADVERT_SERVICE_BOOKING.getUuid());
+        constantUuids.add(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid());
+        constantUuids.add(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid());
+        constantUuids.add(Constants.BOOKING.GATT_BOOKING_NOTIFY.getUuid());
         setConstantUuids(constantUuids);
         setScanCallback(new BlAdvertScanCallback());
         setGattCallback(new BlGattCallback());
@@ -215,7 +215,7 @@ public class ConnBooking extends ConnBaseAdvertScan implements IConnMultiPart {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             setGattInst(gatt);
-            if (Constants.GATT_BOOKING_NOTIFY.getUuid().equals(characteristic.getUuid())) {
+            if (Constants.BOOKING.GATT_BOOKING_NOTIFY.getUuid().equals(characteristic.getUuid())) {
                 if (characteristic.getValue() != null) {
                     for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                         sub.onGattValueChanged(getLastGattInst().getDevice().getAddress(), characteristic.getUuid(),

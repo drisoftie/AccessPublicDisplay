@@ -76,4 +76,8 @@ public interface IConnAdvertScan {
     void removeConnDevice(BluetoothDevice device);
 
     boolean hasConnDevice(BluetoothDevice device);
+
+    void onScanLost(ScanResult result);
+
+    void onScanningStopped();
 }
