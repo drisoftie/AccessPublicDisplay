@@ -1,12 +1,9 @@
 package de.stuttgart.uni.vis.access.server.service.bl;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothProfile;
 import android.view.View;
 
 import com.drisoftie.action.async.IGenericAction;
@@ -18,6 +15,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.domain.RssItem;
 import de.stuttgart.uni.vis.access.server.App;
 import de.stuttgart.uni.vis.access.server.R;
 
@@ -63,73 +61,27 @@ public class GattHandlerNews extends BaseGattHandler {
         ProviderNews provider = ProviderNews.inst();
         provider.createNews();
         if (provider.hasNewsInfo()) {
-            changeGattChar(Constants.NEWS.GATT_SERVICE_NEWS.getUuid(), Constants.NEWS.GATT_NEWS.getUuid(),
-                           provider.getFeedNews().getItems().iterator().next().getTitle());
+            RssItem n = provider.getFeedNews().getItems().iterator().next();
+            changeGattChar(Constants.NEWS.GATT_SERVICE_NEWS.getUuid(), Constants.NEWS.GATT_NEWS.getUuid(), n.getTitle());
         }
     }
 
-    private class GattCallback extends BluetoothGattServerCallback {
+    private class GattCallback extends GattCallbackBase {
 
         @Override
-        public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
-            super.onConnectionStateChange(device, status, newState);
-            switch (status) {
-                case BluetoothGatt.GATT_SUCCESS:
-                    getConnDevices().add(device);
-                    setNewsInfo();
-                    break;
-                default:
-                    if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        getConnDevices().remove(device);
-                    }
-            }
+        public void onConnectSuccess(BluetoothDevice device, int status, int newState) {
+            setNewsInfo();
+        }
+
+        @Override
+        public void onDisconnected(BluetoothDevice device, int status, int newState) {
+
         }
 
         @Override
         public void onServiceAdded(int status, BluetoothGattService service) {
             setNewsInfo();
             actionServicesAdd.invokeSelf(service.getUuid());
-        }
-
-        @Override
-        public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
-                                                BluetoothGattCharacteristic characteristic) {
-            byte[] value = characteristic.getValue();
-            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
-        }
-
-        @Override
-        public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic,
-                                                 boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-            characteristic.setValue(value);
-            if (responseNeeded) {
-                getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
-            }
-        }
-
-        @Override
-        public void onNotificationSent(BluetoothDevice device, int status) {
-        }
-
-        @Override
-        public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
-
-        }
-
-        @Override
-        public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor,
-                                             boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
-        }
-
-        @Override
-        public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
-            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
-        }
-
-        @Override
-        public void onMtuChanged(BluetoothDevice device, int mtu) {
-            super.onMtuChanged(device, mtu);
         }
     }
 

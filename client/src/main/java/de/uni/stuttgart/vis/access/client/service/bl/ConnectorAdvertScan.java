@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -178,11 +179,9 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
                 for (int i = 0; i < scanCounter.size(); i++) {
                     ScanResult result = scanCounter.get(i).getKey();
                     if (scanCounter.get(i).getValue() == 0) {
-                        if (result.getScanRecord() != null && result.getScanRecord().getServiceUuids() != null) {
-                            IConnAdvertScan handler = getConnection(result.getScanRecord().getServiceUuids());
-                            if (handler != null) {
-                                handler.onScanLost(result);
-                            }
+                        IConnAdvertScan handler = getConnection(result.getDevice());
+                        if (handler != null) {
+                            handler.onScanLost(result);
                         }
                     }
                 }
@@ -246,7 +245,7 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
 
     private synchronized void countingOrResetting(boolean counting, ScanResult result) {
         if (counting) {
-            boolean  found = false;
+            boolean found = false;
             for (int i = 0; i < scanCounter.size(); i++) {
                 if (scanCounter.get(i).getKey().getDevice().getAddress().equals(result.getDevice().getAddress())) {
                     scanCounter.get(i).setValue(scanCounter.get(i).getValue() + 1);
@@ -257,7 +256,9 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
                 scanCounter.add(new AbstractMap.SimpleEntry<>(result, 1));
             }
         } else {
-            scanCounter.clear();
+            for (int i = 0; i < scanCounter.size(); i++) {
+                scanCounter.get(i).setValue(0);
+            }
         }
     }
 
@@ -372,16 +373,44 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
         }
 
         @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(gatt, characteristic, status);
+            IConnAdvertScan handler = getConnection(gatt.getDevice());
+            if (handler != null) {
+                handler.getGattCallback().onCharacteristicWrite(gatt, characteristic, status);
+            }
+        }
+
+        @Override
         public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
             super.onMtuChanged(gatt, mtu, status);
             IConnAdvertScan handler = getConnection(gatt.getDevice());
             if (handler != null) {
-                handler.addConnDevice(gatt.getDevice());
                 handler.getGattCallback().onConnectionStateChange(gatt, status, BluetoothProfile.STATE_CONNECTED);
             }
             if (gatt.getServices() == null || (gatt.getServices() != null && gatt.getServices().isEmpty())) {
                 gatt.discoverServices();
             }
+        }
+
+        @Override
+        public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            super.onDescriptorRead(gatt, descriptor, status);
+        }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            super.onDescriptorWrite(gatt, descriptor, status);
+        }
+
+        @Override
+        public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
+            super.onReliableWriteCompleted(gatt, status);
+        }
+
+        @Override
+        public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
+            super.onReadRemoteRssi(gatt, rssi, status);
         }
     }
 }

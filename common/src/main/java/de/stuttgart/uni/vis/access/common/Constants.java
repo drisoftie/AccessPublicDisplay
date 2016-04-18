@@ -41,28 +41,28 @@ public class Constants {
 
     public enum AdvertiseConst {
 
-        ADVERTISE_WEATHER((byte) 0x10, R.string.bl_advert_weather_info),
-        ADVERTISE_WEATHER_DATA((byte) 0x11, R.string.bl_advert_weather_info),
-        ADVERTISE_TRANSP((byte) 0x20, R.string.bl_advert_pub_transp),
-        ADVERTISE_NEWS((byte) 0x30, R.string.bl_advert_news_info),
-        ADVERTISE_NEWS_DATA((byte) 0x31, R.string.bl_advert_news_info),
-        ADVERTISE_BOOKING((byte) 0x40, R.string.bl_advert_booking_info),
-        ADVERTISE_SHOUT((byte) 0x50, R.string.bl_advert_shout),
-        ADVERTISE_CHAT((byte) 0x60, R.string.bl_advert_chat),
-        ADVERTISE_CHAT_DATA((byte) 0x61, R.string.bl_advert_chat);
+        ADVERTISE_WEATHER(new byte[]{(byte) 0x10, (byte) 0xFF}, R.string.bl_advert_weather_info),
+        ADVERTISE_WEATHER_DATA(new byte[]{(byte) 0x11, (byte) 0xFF}, R.string.bl_advert_weather_info),
+        ADVERTISE_TRANSP(new byte[]{(byte) 0x20, (byte) 0xFF}, R.string.bl_advert_pub_transp),
+        ADVERTISE_NEWS(new byte[]{(byte) 0x30, (byte) 0xFF}, R.string.bl_advert_news_info),
+        ADVERTISE_NEWS_DATA(new byte[]{(byte) 0x31, (byte) 0xFF}, R.string.bl_advert_news_info),
+        ADVERTISE_BOOKING(new byte[]{(byte) 0x40, (byte) 0xFF}, R.string.bl_advert_booking_info),
+        ADVERTISE_SHOUT(new byte[]{(byte) 0x50, (byte) 0xFF}, R.string.bl_advert_shout),
+        ADVERTISE_CHAT(new byte[]{(byte) 0x60, (byte) 0xFF}, R.string.bl_advert_chat),
+        ADVERTISE_CHAT_DATA(new byte[]{(byte) 0x61, (byte) 0xFF}, R.string.bl_advert_chat);
 
-        public static final byte ADVERTISE_START = (byte) 0xfe;
-        public static final byte ADVERTISE_END   = (byte) 0xff;
+        public static final byte[] ADVERTISE_START = new byte[]{(byte) 0xfe, (byte) 0xff};
+        public static final byte   ADVERTISE_END   = (byte) 0xff;
 
-        private final byte flag;
-        private final int  descr;
+        private final byte[] flag;
+        private final int    descr;
 
-        AdvertiseConst(byte flag, int descrResString) {
+        AdvertiseConst(byte[] flag, int descrResString) {
             this.flag = flag;
             this.descr = descrResString;
         }
 
-        public byte getFlag() {
+        public byte[] getFlag() {
             return flag;
         }
 

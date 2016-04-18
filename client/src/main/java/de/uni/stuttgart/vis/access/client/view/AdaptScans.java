@@ -9,8 +9,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
+import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,97 +49,122 @@ public class AdaptScans extends RecyclerView.Adapter<AdaptScans.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         BlData  data  = blData.get(position);
-        boolean start = false;
-        for (int i = 0; i < data.getAdvertisement().length; i++) {
-            byte b = data.getAdvertisement()[i];
-            if (b == Constants.AdvertiseConst.ADVERTISE_START) {
-                start = true;
-                holder.txtAdInfo.setText("");
-                //                holder.txtAdInfo.append(data.getRssi() + System.lineSeparator());
-            } else if (b == Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag()) {
-                if (start) {
-                    start = false;
-                } else {
-                    holder.txtAdInfo.append(System.lineSeparator());
+        boolean start = true;
+        holder.txtAdInfo.setText("");
+        for (AbstractMap.SimpleEntry<Constants.AdvertiseConst, byte[]> advertEntry : ParserData.parseAdvert(data.getAdvertisement())) {
+            switch (advertEntry.getKey()) {
+                case ADVERTISE_WEATHER: {
+                    if (start) {
+                        start = false;
+                    } else {
+                        holder.txtAdInfo.append(System.lineSeparator());
+                    }
+                    String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), data);
+                    if (g != null) {
+                        holder.txtAdInfo.append(App.inst().getString(R.string.weater_today_display));
+                        holder.txtAdInfo.append(g);
+                    } else {
+                        holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
+                    }
+                    break;
                 }
-                String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), data);
-                if (g != null) {
-                    holder.txtAdInfo.append("Todays weather is: ");
-                    holder.txtAdInfo.append(g);
-                } else {
-                    holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
+                case ADVERTISE_WEATHER_DATA: {
+                    if (start) {
+                        start = false;
+                    } else {
+                        holder.txtAdInfo.append(System.lineSeparator());
+                    }
+                    String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), data);
+                    if (g != null) {
+                        holder.txtAdInfo.append(App.inst().getString(R.string.weater_today_display));
+                        holder.txtAdInfo.append(g);
+                    } else {
+                        holder.txtAdInfo.append(App.inst().getString(R.string.weather_curr_temp));
+                        holder.txtAdInfo.append(new DecimalFormat("#.#").format(ParserData.parseByteToFloat(advertEntry.getValue())));
+                        holder.txtAdInfo.append(App.inst().getString(R.string.Celcius));
+                    }
+                    break;
                 }
-            } else if (b == Constants.AdvertiseConst.ADVERTISE_WEATHER_DATA.getFlag()) {
-                if (start) {
-                    start = false;
-                } else {
-                    holder.txtAdInfo.append(System.lineSeparator());
+                case ADVERTISE_TRANSP: {
+                    if (start) {
+                        start = false;
+                    } else {
+                        holder.txtAdInfo.append(System.lineSeparator());
+                    }
+                    holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()));
+                    break;
                 }
-                String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), data);
-                if (g != null) {
-                    holder.txtAdInfo.append("Todays weather is: ");
-                    holder.txtAdInfo.append(g);
-                } else {
-                    holder.txtAdInfo.append("Current temperature is: ");
-                    holder.txtAdInfo.append(new DecimalFormat("#.#").format(ParserData.parseByteToFloat(
-                            Arrays.copyOfRange(data.getAdvertisement(), i + 1, i + 5))));
+                case ADVERTISE_SHOUT: {
+                    if (start) {
+                        start = false;
+                    } else {
+                        holder.txtAdInfo.append(System.lineSeparator());
+                    }
+                    String g = getGattData(Constants.SHOUT.GATT_SHOUT.getUuid(), data);
+                    if (g != null) {
+                        holder.txtAdInfo.append(App.inst().getString(R.string.shout_newest));
+                        holder.txtAdInfo.append(g);
+                    } else {
+                        holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()));
+                    }
+                    break;
                 }
-            } else if (b == Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag()) {
-                if (start) {
-                    start = false;
-                } else {
-                    holder.txtAdInfo.append(System.lineSeparator());
+                case ADVERTISE_NEWS: {
+                    if (start) {
+                        start = false;
+                    } else {
+                        holder.txtAdInfo.append(System.lineSeparator());
+                    }
+                    String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), data);
+                    if (g != null) {
+                        holder.txtAdInfo.append(g);
+                    } else {
+                        holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_NEWS.getDescr()));
+                    }
+                    break;
                 }
-                holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_TRANSP.getDescr()));
-            } else if (b == Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag()) {
-                if (start) {
-                    start = false;
-                } else {
-                    holder.txtAdInfo.append(System.lineSeparator());
+                case ADVERTISE_NEWS_DATA: {
+                    if (start) {
+                        start = false;
+                    } else {
+                        holder.txtAdInfo.append(System.lineSeparator());
+                    }
+                    String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), data);
+                    if (g != null) {
+                        holder.txtAdInfo.append(g);
+                    } else {
+                        holder.txtAdInfo.append(App.inst().getString(R.string.news_amount));
+                        holder.txtAdInfo.append(String.valueOf(advertEntry.getValue()));
+                    }
+                    break;
                 }
-                String g = getGattData(Constants.SHOUT.GATT_SHOUT.getUuid(), data);
-                if (g != null) {
-                    holder.txtAdInfo.append("Newest shout: ");
-                    holder.txtAdInfo.append(g);
-                } else {
-                    holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_SHOUT.getDescr()));
+                case ADVERTISE_BOOKING: {
+                    if (start) {
+                        start = false;
+                    } else {
+                        holder.txtAdInfo.append(System.lineSeparator());
+                    }
+                    String g = getGattData(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(), data);
+                    if (g != null) {
+                        holder.txtAdInfo.append(g);
+                    } else {
+                        holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_BOOKING.getDescr()));
+                    }
+                    break;
                 }
-            } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS.getFlag()) {
-                if (start) {
-                    start = false;
-                } else {
-                    holder.txtAdInfo.append(System.lineSeparator());
-                }
-                String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), data);
-                if (g != null) {
-                    holder.txtAdInfo.append(g);
-                } else {
-                    holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_NEWS.getDescr()));
-                }
-            } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS_DATA.getFlag()) {
-                if (start) {
-                    start = false;
-                } else {
-                    holder.txtAdInfo.append(System.lineSeparator());
-                }
-                String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), data);
-                if (g != null) {
-                    holder.txtAdInfo.append(g);
-                } else {
-                    holder.txtAdInfo.append("Current amount of news: ");
-                    holder.txtAdInfo.append(String.valueOf(data.getAdvertisement()[i + 1]));
-                }
-            } else if (b == Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag()) {
-                if (start) {
-                    start = false;
-                } else {
-                    holder.txtAdInfo.append(System.lineSeparator());
-                }
-                String g = getGattData(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(), data);
-                if (g != null) {
-                    holder.txtAdInfo.append(g);
-                } else {
-                    holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_BOOKING.getDescr()));
+                case ADVERTISE_CHAT: {
+                    if (start) {
+                        start = false;
+                    } else {
+                        holder.txtAdInfo.append(System.lineSeparator());
+                    }
+                    String g = getGattData(Constants.CHAT.GATT_CHAT_WRITE.getUuid(), data);
+                    if (g != null) {
+                        holder.txtAdInfo.append(g);
+                    } else {
+                        holder.txtAdInfo.append(App.string(Constants.AdvertiseConst.ADVERTISE_CHAT.getDescr()));
+                    }
+                    break;
                 }
             }
         }

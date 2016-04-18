@@ -7,7 +7,6 @@ import android.os.IBinder;
 
 import java.util.concurrent.TimeUnit;
 
-import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.act.ActBasePerms;
 import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.uni.stuttgart.vis.access.client.service.IServiceBinderClient;
@@ -50,7 +49,6 @@ public abstract class ActGattScan extends ActBasePerms
     public void onServiceConnected(ComponentName name, IBinder binder) {
         service = (IServiceBinderClient) binder;
         service.registerServiceListener(ActGattScan.this);
-        service.subscribeAdvertConnection(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid(), this);
         invalidateOptionsMenu();
     }
 

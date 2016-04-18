@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="bl_advert_chat">Neue Chats!</string>
+    <string name="bl_advert_booking_info">Buchen Sie Tickets!</string>
+    <string name="bl_advert_cloudy">bewölkt</string>
+    <string name="bl_advert_news_info">Neue Nachrichten</string>
+    <string name="bl_advert_pub_transp">Öffentlicher Nahverkehr</string>
+    <string name="bl_advert_rainy">regnerisch</string>
+    <string name="bl_advert_shout">Neue Meldungen!</string>
+    <string name="bl_advert_sunny">sonnig</string>
+    <string name="bl_advert_weather_info">Wettervorhersage</string>
+    <string name="bl_gatt_char_weather_default">keine Infos</string>
+    <string name="booking_dat">Das Wetter wird übermorgen %1$s</string>
+    <string name="booking_today">Das Wetter heute ist %1$s</string>
+    <string name="booking_tomorrow">Das Wetter wird morgen %1$s</string>
+    <string name="info_pub_transp_train">Zuginfo: </string>
+    <string name="info_pub_transp_metro">UBahn-Info: </string>
+    <string name="txt_close">Schließen</string>
+</resources>

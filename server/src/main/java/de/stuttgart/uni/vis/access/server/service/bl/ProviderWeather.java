@@ -35,7 +35,7 @@ public class ProviderWeather {
     }
 
     public boolean hasWeatherInfo() {
-        return currWeather != null && forecast != null;
+        return (currWeather != null && currWeather.hasMainInstance()) && (forecast != null && forecast.hasForecastCount());
     }
 
     public CurrentWeather getCurrWeather() {

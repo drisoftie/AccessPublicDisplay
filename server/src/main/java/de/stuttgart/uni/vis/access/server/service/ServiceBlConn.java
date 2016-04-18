@@ -31,6 +31,7 @@ import com.drisoftie.action.async.handler.IFinishedHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -176,7 +177,12 @@ public class ServiceBlConn extends Service implements IAdvertStartListener {
         if (blAdvertHandler == null) {
             blAdvertHandler = new AdvertHandler(this);
             AdvertiseSettings settings    = blAdvertHandler.buildAdvertiseSettings();
-            AdvertiseData     dataWeather = blAdvertHandler.buildAdvertiseDataWeather();
+            AdvertiseData     dataWeather = null;
+            try {
+                dataWeather = blAdvertHandler.buildAdvertiseDataWeather();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             if (blLeAdvertiser != null) {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Advertisement ready");

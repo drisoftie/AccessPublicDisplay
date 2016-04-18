@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.act.ActBasePerms;
 import de.stuttgart.uni.vis.access.common.brcst.BrcstBlAdaptChanged;
-import de.stuttgart.uni.vis.access.common.domain.ConstantsBooking;
 import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
@@ -50,12 +49,12 @@ import de.uni.stuttgart.vis.access.client.data.GattData;
 import de.uni.stuttgart.vis.access.client.data.HolderBlData;
 import de.uni.stuttgart.vis.access.client.data.IBlDataSubscriber;
 import de.uni.stuttgart.vis.access.client.helper.SoundPlayer;
+import de.uni.stuttgart.vis.access.client.helper.VibratorBuilder;
 import de.uni.stuttgart.vis.access.client.service.IServiceBinderClient;
 import de.uni.stuttgart.vis.access.client.service.IServiceBlListener;
 import de.uni.stuttgart.vis.access.client.service.ServiceScan;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnAdvertProvider;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
-import de.uni.stuttgart.vis.access.client.service.bl.IConnWeather;
 import de.uni.stuttgart.vis.access.client.view.AdaptScans;
 
 public class ActScan extends ActBasePerms implements NavigationView.OnNavigationItemSelectedListener, ServiceConnection, IServiceBlListener,
@@ -81,7 +80,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         }
     };
     private GattWeather       gattListenWeather;
-    private IConnWeather      gattProviderWeather;
+    private IConnGattProvider gattProviderWeather;
     private GattShout         gattListenShout;
     private IConnGattProvider gattProviderShout;
     private GattNews          gattListenNews;
@@ -157,9 +156,11 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                         Iterator<BlData> it = getData();
                         while (it.hasNext()) {
                             BlData b = it.next();
-                            rcycAdaptDevices.getBlData().add(b);
+                            if (b.isActive()) {
+                                rcycAdaptDevices.getBlData().add(b);
+                            }
                         }
-                        rcycAdaptDevices.notifyDataSetChanged();
+                        rcycAdaptDevices.notifyItemInserted(0);
                         checkVisibleScans();
                     }
                 });
@@ -359,7 +360,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                 }
                 if (!found) {
                     SoundPlayer.playExampleBeep(440, 1, 0);
-                    SoundPlayer.playExampleBeep(100, 1, 0);
+                    VibratorBuilder.vibrate(VibratorBuilder.SHORT_SHORT);
                     addData(data);
                     Intent showIntent = new Intent(getString(R.string.intent_advert_gatt_connect));
                     showIntent.putExtra(getString(R.string.bndl_bl_scan_result), result);
@@ -370,8 +371,8 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         }.init(data, result));
 
         if (gattListenWeather == null) {
-            gattProviderWeather = (IConnWeather) service.subscribeGattConnection(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                                                 gattListenWeather = new GattWeather());
+            gattProviderWeather = service.subscribeGattConnection(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
+                                                                  gattListenWeather = new GattWeather());
         }
         if (gattListenShout == null) {
             gattProviderShout = service.subscribeGattConnection(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(),
@@ -388,6 +389,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
     @Override
     public void onScanResultsReceived(List<ScanResult> results) {
+        getClass();
     }
 
     @Override
@@ -416,7 +418,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                         ActScan.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                rcycAdaptDevices.notifyDataSetChanged();
+                                rcycAdaptDevices.notifyItemChanged(0);
                             }
                         });
                         break;
@@ -452,8 +454,9 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                     ActScan.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            for (BlData b : rcycAdaptDevices.getBlData()) {
-                                if (b.isActive() && b.getAddress().equals(result.getDevice().getAddress())) {
+                            for (int i = 0; i < rcycAdaptDevices.getBlData().size(); i++) {
+                                BlData b = rcycAdaptDevices.getBlData().get(i);
+                                if (!b.isActive() && b.getAddress().equals(result.getDevice().getAddress())) {
                                     rcycAdaptDevices.getBlData().remove(b);
                                     rcycAdaptDevices.notifyDataSetChanged();
                                 }
@@ -503,7 +506,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                         ActScan.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                rcycAdaptDevices.notifyDataSetChanged();
+                                rcycAdaptDevices.notifyItemChanged(0);
                             }
                         });
                         break;
@@ -520,35 +523,17 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         }
     }
 
-    private class GattWeather implements IConnWeather.IConnWeatherSub {
-
-        @Override
-        public void onGattReady(String macAddress) {
-        }
+    private class GattWeather extends GattSub {
 
         @Override
         public void onServicesReady(String macAddress) {
-            gattProviderWeather.registerWeatherSub(gattListenWeather);
-            gattProviderWeather.getWeatherInfo(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
+            gattProviderNews.registerConnGattSub(gattListenWeather);
+            gattProviderNews.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
+                                                       Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
         }
 
         @Override
         public void onGattValueReceived(String macAddress, UUID uuid, byte[] value) {
-
-        }
-
-        @Override
-        public void onGattValueWriteReceived(String macAddress, UUID uuid, byte[] value) {
-
-        }
-
-        @Override
-        public void onGattValueChanged(String macAddress, UUID uuid, byte[] value) {
-
-        }
-
-        @Override
-        public void onWeatherInfo(String macAddress, UUID uuid, byte[] value) {
             if (Constants.WEATHER.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
                 updateHolderData(macAddress, uuid, value);
             }
@@ -586,9 +571,9 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
         @Override
         public void onServicesReady(String macAddress) {
             gattProviderBooking.registerConnGattSub(gattListenBooking);
-            gattProviderBooking.writeGattCharacteristic(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid(),
-                                                        Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(),
-                                                        ConstantsBooking.StateBooking.START.getState().getBytes());
+            //            gattProviderBooking.writeGattCharacteristic(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid(),
+            //                                                        Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(),
+            //                                                        ConstantsBooking.StateBooking.START.getState().getBytes());
         }
 
         @Override
@@ -620,37 +605,9 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                                       Object[] additionalTags) {
             if (StringUtils.equals(methodName, "onBlDataAdded")) {
                 rcycAdaptDevices.getBlData().add((BlData) methodArgs[0]);
-                rcycAdaptDevices.notifyDataSetChanged();
+                rcycAdaptDevices.notifyItemInserted(0);
                 checkVisibleScans();
             }
-        }
-    }
-
-    public class GattSub implements IConnGattProvider.IConnGattSubscriber {
-
-        @Override
-        public void onGattReady(String macAddress) {
-
-        }
-
-        @Override
-        public void onServicesReady(String macAddress) {
-
-        }
-
-        @Override
-        public void onGattValueReceived(String macAddress, UUID uuid, byte[] value) {
-
-        }
-
-        @Override
-        public void onGattValueWriteReceived(String macAddress, UUID uuid, byte[] value) {
-
-        }
-
-        @Override
-        public void onGattValueChanged(String macAddress, UUID uuid, byte[] value) {
-
         }
     }
 }

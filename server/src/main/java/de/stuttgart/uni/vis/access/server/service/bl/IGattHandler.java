@@ -25,6 +25,10 @@ public interface IGattHandler {
 
     List<BluetoothDevice> getConnDevices();
 
+    void checkAndAddDevice(BluetoothDevice device);
+
+    void checkAndRemoveDevice(BluetoothDevice device);
+
     void prepareServer();
 
     void prepareServices(IFinishedHandler<UUID> readyListener);
@@ -32,6 +36,8 @@ public interface IGattHandler {
     IFinishedHandler<UUID> getServicesReadyListener();
 
     void changeGattChar(UUID servUuid, UUID charUuid, String value);
+
+    void changeGattChar(UUID servUuid, UUID charUuid, byte[] value);
 
     BluetoothGattServerCallback getCallback();
 

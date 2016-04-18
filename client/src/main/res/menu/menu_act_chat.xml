@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="de.uni.stuttgart.vis.access.client.act.ActChat">
+    <item
+        android:id="@+id/action_settings"
+        android:icon="@drawable/ic_action_bl_scan"
+        android:title="@string/send_picture"
+        app:showAsAction="ifRoom"/>
+</menu>

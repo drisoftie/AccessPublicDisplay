@@ -71,7 +71,7 @@
     <string name="hint_metro">Looking for metro schedules.</string>
     <string name="hint_train">Looking for train schedules..</string>
     <string name="title_activity_act_multi">Public Display</string>
-    <string name="title_activity_act_booking">ActBooking</string>
+    <string name="title_activity_act_booking">Book Table</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 
@@ -161,5 +161,27 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
+    <string name="title_activity_act_chat">Chatting</string>
+    <string name="send_picture">Send Picture</string>
+    <string name="want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here">Want to book a table or dish inside El Mero Mexicano? Press here!</string>
+    <string name="put_in_the_amount_of_persons">Put in the amount of persons.</string>
+    <string name="chat_with_your_surrounding_people">Chat with your surrounding people!</string>
+    <string name="send">Send</string>
+    <string name="news_amount">Current amount of news:</string>
+    <string name="shout_newest">"Newest shout: "</string>
+    <string name="weater_today_display">"Todays weather is: "</string>
+    <string name="weather_curr_temp">"Current temperature is: "</string>
+    <string name="Celcius">" Celcius"</string>
+    <string name="press_weather">Press here for more weather information.</string>
+    <string name="press_pubtransp">Press here for more public transport information.</string>
+    <string name="newest_shoutouts">Newest shout:</string>
+    <string name="press_shoutouts">Press here for more shouts.</string>
+    <string name="press_news">Press here for more news information.</string>
+    <string name="newest_news">Current amount of news:</string>
+    <string name="press_book">Press here for more booking information.</string>
+    <string name="press_chat_message">Want to write a message??</string>
+    <string name="press_chat">Press here for chatting.</string>
+    <string name="chat_with_people">Chat with people!</string>
+    <string name="ntxt_new_info">Some new infos!</string>
 
 </resources>

@@ -1,10 +1,12 @@
 package de.stuttgart.uni.vis.access.server.service.bl;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothProfile;
 import android.os.ParcelUuid;
 import android.util.Log;
 
@@ -12,17 +14,26 @@ import com.drisoftie.action.async.handler.IFinishedHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.util.AccessGatt;
 import de.stuttgart.uni.vis.access.server.BuildConfig;
 
 /**
  * @author Alexander Dridiger
  */
-public abstract class BaseGattHandler implements IGattHandler {
+public abstract class BaseGattHandler implements IGattHandler, AccessGatt.IGatt {
 
     private static final String TAG = BaseGattHandler.class.getSimpleName();
+
+    private Queue<AccessGatt>        accessGatts = new ConcurrentLinkedQueue<>();
+    private ScheduledExecutorService e           = Executors.newSingleThreadScheduledExecutor();
 
     private BluetoothGattServer server;
     private List<UUID>          constantUuids;
@@ -55,6 +66,36 @@ public abstract class BaseGattHandler implements IGattHandler {
     }
 
     @Override
+    public void checkAndAddDevice(BluetoothDevice device) {
+        int foundDevice = -1;
+        for (int i = 0; i < getConnDevices().size(); i++) {
+            BluetoothDevice dev = getConnDevices().get(i);
+            if (dev.getAddress().equals(device.getAddress())) {
+                foundDevice = i;
+            }
+        }
+        if (foundDevice == -1) {
+            getConnDevices().add(device);
+        } else {
+            getConnDevices().set(foundDevice, device);
+        }
+    }
+
+    @Override
+    public void checkAndRemoveDevice(BluetoothDevice device) {
+        int foundDevice = -1;
+        for (int i = 0; i < getConnDevices().size(); i++) {
+            BluetoothDevice dev = getConnDevices().get(i);
+            if (dev.getAddress().equals(device.getAddress())) {
+                foundDevice = i;
+            }
+        }
+        if (foundDevice > -1) {
+            getConnDevices().remove(foundDevice);
+        }
+    }
+
+    @Override
     public void prepareServer() {
         server.clearServices();
         if (BuildConfig.DEBUG) {
@@ -67,6 +108,13 @@ public abstract class BaseGattHandler implements IGattHandler {
     public void prepareServices(IFinishedHandler<UUID> readyListener) {
         this.readyListener = readyListener;
         addServices();
+    }
+
+    @Override
+    public void checkWork() {
+        if (!accessGatts.isEmpty()) {
+            e.schedule(accessGatts.poll(), 500, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override
@@ -110,7 +158,16 @@ public abstract class BaseGattHandler implements IGattHandler {
     public void changeGattChar(UUID servUuid, UUID charUuid, String value) {
         BluetoothGattCharacteristic c = getServer().getService(servUuid).getCharacteristic(charUuid);
         c.setValue(value);
-        for (BluetoothDevice dev : connectedDevices) {
+        for (BluetoothDevice dev : getConnDevices()) {
+            getServer().notifyCharacteristicChanged(dev, c, false);
+        }
+    }
+
+    @Override
+    public void changeGattChar(UUID servUuid, UUID charUuid, byte[] value) {
+        BluetoothGattCharacteristic c = getServer().getService(servUuid).getCharacteristic(charUuid);
+        c.setValue(value);
+        for (BluetoothDevice dev : getConnDevices()) {
             getServer().notifyCharacteristicChanged(dev, c, false);
         }
     }
@@ -142,4 +199,52 @@ public abstract class BaseGattHandler implements IGattHandler {
         return getCallback(uuid.getUuid());
     }
 
+    protected abstract class GattCallbackBase extends BluetoothGattServerCallback {
+
+        @Override
+        public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
+            super.onConnectionStateChange(device, status, newState);
+            switch (status) {
+                case BluetoothGatt.GATT_SUCCESS:
+                    checkAndAddDevice(device);
+                    onConnectSuccess(device, status, newState);
+                    break;
+                default:
+                    if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                        checkAndRemoveDevice(device);
+                        onDisconnected(device, status, newState);
+                    }
+            }
+        }
+
+        public abstract void onConnectSuccess(BluetoothDevice device, int status, int newState);
+
+        public abstract void onDisconnected(BluetoothDevice device, int status, int newState);
+
+        @Override
+        public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
+                                                BluetoothGattCharacteristic characteristic) {
+            byte[] value = characteristic.getValue();
+            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
+        }
+
+        @Override
+        public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic,
+                                                 boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
+            characteristic.setValue(value);
+            if (responseNeeded) {
+                getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
+            }
+        }
+
+        @Override
+        public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
+            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
+        }
+
+        @Override
+        public void onMtuChanged(BluetoothDevice device, int mtu) {
+            super.onMtuChanged(device, mtu);
+        }
+    }
 }

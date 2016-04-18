@@ -5,6 +5,8 @@ package de.uni.stuttgart.vis.access.client.service.bl;
  */
 public interface IConnMultiPart {
 
+    IConnMulti getConnMulti();
+
     void setConnMulti(IConnMulti connMulti);
 
     IConnAdvertScan getAdvertScan();

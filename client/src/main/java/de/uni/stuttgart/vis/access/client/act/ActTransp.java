@@ -16,16 +16,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.service.ServiceScan;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
-import de.uni.stuttgart.vis.access.client.service.bl.IConnWeather;
 
-public class ActWeather extends ActGattScan {
+public class ActTransp extends ActGattScan {
 
-    private GattWeather       gattListenWeather;
-    private IConnGattProvider gattProviderWeather;
+    private GattTransp        gattListenTransp;
+    private IConnGattProvider gattProviderTransp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +51,9 @@ public class ActWeather extends ActGattScan {
     @Override
     public void onServiceConnected(ComponentName name, IBinder binder) {
         super.onServiceConnected(name, binder);
-        if (gattListenWeather == null) {
-            gattProviderWeather = (IConnWeather) service.subscribeGattConnection(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                                                 gattListenWeather = new GattWeather());
+        if (gattListenTransp == null) {
+            gattProviderTransp = service.subscribeGattConnection(Constants.PUBTRANSP.GATT_SERVICE_PUB_TRANSP.getUuid(),
+                                                                 gattListenTransp = new GattTransp());
         }
     }
 
@@ -121,7 +119,7 @@ public class ActWeather extends ActGattScan {
         }
     }
 
-    private class GattWeather implements IConnGattProvider.IConnGattSubscriber {
+    private class GattTransp implements IConnGattProvider.IConnGattSubscriber {
 
         @Override
         public void onGattReady(String macAddress) {
@@ -129,28 +127,14 @@ public class ActWeather extends ActGattScan {
 
         @Override
         public void onServicesReady(String macAddress) {
-            gattProviderWeather.registerConnGattSub(gattListenWeather);
-            gattProviderWeather.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                          Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
+            gattProviderTransp.registerConnGattSub(gattListenTransp);
+            gattProviderTransp.getGattCharacteristicRead(Constants.PUBTRANSP.GATT_SERVICE_PUB_TRANSP.getUuid(),
+                                                         Constants.PUBTRANSP.GATT_PUB_TRANSP_BUS.getUuid());
         }
 
         @Override
         public void onGattValueReceived(String macAddress, UUID uuid, byte[] value) {
-            String weather;
-            if (Constants.WEATHER.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
-                weather = App.inst().getString(R.string.info_weather_today, new String(value));
-                //                actionWeatherToday.invokeSelf(weather);
-                gattProviderWeather.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                              Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid());
-            } else if (Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
-                weather = App.inst().getString(R.string.info_weather_tomorrow, new String(value));
-                //                actionWeatherTomorrow.invokeSelf(weather);
-                gattProviderWeather.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                              Constants.WEATHER.GATT_WEATHER_DAT.getUuid());
-            } else if (Constants.WEATHER.GATT_WEATHER_DAT.getUuid().equals(uuid)) {
-                weather = App.inst().getString(R.string.info_weather_dat, new String(value));
-                //                actionWeatherDat.invokeSelf(weather);
-            }
+
         }
 
         @Override

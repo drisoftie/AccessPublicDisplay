@@ -1,19 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.NestedScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    android:orientation="vertical"
     tools:context="de.uni.stuttgart.vis.access.client.act.ActBooking"
     tools:showIn="@layout/act_booking">
 
-    <LinearLayout
-        android:id="@id/lyt_booking"
+    <View
+        android:id="@+id/view_swipe"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="10dp"/>
+        android:layout_height="250dp"/>
 
-</android.support.v4.widget.NestedScrollView>
+    <Button
+        android:id="@+id/txt_booking"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here"/>
+
+    <EditText
+        android:id="@+id/edttxt_booking"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/put_in_the_amount_of_persons"
+        android:inputType="number"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="time"
+        android:ems="10"
+        android:id="@+id/editText"/>
+
+</LinearLayout>

@@ -3,10 +3,8 @@ package de.stuttgart.uni.vis.access.server.service.bl;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothProfile;
 import android.view.View;
 
 import com.drisoftie.action.async.IGenericAction;
@@ -17,9 +15,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
 import de.stuttgart.uni.vis.access.common.domain.ConstantsBooking;
+import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.stuttgart.uni.vis.access.server.App;
 import de.stuttgart.uni.vis.access.server.R;
 
@@ -123,25 +123,19 @@ public class GattHandlerBooking extends BaseGattHandler {
         String                        time;
     }
 
-    private class GattCallback extends BluetoothGattServerCallback {
+    private class GattCallback extends GattCallbackBase {
 
         @Override
-        public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
-            super.onConnectionStateChange(device, status, newState);
-            switch (status) {
-                case BluetoothGatt.GATT_SUCCESS:
-                    getConnDevices().add(device);
-                    setBookingInfo();
-                    break;
-                default:
-                    if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        getConnDevices().remove(device);
-                        for (HolderBookingState s : states) {
-                            if (s.device.getAddress().equals(device.getAddress())) {
-                                states.remove(s);
-                            }
-                        }
-                    }
+        public void onConnectSuccess(BluetoothDevice device, int status, int newState) {
+            setBookingInfo();
+        }
+
+        @Override
+        public void onDisconnected(BluetoothDevice device, int status, int newState) {
+            for (HolderBookingState s : states) {
+                if (s.device.getAddress().equals(device.getAddress())) {
+                    states.remove(s);
+                }
             }
         }
 
@@ -152,45 +146,31 @@ public class GattHandlerBooking extends BaseGattHandler {
         }
 
         @Override
-        public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
-                                                BluetoothGattCharacteristic characteristic) {
-            byte[] value = characteristic.getValue();
-            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
-        }
-
-        @Override
         public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic,
                                                  boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-            byte[] newValue = analyzeAndRespond(device, value);
-            characteristic.setValue(newValue);
+            characteristic.setValue(value);
             if (responseNeeded) {
-                getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, newValue);
+                getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
             }
-        }
+            ScheduleUtil.scheduleWork(new Runnable() {
 
-        @Override
-        public void onNotificationSent(BluetoothDevice device, int status) {
-        }
+                public BluetoothDevice device;
+                public byte[] value;
 
-        @Override
-        public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
+                public Runnable init(BluetoothDevice device, byte[] value) {
+                    this.device = device;
+                    this.value = value;
+                    return this;
+                }
 
-        }
+                @Override
+                public void run() {
+                    byte[] newValue = analyzeAndRespond(device, value);
+                    changeGattChar(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid(), Constants.BOOKING.GATT_BOOKING_NOTIFY.getUuid(),
+                                   newValue);
 
-        @Override
-        public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor,
-                                             boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
-        }
-
-        @Override
-        public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
-            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
-        }
-
-        @Override
-        public void onMtuChanged(BluetoothDevice device, int mtu) {
-            super.onMtuChanged(device, mtu);
+                }
+            }.init(device, value), 500, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -208,18 +188,18 @@ public class GattHandlerBooking extends BaseGattHandler {
         @Override
         public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
             if (ArrayUtils.isEmpty(stripMethodArgs(methodArgs))) {
-                BluetoothGattService serviceChat = new BluetoothGattService(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid(),
+                BluetoothGattService serviceBook = new BluetoothGattService(Constants.BOOKING.GATT_SERVICE_BOOKING.getUuid(),
                                                                             BluetoothGattService.SERVICE_TYPE_PRIMARY);
-                serviceChat.addCharacteristic(
+                serviceBook.addCharacteristic(
                         createCharacteristic(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(), BluetoothGattCharacteristic.PROPERTY_WRITE,
                                              BluetoothGattCharacteristic.PERMISSION_WRITE,
                                              App.inst().getString(R.string.bl_gatt_char_weather_default).getBytes()));
-                serviceChat.addCharacteristic(createCharacteristic(Constants.BOOKING.GATT_BOOKING_NOTIFY.getUuid(),
+                serviceBook.addCharacteristic(createCharacteristic(Constants.BOOKING.GATT_BOOKING_NOTIFY.getUuid(),
                                                                    BluetoothGattCharacteristic.PROPERTY_BROADCAST,
                                                                    BluetoothGattCharacteristic.PERMISSION_READ,
                                                                    App.inst().getString(R.string.bl_advert_cloudy).getBytes()));
 
-                getServer().addService(serviceChat);
+                getServer().addService(serviceBook);
             } else {
                 Object[] args = stripMethodArgs(methodArgs);
                 getServicesReadyListener().onFinished((UUID) args[0]);

@@ -12,15 +12,13 @@ import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.helper.IContextProv;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
-import de.uni.stuttgart.vis.access.client.service.bl.IConnWeather;
 
 /**
  * @author Alexander Dridiger
  */
-public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscriber, IConnWeather.IConnWeatherSub {
+public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscriber {
 
     private IConnGattProvider blConn;
-    private IConnWeather      blWeather;
     private IContextProv      provCntxt;
     private IViewProv         provView;
 
@@ -42,10 +40,6 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
     public void setConn(IConnGattProvider blConnection) {
         this.blConn = blConnection;
         blConnection.registerConnGattSub(this);
-        if (blConnection instanceof IConnWeather) {
-            blWeather = (IConnWeather) blConnection;
-            blWeather.registerWeatherSub(this);
-        }
     }
 
     @Override
@@ -56,12 +50,12 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
     @Override
     public void onServicesReady(String macAddress) {
         provView.provideView(R.id.txt_headline_today).sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
-        blWeather.getWeatherInfo(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
+        blConn.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(), Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
     }
 
     @Override
     public void onGattValueReceived(String macAddress, UUID uuid, byte[] value) {
-
+        setText(uuid, value);
     }
 
     @Override
@@ -74,15 +68,9 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
 
     }
 
-    @Override
-    public void onWeatherInfo(String macAddress, UUID uuid, byte[] value) {
-        setText(uuid, value);
-    }
-
     public void onDetach() {
         provCntxt = null;
         blConn.deregisterConnGattSub(this);
-        blWeather.deregisterWeatherSub(this);
     }
 
     private void setText(UUID uuid, byte[] value) {
@@ -90,11 +78,13 @@ public class ConnGattCommWeather implements IConnGattProvider.IConnGattSubscribe
         if (Constants.WEATHER.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
             weather = App.inst().getString(R.string.info_weather_today, new String(value));
             actionWeatherToday.invokeSelf(weather);
-            blWeather.getWeatherInfo(Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid());
+            blConn.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
+                                             Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid());
         } else if (Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
             weather = App.inst().getString(R.string.info_weather_tomorrow, new String(value));
             actionWeatherTomorrow.invokeSelf(weather);
-            blWeather.getWeatherInfo(Constants.WEATHER.GATT_WEATHER_DAT.getUuid());
+            blConn.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
+                                             Constants.WEATHER.GATT_WEATHER_DAT.getUuid());
         } else if (Constants.WEATHER.GATT_WEATHER_DAT.getUuid().equals(uuid)) {
             weather = App.inst().getString(R.string.info_weather_dat, new String(value));
             actionWeatherDat.invokeSelf(weather);

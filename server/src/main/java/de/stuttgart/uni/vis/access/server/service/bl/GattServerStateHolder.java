@@ -129,7 +129,8 @@ public class GattServerStateHolder {
     }
 
     private BluetoothGattServerCallback getHandlerCallback(ParcelUuid... uuids) {
-        for (IGattHandler handler : blGattHandler) {
+        for (int i = 0; i < blGattHandler.size(); i++) {
+            IGattHandler                handler  = blGattHandler.get(i);
             BluetoothGattServerCallback callback = handler.getCallback(uuids);
             if (callback != null) {
                 return callback;
@@ -139,7 +140,8 @@ public class GattServerStateHolder {
     }
 
     private BluetoothGattServerCallback getHandlerCallback(UUID... uuids) {
-        for (IGattHandler handler : blGattHandler) {
+        for (int i = 0; i < blGattHandler.size(); i++) {
+            IGattHandler                handler  = blGattHandler.get(i);
             BluetoothGattServerCallback callback = handler.getCallback(uuids);
             if (callback != null) {
                 return callback;
@@ -154,7 +156,8 @@ public class GattServerStateHolder {
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
             Log.d("GattServer", "Our gatt server connection state changed, new state ");
             Log.d("GattServer", Integer.toString(newState));
-            for (IGattHandler h : blGattHandler) {
+            for (int i = 0; i < blGattHandler.size(); i++) {
+                IGattHandler h = blGattHandler.get(i);
                 h.getCallback().onConnectionStateChange(device, status, newState);
             }
             super.onConnectionStateChange(device, status, newState);
@@ -204,7 +207,8 @@ public class GattServerStateHolder {
         @Override
         public void onNotificationSent(BluetoothDevice device, int status) {
             Log.d("GattServer", "onNotificationSent");
-            for (IGattHandler h : blGattHandler) {
+            for (int i = 0; i < blGattHandler.size(); i++) {
+                IGattHandler h = blGattHandler.get(i);
                 h.getCallback().onNotificationSent(device, status);
             }
             super.onNotificationSent(device, status);
@@ -234,7 +238,8 @@ public class GattServerStateHolder {
         @Override
         public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
             Log.d("GattServer", "Our gatt server on execute write.");
-            for (IGattHandler h : blGattHandler) {
+            for (int i = 0; i < blGattHandler.size(); i++) {
+                IGattHandler h = blGattHandler.get(i);
                 h.getCallback().onExecuteWrite(device, requestId, execute);
             }
             super.onExecuteWrite(device, requestId, execute);

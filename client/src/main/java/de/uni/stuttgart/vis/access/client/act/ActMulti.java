@@ -6,10 +6,10 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.ParcelUuid;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -18,7 +18,6 @@ import android.widget.TextView;
 import java.text.DecimalFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -60,6 +59,11 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
         //noinspection ConstantConditions
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+
+    }
+
+    @Override
+    protected void onResuming() {
         App.holder().access(App.holder().new HolderAccess() {
             @Override
             public void onRun() {
@@ -78,104 +82,136 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
                     }
                 }
                 List<TextView> buttons = new ArrayList<>();
-                for (int i = 0; i < blData.getAdvertisement().length; i++) {
-                    byte          b    = blData.getAdvertisement()[i];
+
+                for (AbstractMap.SimpleEntry<Constants.AdvertiseConst, byte[]> advertEntry : ParserData.parseAdvert(
+                        blData.getAdvertisement())) {
+                    Button btn = (Button) LayoutInflater.from(ActMulti.this).inflate(R.layout.btn_gatt_category,
+                                                                                     (ViewGroup) findViewById(R.id.lyt_multi_select),
+                                                                                     false);
                     StringBuilder text = new StringBuilder();
-                    if (b == Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag()) {
-                        String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), blData);
-                        if (g != null) {
-                            text.append("Todays weather is: ");
-                            text.append(g).append(System.lineSeparator());
+                    switch (advertEntry.getKey()) {
+                        case ADVERTISE_WEATHER: {
+                            String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), blData);
+                            if (g != null) {
+                                text.append(App.inst().getString(R.string.weater_today_display));
+                                text.append(g).append(System.lineSeparator());
+                            }
+                            btn.setText(text);
+                            text.append(getString(R.string.press_weather));
+                            buttons.add(btn);
+                            btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startActivity(new Intent(ActMulti.this, ActWeather.class));
+                                }
+                            });
+                            break;
                         }
-                        text.append("Press here for more weather information.");
-                        Button btn = (Button) LayoutInflater.from(ActMulti.this).inflate(R.layout.btn_gatt_category,
-                                                                                         (ViewGroup) findViewById(R.id.lyt_multi_select),
-                                                                                         false);
-                        btn.setText(text);
-                        buttons.add(btn);
-                    } else if (b == Constants.AdvertiseConst.ADVERTISE_WEATHER_DATA.getFlag()) {
-                        String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), blData);
-                        if (g != null) {
-                            text.append("Todays weather is: ");
-                            text.append(g + System.lineSeparator());
-                        } else {
-                            text.append("Current temperature is: ");
-                            text.append(new DecimalFormat("#.#").format(ParserData.parseByteToFloat(
-                                    Arrays.copyOfRange(blData.getAdvertisement(), i + 1, i + 5))) + System.lineSeparator());
+                        case ADVERTISE_WEATHER_DATA: {
+                            String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), blData);
+                            if (g != null) {
+                                text.append(App.inst().getString(R.string.weater_today_display));
+                                text.append(g).append(System.lineSeparator());
+                            } else {
+                                text.append(App.inst().getString(R.string.weather_curr_temp));
+                                text.append(new DecimalFormat("#.#").format(ParserData.parseByteToFloat(advertEntry.getValue()))).append(
+                                        System.lineSeparator());
+                                text.append(App.inst().getString(R.string.Celcius));
+                            }
+                            text.append(getString(R.string.press_weather));
+                            btn.setText(text);
+                            buttons.add(btn);
+                            btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startActivity(new Intent(ActMulti.this, ActWeather.class));
+                                }
+                            });
+                            break;
                         }
-                        text.append("Press here for more weather information.");
-                        Button btn = (Button) LayoutInflater.from(ActMulti.this).inflate(R.layout.btn_gatt_category,
-                                                                                         (ViewGroup) findViewById(R.id.lyt_multi_select),
-                                                                                         false);
-                        btn.setText(text);
-                        buttons.add(btn);
-                    } else if (b == Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag()) {
-                        String g = getGattData(Constants.PUBTRANSP.GATT_PUB_TRANSP_METRO.getUuid(), blData);
-                        if (g != null) {
-                            text.append("");
-                            text.append(g + System.lineSeparator());
+                        case ADVERTISE_TRANSP: {
+                            String g = getGattData(Constants.PUBTRANSP.GATT_PUB_TRANSP_METRO.getUuid(), blData);
+                            if (g != null) {
+                                text.append("");
+                                text.append(g).append(System.lineSeparator());
+                            }
+                            text.append(getString(R.string.press_pubtransp));
+                            btn.setText(text);
+                            buttons.add(btn);
+                            break;
                         }
-                        text.append("Press here for more public transport information.");
-                        Button btn = (Button) LayoutInflater.from(ActMulti.this).inflate(R.layout.btn_gatt_category,
-                                                                                         (ViewGroup) findViewById(R.id.lyt_multi_select),
-                                                                                         false);
-                        btn.setText(text);
-                        buttons.add(btn);
-                    } else if (b == Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag()) {
-                        String g = getGattData(Constants.SHOUT.GATT_SHOUT.getUuid(), blData);
-                        if (g != null) {
-                            text.append("Newest shout: ");
-                            text.append(g + System.lineSeparator());
+                        case ADVERTISE_SHOUT: {
+                            String g = getGattData(Constants.SHOUT.GATT_SHOUT.getUuid(), blData);
+                            if (g != null) {
+                                text.append(getString(R.string.newest_shoutouts));
+                                text.append(g + System.lineSeparator());
+                            }
+                            text.append(getString(R.string.press_shoutouts));
+                            btn.setText(text);
+                            buttons.add(btn);
+                            break;
                         }
-                        text.append("Press here for more shouts.");
-                        Button btn = (Button) LayoutInflater.from(ActMulti.this).inflate(R.layout.btn_gatt_category,
-                                                                                         (ViewGroup) findViewById(R.id.lyt_multi_select),
-                                                                                         false);
-                        btn.setText(text);
-                        buttons.add(btn);
-                    } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS.getFlag()) {
-                        String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), blData);
-                        if (g != null) {
-                            text.append(g);
-                            text.append(g + System.lineSeparator());
+                        case ADVERTISE_NEWS: {
+                            String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), blData);
+                            if (g != null) {
+                                text.append(g);
+                                text.append(g).append(System.lineSeparator());
+                            }
+                            text.append(getString(R.string.press_news));
+                            btn.setText(text);
+                            buttons.add(btn);
+                            break;
                         }
-                        text.append("Press here for more news information.");
-                        Button btn = (Button) LayoutInflater.from(ActMulti.this).inflate(R.layout.btn_gatt_category,
-                                                                                         (ViewGroup) findViewById(R.id.lyt_multi_select),
-                                                                                         false);
-                        btn.setText(text);
-                        buttons.add(btn);
-                    } else if (b == Constants.AdvertiseConst.ADVERTISE_NEWS_DATA.getFlag()) {
-                        String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), blData);
-                        if (g != null) {
-                            text.append(g);
-                            text.append(g).append(System.lineSeparator());
-                        } else {
-                            text.append("Current amount of news: ");
-                            text.append(String.valueOf(blData.getAdvertisement()[i + 1])).append(System.lineSeparator());
+                        case ADVERTISE_NEWS_DATA: {
+                            String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), blData);
+                            if (g != null) {
+                                text.append(g);
+                                text.append(g).append(System.lineSeparator());
+                            } else {
+                                text.append(getString(R.string.newest_news));
+                                text.append(String.valueOf(advertEntry.getValue())).append(System.lineSeparator());
+                            }
+                            text.append(getString(R.string.press_news));
+                            btn.setText(text);
+                            buttons.add(btn);
+                            break;
                         }
-                        text.append("Press here for more news information.");
-                        Button btn = (Button) LayoutInflater.from(ActMulti.this).inflate(R.layout.btn_gatt_category,
-                                                                                         (ViewGroup) findViewById(R.id.lyt_multi_select),
-                                                                                         false);
-                        btn.setText(text);
-                        buttons.add(btn);
-                    } else if (b == Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag()) {
-                        String g = getGattData(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(), blData);
-                        if (g != null) {
-                            text.append(g).append(System.lineSeparator());
+                        case ADVERTISE_BOOKING: {
+                            String g = getGattData(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(), blData);
+                            if (g != null) {
+                                text.append(g).append(System.lineSeparator());
+                            }
+                            text.append(getString(R.string.want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here)).append(
+                                    System.lineSeparator()).append(getString(R.string.press_book));
+                            btn.setText(text);
+                            btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startActivity(new Intent(ActMulti.this, ActBooking.class));
+                                }
+                            });
+                            buttons.add(btn);
+                            break;
                         }
-                        text.append("Press here for more booking information.");
-                        Button btn = (Button) LayoutInflater.from(ActMulti.this).inflate(R.layout.btn_gatt_category,
-                                                                                         (ViewGroup) findViewById(R.id.lyt_multi_select),
-                                                                                         false);
-                        btn.setText(text);
-                        buttons.add(btn);
+                        case ADVERTISE_CHAT: {
+                            String g = getGattData(Constants.CHAT.GATT_CHAT_WRITE.getUuid(), blData);
+                            if (g != null) {
+                                text.append(g).append(System.lineSeparator());
+                            }
+                            text.append(getString(R.string.press_chat_message)).append(System.lineSeparator()).append(
+                                    getString(R.string.press_chat));
+                            btn.setText(text);
+                            btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startActivity(new Intent(ActMulti.this, ActChat.class));
+                                }
+                            });
+                            buttons.add(btn);
+                            break;
+                        }
                     }
                 }
-                //                data.addAll(
-                //                        getDataStructured(d, Constants.BOOKING.UUIDS, Constants.CHAT.UUIDS, Constants.NEWS.UUIDS, Constants.PUBTRANSP.UUIDS,
-                //                                          Constants.SHOUT.UUIDS, Constants.WEATHER.UUIDS));
                 ActMulti.this.runOnUiThread(new Runnable() {
                     public List<TextView> buttons;
                     public List<AbstractMap.SimpleEntry<Object, List<GattData>>> data;
@@ -197,71 +233,10 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
                             layoutParams.setMargins(0, 20, 0, 20);
                             lytMulti.addView(b, layoutParams);
                         }
-
-                        //                        for (AbstractMap.SimpleEntry<Object, List<GattData>> entry : data) {
-                        //                            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                        //                                                                                                   LinearLayout.LayoutParams.WRAP_CONTENT);
-                        //                            TextView btn = new TextView(ActMulti.this);
-                        //                            layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
-                        //                            layoutParams.setMargins(0, 20, 0, 20);
-                        //                            boolean start = true;
-                        //                            for (GattData data : entry.getValue()) {
-                        //                                if (start) {
-                        //                                    start = false;
-                        //                                    btn.setText("");
-                        //                                } else {
-                        //                                    btn.append("\n");
-                        //                                }
-                        //                                btn.append(new String(data.getData()));
-                        //                            }
-                        //                            lytMulti.addView(btn, layoutParams);
-                        //                        }
                     }
                 }.init(data, buttons));
             }
         });
-    }
-
-    private List<AbstractMap.SimpleEntry<Object, List<GattData>>> getDataStructured(BlData d, ParcelUuid[]... uuids) {
-        List<AbstractMap.SimpleEntry<Object, List<GattData>>> data = new ArrayList<>();
-        for (ParcelUuid[] uuidsPackage : uuids) {
-            for (GattData g : d.getGattData()) {
-                if (match(uuidsPackage, g.getUuid())) {
-                    AbstractMap.SimpleEntry<Object, List<GattData>> dataEntry = findInData(data, uuidsPackage);
-                    if (dataEntry == null) {
-                        dataEntry = new AbstractMap.SimpleEntry<Object, List<GattData>>(uuidsPackage, new ArrayList<GattData>());
-                    }
-                    dataEntry.getValue().add(g);
-                    data.add(dataEntry);
-                }
-            }
-        }
-        return data;
-    }
-
-    private boolean match(ParcelUuid[] uuids, UUID toFind) {
-        for (ParcelUuid uuid : uuids) {
-            if (uuid.getUuid().equals(toFind)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private AbstractMap.SimpleEntry<Object, List<GattData>> findInData(List<AbstractMap.SimpleEntry<Object, List<GattData>>> data,
-                                                                       Object key) {
-        for (AbstractMap.SimpleEntry<Object, List<GattData>> entry : data) {
-            if (entry.equals(key)) {
-                return entry;
-            }
-        }
-        return null;
-    }
-
-
-    @Override
-    protected void onResuming() {
-
     }
 
     private String getGattData(UUID uuid, BlData data) {

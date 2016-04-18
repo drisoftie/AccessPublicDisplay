@@ -84,7 +84,7 @@ public class AdvertHandler extends AdvertiseCallback {
     /**
      * Returns an AdvertiseData object which includes the Service UUID and Device Name.
      */
-    public AdvertiseData buildAdvertiseDataWeather() {
+    public AdvertiseData buildAdvertiseDataWeather() throws IOException {
         /**
          * Note: There is a strict limit of 31 Bytes on packets sent over BLE Advertisements.
          *  This includes everything put into AdvertiseData including UUIDs, device info, &
@@ -97,15 +97,11 @@ public class AdvertHandler extends AdvertiseCallback {
         AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder();
         dataBuilder.addServiceUuid(Constants.UUID_ADVERT_SERVICE_MULTI);
         ByteArrayOutputStream advert = new ByteArrayOutputStream();
-        advert.write(Constants.AdvertiseConst.ADVERTISE_START);
+        //        advert.write(Constants.AdvertiseConst.ADVERTISE_START);
         if (ProviderWeather.inst().hasWeatherInfo()) {
             advert.write(Constants.AdvertiseConst.ADVERTISE_WEATHER_DATA.getFlag());
-            try {
-                advert.write(ParserData.parseFloatToByte(
-                        (ProviderWeather.inst().getCurrWeather().getMainInstance().getTemperature() - 32) * 5.f / 9.f));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            advert.write(ParserData.parseFloatToByte(
+                    (ProviderWeather.inst().getCurrWeather().getMainInstance().getTemperature() - 32) * 5.f / 9.f));
         } else {
             advert.write(Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag());
         }
@@ -115,13 +111,11 @@ public class AdvertHandler extends AdvertiseCallback {
         } else {
             advert.write(Constants.AdvertiseConst.ADVERTISE_NEWS.getFlag());
         }
-        try {
-            advert.write(new byte[]{Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag(), Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag(),
-                    Constants.AdvertiseConst.ADVERTISE_CHAT.getFlag(), Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag(),
-                    Constants.AdvertiseConst.ADVERTISE_END});
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        advert.write(Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag());
+        advert.write(Constants.AdvertiseConst.ADVERTISE_SHOUT.getFlag());
+        advert.write(Constants.AdvertiseConst.ADVERTISE_CHAT.getFlag());
+        advert.write(Constants.AdvertiseConst.ADVERTISE_BOOKING.getFlag());
+
         dataBuilder.addServiceData(Constants.UUID_ADVERT_SERVICE_MULTI, advert.toByteArray());
         return dataBuilder.build();
     }

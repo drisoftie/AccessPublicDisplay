@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ===== -->
+    <!-- Hints -->
+    <!-- ===== -->
+    <eat-comment/>
+
+    <string name="hint_weather_today">Wettervorhersage für heute wird abgefragt.</string>
+    <string name="hint_weather_tomorrow">Wettervorhersage für morgen wird abgefragt.</string>
+    <string name="hint_weather_dat">Wettervorhersage für übermorgen wird abgefragt.</string>
+    <string name="hint_bus">Busverbindung wird gesucht.</string>
+    <string name="hint_metro">Ubahnverbindung wird gesucht.</string>
+    <string name="hint_train">Zugverbindung wird gesucht.</string>
+    <string name="title_activity_act_multi">Public Display</string>
+    <string name="title_activity_act_booking">Einen Tisch buchen.</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="ble_not_supported">BLE wird nicht unterstützt.</string>
+    <string name="btn_fab">Filtern Sie ihre Präferenzen.</string>
+    <string name="menu_connect">Verbinden</string>
+    <string name="menu_disconnect">Verbindung stoppen</string>
+    <string name="menu_scan">Suche nach Displays</string>
+    <string name="menu_stop">Stoppe Suche</string>
+    <string name="nact_show">Zeige Ergebnisse</string>
+    <string name="nact_stop">Stoppe Suche</string>
+    <string name="ntxt_scan">Suche nach Öffentlichen Displays</string>
+    <string name="ntxt_scan_descr">Gib mir: %1$s</string>
+    <string name="ntxt_scan_found">Öffentliches Display im großen Raum nebenan.</string>
+    <string name="send_picture">Bild verschicken.</string>
+    <string name="title_activity_act_chat">Chatten.</string>
+    <string name="title_activity_act_pub_transport">Öffentlicher Nahverkehr</string>
+    <string name="title_activity_act_weather">Wettervorhersage</string>
+    <string name="tst_fab">Noch nicht bereit.</string>
+    <string name="txt_headline_bus">Nächster Bus</string>
+    <string name="txt_headline_metro">Nächste U-Bahn</string>
+    <string name="txt_headline_train">Nächste S-Bahn</string>
+    <string name="txt_headline_weather_dat">Wetter für übermorgen</string>
+    <string name="txt_headline_weather_today">Wetter für heute</string>
+    <string name="txt_headline_weather_tomorrow">Wetter für morgen</string>
+    <string name="txt_range_list">Sie sind in der Nähe eines öffentlichen Displays, Sie können folgende Informationen erhalten:</string>
+    <string name="txt_range_list_empty">Es sind gerade keine Displays in Reichweite</string>
+    <string name="txt_weather_more_info">Klicken Sie auf den Knopf darunter, um Wetterinformationen zu bekommen:</string>
+    <string name="want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here">Wollen Sie einen Tisch im Restaurant in der Nähe buchen? Klicken Sie hier!</string>
+    <string name="put_in_the_amount_of_persons">Geben Sie die Anzahl der Personen an.</string>
+    <string name="chat_with_your_surrounding_people">Chatten Sie mit den Leuten um sich herum!</string>
+    <string name="send">Senden</string>
+    <string name="app_name">Öffentliche Displays</string>
+    <string name="news_amount">Nachrichten Anzahl</string>
+    <string name="shout_newest">"Neuste Informationen: "</string>
+    <string name="weater_today_display">"Das Wetter für heute ist: "</string>
+    <string name="weather_curr_temp">"Die jetzigen Temperaturen: "</string>
+    <string name="Celcius">" Celcius"</string>
+    <string name="press_weather">Für Wetterinfos hier drücken.</string>
+    <string name="press_pubtransp">Hier drücken für öffentlichen Nahverkehr</string>
+    <string name="newest_shoutouts">Neuste Informationen:</string>
+    <string name="press_news">Hier drücken für mehr lokale Nachrichten.</string>
+    <string name="newest_news">Anzahl der Nachrichten:</string>
+    <string name="press_book">Hier drücken für Buchung eines Tisches.</string>
+    <string name="press_chat">Hier drücken für Chatten</string>
+    <string name="press_chat_message">Wollen Sie eine Nachricht verfassen?</string>
+    <string name="press_shoutouts">Hier für mehr Meldungen drücken.</string>
+    <string name="chat_with_people">Chatten Sie jetzt!</string>
+    <string name="ntxt_new_info">Neue Infos!</string>
+</resources>

@@ -19,6 +19,8 @@ public interface IConnAdvertScan {
 
     List<UUID> getConstantUuids();
 
+    IConnAdvertScan addUuid(UUID uuid);
+
     void setConstantUuids(List<UUID> constantUuids);
 
     ScanCallback getScanCallback();
@@ -59,7 +61,7 @@ public interface IConnAdvertScan {
 
     void clearScanHistory();
 
-    void removeScanResult(ScanResult scanResult);
+    void removeScanResult(String macAddress);
 
     IConnAdvertProvider registerConnectionAdvertSubscriber(UUID uuid, IConnAdvertProvider.IConnAdvertSubscriber subscriber);
 
@@ -68,12 +70,6 @@ public interface IConnAdvertScan {
     IConnGattProvider registerConnectionGattSubscriber(UUID uuid, IConnGattProvider.IConnGattSubscriber subscriber);
 
     List<IConnGattProvider.IConnGattSubscriber> getConnGattSubscribers();
-
-    List<BluetoothDevice> getConnDevices();
-
-    void addConnDevice(BluetoothDevice dev);
-
-    void removeConnDevice(BluetoothDevice device);
 
     boolean hasConnDevice(BluetoothDevice device);
 

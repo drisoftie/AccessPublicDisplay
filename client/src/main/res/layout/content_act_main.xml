@@ -12,7 +12,12 @@
               android:paddingTop="@dimen/activity_vertical_margin"
               app:layout_behavior="@string/appbar_scrolling_view_behavior"
               tools:context=".act.ActScan"
-              tools:showIn="@layout/app_bar_act_main">
+              tools:showIn="@layout/act_main_bar">
+
+    <View
+        android:id="@+id/view_swipe"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"/>
 
     <TextView
         android:id="@id/txt_headline_displays"

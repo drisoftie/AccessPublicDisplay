@@ -3,10 +3,8 @@ package de.stuttgart.uni.vis.access.server.service.bl;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothProfile;
 import android.view.View;
 
 import com.drisoftie.action.async.IGenericAction;
@@ -15,9 +13,12 @@ import com.drisoftie.action.async.android.AndroidAction;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.util.ScheduleUtil;
 import de.stuttgart.uni.vis.access.server.App;
 import de.stuttgart.uni.vis.access.server.R;
 
@@ -27,6 +28,8 @@ import de.stuttgart.uni.vis.access.server.R;
 public class GattHandlerChat extends BaseGattHandler {
 
     private static final String TAG = GattHandlerChat.class.getSimpleName();
+
+    private List<String> chatHierarchy = new ArrayList<>();
 
     private GattCallback callback = new GattCallback();
     private ActionServicesAdd actionServicesAdd;
@@ -61,29 +64,25 @@ public class GattHandlerChat extends BaseGattHandler {
     }
 
     private void setNewsInfo() {
-        ProviderNews provider = ProviderNews.inst();
-        provider.createNews();
-        if (provider.hasNewsInfo()) {
-            changeGattChar(Constants.CHAT.GATT_SERVICE_CHAT.getUuid(), Constants.CHAT.GATT_CHAT_NOTIFY.getUuid(),
-                           provider.getFeedNews().getLink());
-        }
+//        ProviderNews provider = ProviderNews.inst();
+//        provider.createNews();
+//        if (provider.hasNewsInfo()) {
+//            changeGattChar(Constants.CHAT.GATT_SERVICE_CHAT.getUuid(), Constants.CHAT.GATT_CHAT_NOTIFY.getUuid(),
+//                           provider.getFeedNews().getLink());
+//        }
 
     }
 
-    private class GattCallback extends BluetoothGattServerCallback {
+    private class GattCallback extends GattCallbackBase {
 
         @Override
-        public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
-            super.onConnectionStateChange(device, status, newState);
-            switch (status) {
-                case BluetoothGatt.GATT_SUCCESS:
-                    getConnDevices().add(device);
-                    break;
-                default:
-                    if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        getConnDevices().remove(device);
-                    }
-            }
+        public void onConnectSuccess(BluetoothDevice device, int status, int newState) {
+
+        }
+
+        @Override
+        public void onDisconnected(BluetoothDevice device, int status, int newState) {
+
         }
 
         @Override
@@ -93,44 +92,30 @@ public class GattHandlerChat extends BaseGattHandler {
         }
 
         @Override
-        public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
-                                                BluetoothGattCharacteristic characteristic) {
-            byte[] value = characteristic.getValue();
-            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
-        }
-
-        @Override
         public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic,
                                                  boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
             characteristic.setValue(value);
+            chatHierarchy.add(new String(value));
             if (responseNeeded) {
                 getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
             }
-        }
+            ScheduleUtil.scheduleWork(new Runnable() {
 
-        @Override
-        public void onNotificationSent(BluetoothDevice device, int status) {
-        }
+                public BluetoothDevice device;
+                public byte[] value;
 
-        @Override
-        public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
+                public Runnable init(BluetoothDevice device, byte[] value) {
+                    this.device = device;
+                    this.value = value;
+                    return this;
+                }
 
-        }
+                @Override
+                public void run() {
+                    changeGattChar(Constants.CHAT.GATT_SERVICE_CHAT.getUuid(), Constants.CHAT.GATT_CHAT_NOTIFY.getUuid(), value);
 
-        @Override
-        public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor,
-                                             boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
-        }
-
-        @Override
-        public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
-            getServer().sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
-        }
-
-        @Override
-        public void onMtuChanged(BluetoothDevice device, int mtu) {
-            super.onMtuChanged(device, mtu);
+                }
+            }.init(device, value), 500, TimeUnit.MILLISECONDS);
         }
     }
 
