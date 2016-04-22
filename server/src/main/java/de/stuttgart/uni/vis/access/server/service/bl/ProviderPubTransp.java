@@ -58,7 +58,7 @@ public class ProviderPubTransp {
 
         InputStream is = null;
         try {
-            URL               url  = new URL("https://efa-api.asw.io/api/v1/station/5006008/departures/?format=json");
+            URL               url  = new URL("https://efa-api.asw.io/api/v1/station/5006056/departures/?format=json");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setReadTimeout(10000 /* milliseconds */);
             conn.setConnectTimeout(15000 /* milliseconds */);
@@ -83,6 +83,7 @@ public class ProviderPubTransp {
                     PublicTransport t = new PublicTransport();
                     t.setLine(d.number);
                     t.setTime(d.departureTime.hour + ":" + d.departureTime.minute);
+                    t.setDirection(d.direction);
                     if (StringUtils.isNumericSpace(d.number)) {
                         t.setType(PubTranspType.BUS);
                         transports.add(t);

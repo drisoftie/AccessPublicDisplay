@@ -63,6 +63,11 @@ public class ConnPubTransp extends ConnBasePartAdvertScan implements IConnMultiP
         }
     }
 
+    @Override
+    public Object getData() {
+        return null;
+    }
+
     private class BlAdvertScanCallback extends ScanCallbackBase {
 
         @Override

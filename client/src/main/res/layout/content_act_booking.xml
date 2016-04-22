@@ -1,36 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context="de.uni.stuttgart.vis.access.client.act.ActBooking"
     tools:showIn="@layout/act_booking">
 
-    <View
-        android:id="@+id/view_swipe"
-        android:layout_width="match_parent"
-        android:layout_height="250dp"/>
-
-    <Button
-        android:id="@+id/txt_booking"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here"/>
+        android:orientation="vertical"
+        >
 
-    <EditText
-        android:id="@+id/edttxt_booking"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/put_in_the_amount_of_persons"
-        android:inputType="number"/>
+        <View
+            android:id="@+id/view_swipe"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"/>
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="time"
-        android:ems="10"
-        android:id="@+id/editText"/>
+        <TextView
+            android:id="@+id/txt_head_booking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/txt_head_booking"/>
 
-</LinearLayout>
+        <EditText
+            android:id="@+id/edttxt_booking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/put_in_the_amount_of_persons"
+            android:inputType="number"/>
+
+        <TimePicker
+            android:id="@+id/tmepck_book"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
+
+        <Spinner
+            android:id="@+id/spin_food"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/arr_food"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/txt_booking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here"/>
+    </LinearLayout>
+</ScrollView>

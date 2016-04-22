@@ -15,6 +15,8 @@ public interface IConnGattProvider {
 
     void writeGattCharacteristic(UUID service, UUID characteristic, byte[] write);
 
+    Object getData();
+
     interface IConnGattSubscriber {
 
         void onGattReady(String macAddress);

@@ -31,7 +31,7 @@ public class ParserData {
                 } else if (Arrays.equals(b, Constants.AdvertiseConst.ADVERTISE_WEATHER_DATA.getFlag())) {
                     uuids.add(new AbstractMap.SimpleEntry<>(Constants.AdvertiseConst.ADVERTISE_WEATHER_DATA,
                                                             Arrays.copyOfRange(advert, i + 2, i + 6)));
-                    i = i + 6;
+                    i = i + 5;
                 } else if (Arrays.equals(b, Constants.AdvertiseConst.ADVERTISE_TRANSP.getFlag())) {
                     uuids.add(new AbstractMap.SimpleEntry<>(Constants.AdvertiseConst.ADVERTISE_TRANSP, new byte[]{}));
                     i++;
@@ -58,4 +58,10 @@ public class ParserData {
 
         return uuids;
     }
+
+    public static float fahrenheitToCelcius(float fahrenheit) {
+        return (fahrenheit - 32) * 5.f / 9.f;
+    }
+
+
 }

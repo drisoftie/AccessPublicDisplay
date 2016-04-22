@@ -101,7 +101,7 @@ public class AdvertHandler extends AdvertiseCallback {
         if (ProviderWeather.inst().hasWeatherInfo()) {
             advert.write(Constants.AdvertiseConst.ADVERTISE_WEATHER_DATA.getFlag());
             advert.write(ParserData.parseFloatToByte(
-                    (ProviderWeather.inst().getCurrWeather().getMainInstance().getTemperature() - 32) * 5.f / 9.f));
+                    ParserData.fahrenheitToCelcius(ProviderWeather.inst().getCurrWeather().getMainInstance().getTemperature())));
         } else {
             advert.write(Constants.AdvertiseConst.ADVERTISE_WEATHER.getFlag());
         }

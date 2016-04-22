@@ -23,6 +23,8 @@ import android.os.ParcelUuid;
  */
 public class Constants {
 
+    public static final char SEPARATOR = ';';
+
     public static final String ADVERTISING_FAILED            = "com.example.android.bluetoothadvertisements.advertising_failed";
     public static final String ADVERTISING_FAILED_EXTRA_CODE = "failureCode";
 

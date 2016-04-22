@@ -212,11 +212,27 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
             service.deregisterServiceListener(this);
             unbindService(this);
         }
+        deregisterGattComponents();
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(brdcstRcvr);
 
         rcycAdaptDevices.getBlData().clear();
         rcycAdaptDevices.notifyDataSetChanged();
+    }
+
+    private void deregisterGattComponents() {
+        if (gattProviderBooking != null) {
+            gattProviderBooking.deregisterConnGattSub(gattListenBooking);
+        }
+        if (gattProviderNews != null) {
+            gattProviderNews.deregisterConnGattSub(gattListenNews);
+        }
+        if (gattProviderShout != null) {
+            gattProviderShout.deregisterConnGattSub(gattListenShout);
+        }
+        if (gattProviderWeather != null) {
+            gattProviderWeather.deregisterConnGattSub(gattListenWeather);
+        }
     }
 
     @Override
@@ -226,6 +242,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
     @Override
     public void onConnStopped() {
+        invalidateOptionsMenu();
         // Deactivate updates to us so that we dont get callbacks no more.
         service.deregisterServiceListener(this);
 
@@ -359,6 +376,7 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                     }
                 }
                 if (!found) {
+                    Log.d(TAG, "Display not found and will be added: " + data.getAddress());
                     SoundPlayer.playExampleBeep(440, 1, 0);
                     VibratorBuilder.vibrate(VibratorBuilder.SHORT_SHORT);
                     addData(data);
@@ -404,7 +422,8 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
 
             @Override
             public void onRun() {
-                Iterator<BlData> i = getData();
+                boolean          found = false;
+                Iterator<BlData> i     = getData();
                 while (i.hasNext()) {
                     BlData b = i.next();
                     if (b.getAddress().equals(result.getDevice().getAddress())) {
@@ -415,14 +434,24 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                         }
                         b.setActive(true);
                         b.setRssi(result.getRssi());
-                        ActScan.this.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                rcycAdaptDevices.notifyItemChanged(0);
-                            }
-                        });
+                        found = true;
                         break;
                     }
+                }
+                if (!found) {
+                    BlData data = new BlData();
+                    data.setActive(true);
+                    data.setAddress(result.getDevice().getAddress());
+                    data.setRssi(result.getRssi());
+                    //noinspection ConstantConditions
+                    data.setAdvertisement(result.getScanRecord().getServiceData(Constants.UUID_ADVERT_SERVICE_MULTI));
+                    Log.d(TAG, "Already found Display not found in Data and will be added: " + data.getAddress());
+                    SoundPlayer.playExampleBeep(440, 1, 0);
+                    VibratorBuilder.vibrate(VibratorBuilder.SHORT_SHORT);
+                    addData(data);
+                    Intent showIntent = new Intent(getString(R.string.intent_advert_gatt_connect));
+                    showIntent.putExtra(getString(R.string.bndl_bl_scan_result), result);
+                    LocalBroadcastManager.getInstance(ActScan.this).sendBroadcast(showIntent);
                 }
             }
         }.init(result));
@@ -504,11 +533,22 @@ public class ActScan extends ActBasePerms implements NavigationView.OnNavigation
                             d.getGattData().add(new GattData(uuid, value));
                         }
                         ActScan.this.runOnUiThread(new Runnable() {
+                            public BlData d;
+
+                            public Runnable init(BlData d) {
+                                this.d = d;
+                                return this;
+                            }
+
                             @Override
                             public void run() {
-                                rcycAdaptDevices.notifyItemChanged(0);
+                                AdaptScans.ViewHolder viewHolder = (AdaptScans.ViewHolder) rcycDevices.findViewHolderForAdapterPosition(
+                                        rcycAdaptDevices.getBlData().indexOf(d));
+                                if (viewHolder != null) {
+                                    viewHolder.parseData(d);
+                                }
                             }
-                        });
+                        }.init(d));
                         break;
                     }
                 }

@@ -40,6 +40,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/send"/>
+
+        <ImageButton
+            android:id="@+id/btn_chat_pic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Foto"
+            android:src="@drawable/ic_photo_camera_black_24dp"/>
     </LinearLayout>
 
     <ListView

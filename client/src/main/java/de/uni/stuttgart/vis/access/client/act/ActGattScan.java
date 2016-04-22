@@ -29,7 +29,10 @@ public abstract class ActGattScan extends ActBasePerms
             service.deregisterServiceListener(this);
             unbindService(this);
         }
+        deregisterGattComponents();
     }
+
+    abstract void deregisterGattComponents();
 
     private boolean isServiceBlConnected() {
         return service != null && service.isConnected(this);

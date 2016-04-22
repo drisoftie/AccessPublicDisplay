@@ -1,14 +1,17 @@
 package de.uni.stuttgart.vis.access.client.service.bl;
 
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.le.ScanResult;
 import android.os.ParcelUuid;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.stuttgart.uni.vis.access.common.domain.ConstantsBooking;
 import de.stuttgart.uni.vis.access.common.util.AccessGatt;
 import de.uni.stuttgart.vis.access.client.App;
 
@@ -16,6 +19,9 @@ import de.uni.stuttgart.vis.access.client.App;
  * @author Alexander Dridiger
  */
 public class ConnBooking extends ConnBasePartAdvertScan implements IConnMultiPart {
+
+
+    private ConstantsBooking.StateBooking state = ConstantsBooking.StateBooking.START;
 
     public ConnBooking() {
         addUuid(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid()).addUuid(Constants.BOOKING.UUID_ADVERT_SERVICE_BOOKING.getUuid()).addUuid(
@@ -62,6 +68,11 @@ public class ConnBooking extends ConnBasePartAdvertScan implements IConnMultiPar
         }
     }
 
+    @Override
+    public Object getData() {
+        return state;
+    }
+
     private class BlAdvertScanCallback extends ScanCallbackBase {
 
         @Override
@@ -93,6 +104,20 @@ public class ConnBooking extends ConnBasePartAdvertScan implements IConnMultiPar
                                                  .getCharacteristic(Constants.BOOKING.GATT_BOOKING_NOTIFY.getUuid()), true);
                     }
                 });
+            }
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            setGattInst(gatt);
+            for (UUID uuid : getConstantUuids()) {
+                if (uuid.equals(characteristic.getUuid())) {
+                    if (characteristic.getValue() != null) {
+                        for (IConnGattSubscriber sub : getConnGattSubscribers()) {
+                            sub.onGattValueChanged(getLastGattInst().getDevice().getAddress(), uuid, characteristic.getValue());
+                        }
+                    }
+                }
             }
         }
     }

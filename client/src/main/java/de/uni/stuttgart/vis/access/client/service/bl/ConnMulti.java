@@ -35,7 +35,8 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
     private List<AbstractMap.SimpleEntry<IConnMultiPart, String>> notifyParts       = new ArrayList<>();
 
     public ConnMulti() {
-        addPart(new ConnWeather()).addPart(new ConnShout()).addPart(new ConnNews()).addPart(new ConnBooking()).addPart(new ConnChat());
+        addPart(new ConnWeather()).addPart(new ConnPubTransp()).addPart(new ConnShout()).addPart(new ConnNews()).addPart(new ConnBooking())
+                                  .addPart(new ConnChat());
         addUuid(Constants.UUID_ADVERT_SERVICE_MULTI.getUuid()).addUuid(Constants.WEATHER.UUID_ADVERT_SERVICE_WEATHER.getUuid()).addUuid(
                 Constants.PUBTRANSP.UUID_ADVERT_SERVICE_PUB_TRANSP.getUuid()).addUuid(Constants.SHOUT.UUID_ADVERT_SERVICE_SHOUT.getUuid())
                                                               .addUuid(Constants.NEWS.UUID_ADVERT_SERVICE_NEWS.getUuid()).addUuid(
@@ -261,6 +262,11 @@ public class ConnMulti extends ConnBaseAdvertScan implements IConnMulti {
             // don't send results to a handler multiple times
             h.onScanLost(result);
         }
+    }
+
+    @Override
+    public Object getData() {
+        return null;
     }
 
     private class BlAdvertScanCallback extends ScanCallback {

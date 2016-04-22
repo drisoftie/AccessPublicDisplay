@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings">Settings</string>
+    <string name="gatt_weather_data_to">bis</string>
+    <string name="info_transp_no_conn">Keine Verbindungen.</string>
+    <string name="info_shout_wallmart">LIDL Würstchen 50% gesenkt!</string>
+    <string name="info_shout_breu">Im Breuninger 30% auf Hosen!</string>
+    <string name="info_shout_media">Media Markt TVs bis zu 70% Rabatt! Ich bin doch nicht blöd!</string>
+    <string name="info_shout_prime">Prime Mark bietet Socken schon ab einem Euro.</string>
+    <string name="info_shout_sport">HAndschuhe bei Sportarena für die Hälfte!</string>
+</resources>

@@ -18,6 +18,7 @@ import android.widget.TextView;
 import java.text.DecimalFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +32,7 @@ import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.data.BlData;
 import de.uni.stuttgart.vis.access.client.data.GattData;
+import de.uni.stuttgart.vis.access.client.helper.ParserUtil;
 import de.uni.stuttgart.vis.access.client.service.IServiceBinderClient;
 import de.uni.stuttgart.vis.access.client.service.IServiceBlListener;
 import de.uni.stuttgart.vis.access.client.service.ServiceScan;
@@ -92,12 +94,12 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
                     switch (advertEntry.getKey()) {
                         case ADVERTISE_WEATHER: {
                             String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), blData);
+                            text.append(getString(R.string.press_weather));
                             if (g != null) {
-                                text.append(App.inst().getString(R.string.weater_today_display));
-                                text.append(g).append(System.lineSeparator());
+                                text.append(System.lineSeparator()).append(App.inst().getString(R.string.weater_today_display));
+                                text.append(ParserUtil.parseWeather(g));
                             }
                             btn.setText(text);
-                            text.append(getString(R.string.press_weather));
                             buttons.add(btn);
                             btn.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -109,16 +111,16 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
                         }
                         case ADVERTISE_WEATHER_DATA: {
                             String g = getGattData(Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(), blData);
+                            text.append(getString(R.string.press_weather)).append(System.lineSeparator());
                             if (g != null) {
                                 text.append(App.inst().getString(R.string.weater_today_display));
-                                text.append(g).append(System.lineSeparator());
+                                text.append(ParserUtil.parseWeather(g));
                             } else {
                                 text.append(App.inst().getString(R.string.weather_curr_temp));
                                 text.append(new DecimalFormat("#.#").format(ParserData.parseByteToFloat(advertEntry.getValue()))).append(
                                         System.lineSeparator());
                                 text.append(App.inst().getString(R.string.Celcius));
                             }
-                            text.append(getString(R.string.press_weather));
                             btn.setText(text);
                             buttons.add(btn);
                             btn.setOnClickListener(new View.OnClickListener() {
@@ -131,58 +133,79 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
                         }
                         case ADVERTISE_TRANSP: {
                             String g = getGattData(Constants.PUBTRANSP.GATT_PUB_TRANSP_METRO.getUuid(), blData);
-                            if (g != null) {
-                                text.append("");
-                                text.append(g).append(System.lineSeparator());
-                            }
                             text.append(getString(R.string.press_pubtransp));
+                            if (g != null) {
+                                text.append(System.lineSeparator()).append(g);
+                            }
                             btn.setText(text);
                             buttons.add(btn);
+                            btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startActivity(new Intent(ActMulti.this, ActPubTransp.class));
+                                }
+                            });
                             break;
                         }
                         case ADVERTISE_SHOUT: {
                             String g = getGattData(Constants.SHOUT.GATT_SHOUT.getUuid(), blData);
-                            if (g != null) {
-                                text.append(getString(R.string.newest_shoutouts));
-                                text.append(g + System.lineSeparator());
-                            }
                             text.append(getString(R.string.press_shoutouts));
+                            if (g != null) {
+                                text.append(System.lineSeparator()).append(getString(R.string.newest_shoutouts)).append(
+                                        System.lineSeparator());
+                                text.append(g);
+                            }
                             btn.setText(text);
                             buttons.add(btn);
+                            btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startActivity(new Intent(ActMulti.this, ActShout.class));
+                                }
+                            });
                             break;
                         }
                         case ADVERTISE_NEWS: {
                             String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), blData);
-                            if (g != null) {
-                                text.append(g);
-                                text.append(g).append(System.lineSeparator());
-                            }
                             text.append(getString(R.string.press_news));
+                            if (g != null) {
+                                text.append(System.lineSeparator()).append(g);
+                            }
                             btn.setText(text);
+                            btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startActivity(new Intent(ActMulti.this, ActNews.class));
+                                }
+                            });
                             buttons.add(btn);
                             break;
                         }
                         case ADVERTISE_NEWS_DATA: {
                             String g = getGattData(Constants.NEWS.GATT_NEWS.getUuid(), blData);
+                            text.append(getString(R.string.press_news)).append(System.lineSeparator());
                             if (g != null) {
                                 text.append(g);
-                                text.append(g).append(System.lineSeparator());
                             } else {
-                                text.append(getString(R.string.newest_news));
-                                text.append(String.valueOf(advertEntry.getValue())).append(System.lineSeparator());
+                                text.append(Arrays.toString(advertEntry.getValue()));
                             }
-                            text.append(getString(R.string.press_news));
                             btn.setText(text);
+                            btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startActivity(new Intent(ActMulti.this, ActNews.class));
+                                }
+                            });
                             buttons.add(btn);
                             break;
                         }
                         case ADVERTISE_BOOKING: {
                             String g = getGattData(Constants.BOOKING.GATT_BOOKING_WRITE.getUuid(), blData);
-                            if (g != null) {
-                                text.append(g).append(System.lineSeparator());
-                            }
-                            text.append(getString(R.string.want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here)).append(
+                            text.append(getString(R.string.btn_booking)).append(
                                     System.lineSeparator()).append(getString(R.string.press_book));
+                            if (g != null) {
+                                text.append(System.lineSeparator()).append(g);
+                            }
                             btn.setText(text);
                             btn.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -195,11 +218,11 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
                         }
                         case ADVERTISE_CHAT: {
                             String g = getGattData(Constants.CHAT.GATT_CHAT_WRITE.getUuid(), blData);
-                            if (g != null) {
-                                text.append(g).append(System.lineSeparator());
-                            }
                             text.append(getString(R.string.press_chat_message)).append(System.lineSeparator()).append(
                                     getString(R.string.press_chat));
+                            if (g != null) {
+                                text.append(System.lineSeparator()).append(g);
+                            }
                             btn.setText(text);
                             btn.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -225,7 +248,7 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
                     @Override
                     public void run() {
                         LinearLayout lytMulti = (LinearLayout) findViewById(R.id.lyt_multi_select);
-
+                        lytMulti.removeAllViews();
                         for (TextView b : buttons) {
                             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
                                                                                                    LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -299,11 +322,13 @@ public class ActMulti extends ActBasePerms implements ServiceConnection, IServic
 
     @Override
     public void onConnStopped() {
-        // Deactivate updates to us so that we dont get callbacks no more.
-        service.deregisterServiceListener(this);
+        if (isServiceBlConnected()) {
+            // Deactivate updates to us so that we dont get callbacks no more.
+            service.deregisterServiceListener(this);
 
-        // Finally stop the service
-        unbindService(this);
+            // Finally stop the service
+            unbindService(this);
+        }
         service = null;
     }
 

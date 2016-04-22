@@ -57,4 +57,11 @@
     <string name="nact_stop">Stop</string>
     <string name="ntxt_advert_run">Advertisement Running</string>
     <string name="ntxt_advert_run_descr">Current value: %1$s</string>
+    <string name="gatt_weather_data_to">to</string>
+    <string name="info_transp_no_conn">No Connection</string>
+    <string name="info_shout_wallmart">Wall Mart sausages 50% off</string>
+    <string name="info_shout_breu">Breuninger trousers up to 30% off</string>
+    <string name="info_shout_prime">Prime Mark socks 20% off</string>
+    <string name="info_shout_media">Media Markt TVs up to 70% off!</string>
+    <string name="info_shout_sport">Sportarena everything 10% off</string>
 </resources>

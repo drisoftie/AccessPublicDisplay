@@ -17,11 +17,10 @@
             android:layout_width="match_parent"
             android:layout_height="250dp"/>
 
-        <LinearLayout
-            android:id="@id/lyt_multi_select"
+        <TextView
+            android:id="@+id/txt_info_news"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
             android:padding="10dp"/>
     </LinearLayout>
 

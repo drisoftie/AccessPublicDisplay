@@ -40,14 +40,14 @@
     <string name="txt_range_list">Sie sind in der Nähe eines öffentlichen Displays, Sie können folgende Informationen erhalten:</string>
     <string name="txt_range_list_empty">Es sind gerade keine Displays in Reichweite</string>
     <string name="txt_weather_more_info">Klicken Sie auf den Knopf darunter, um Wetterinformationen zu bekommen:</string>
-    <string name="want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here">Wollen Sie einen Tisch im Restaurant in der Nähe buchen? Klicken Sie hier!</string>
+    <string name="want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here">Absenden und weiter mit der Buchung!</string>
     <string name="put_in_the_amount_of_persons">Geben Sie die Anzahl der Personen an.</string>
     <string name="chat_with_your_surrounding_people">Chatten Sie mit den Leuten um sich herum!</string>
     <string name="send">Senden</string>
     <string name="app_name">Öffentliche Displays</string>
     <string name="news_amount">Nachrichten Anzahl</string>
     <string name="shout_newest">"Neuste Informationen: "</string>
-    <string name="weater_today_display">"Das Wetter für heute ist: "</string>
+    <string name="weater_today_display">"Das Wetter für heute: "</string>
     <string name="weather_curr_temp">"Die jetzigen Temperaturen: "</string>
     <string name="Celcius">" Celcius"</string>
     <string name="press_weather">Für Wetterinfos hier drücken.</string>
@@ -61,4 +61,21 @@
     <string name="press_shoutouts">Hier für mehr Meldungen drücken.</string>
     <string name="chat_with_people">Chatten Sie jetzt!</string>
     <string name="ntxt_new_info">Neue Infos!</string>
+    <string name="txt_litem_public_in_range">Public Display im Besprechungszimmer. Hier klicken.</string>
+    <string name="txt_to">" bis "</string>
+    <string name="ntxt_news">"Nachrichten: "</string>
+    <string name="ntxt_book_table">Einen Tisch buchen! Erst Personenanzahl eintragen.</string>
+    <string name="txt_head_booking">Buchen Sie einen Tisch! Geben Sie Informationen an und bestätigen Sie mit der Schaltfläche
+        unten:</string>
+    <string name="info_book_choose_time">Wählen Sie eine Zeit aus!</string>
+
+    <string-array name="arr_food">
+        <item>Schnitzel mit Pommes</item>
+        <item>Tagesangebot: Burrito mit Beef</item>
+        <item>Spicy Hamburger</item>
+        <item>Nudeln in Käse-Soße</item>
+        <item>Pizza Salami</item>
+        <item>Baguette Rusticale</item>
+    </string-array>
+    <string name="btn_booking">Hier drücken zum Tisch buchen! El Mero Mexicano in der Nähe!</string>
 </resources>

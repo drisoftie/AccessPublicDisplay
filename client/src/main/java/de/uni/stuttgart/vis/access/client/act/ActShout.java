@@ -9,6 +9,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.drisoftie.action.async.IGenericAction;
 import com.drisoftie.action.async.android.AndroidAction;
 
 import java.util.List;
@@ -20,19 +21,22 @@ import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.service.ServiceScan;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
 
-public class ActTransp extends ActGattScan {
+public class ActShout extends ActGattScan {
 
-    private GattTransp        gattListenTransp;
-    private IConnGattProvider gattProviderTransp;
+    private GattShout         gattListenShout;
+    private IConnGattProvider gattProviderShout;
+    private ActionGattSetup   actionGatt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.act_weather);
+        setContentView(R.layout.act_shout);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+
+        actionGatt = new ActionGattSetup(null, IGenericAction.class, null);
     }
 
     @Override
@@ -51,9 +55,9 @@ public class ActTransp extends ActGattScan {
     @Override
     public void onServiceConnected(ComponentName name, IBinder binder) {
         super.onServiceConnected(name, binder);
-        if (gattListenTransp == null) {
-            gattProviderTransp = service.subscribeGattConnection(Constants.PUBTRANSP.GATT_SERVICE_PUB_TRANSP.getUuid(),
-                                                                 gattListenTransp = new GattTransp());
+        if (gattListenShout == null) {
+            gattProviderShout = service.subscribeGattConnection(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(),
+                                                                gattListenShout = new GattShout());
         }
     }
 
@@ -67,8 +71,13 @@ public class ActTransp extends ActGattScan {
     }
 
     @Override
+    void deregisterGattComponents() {
+        gattProviderShout.deregisterConnGattSub(gattListenShout);
+    }
+
+    @Override
     public void onScanResultReceived(ScanResult result) {
-        getClass();
+
     }
 
     @Override
@@ -109,17 +118,26 @@ public class ActTransp extends ActGattScan {
 
         @Override
         public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
+            Object[] args = stripMethodArgs(methodArgs);
+            UUID     uuid = (UUID) args[1];
+            if (Constants.SHOUT.GATT_SHOUT.getUuid().equals(uuid)) {
+                gattProviderShout.getGattCharacteristicRead(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(),
+                                                            Constants.SHOUT.GATT_SHOUT.getUuid());
+                //            } else if (Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
+                //                gattProviderShout.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
+                //                                                            Constants.WEATHER.GATT_WEATHER_DAT.getUuid());
+            }
             return null;
         }
 
         @Override
         public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
                                       Object[] additionalTags) {
-
+            Object[] args    = stripMethodArgs(methodArgs);
         }
     }
 
-    private class GattTransp implements IConnGattProvider.IConnGattSubscriber {
+    private class GattShout implements IConnGattProvider.IConnGattSubscriber {
 
         @Override
         public void onGattReady(String macAddress) {
@@ -127,14 +145,12 @@ public class ActTransp extends ActGattScan {
 
         @Override
         public void onServicesReady(String macAddress) {
-            gattProviderTransp.registerConnGattSub(gattListenTransp);
-            gattProviderTransp.getGattCharacteristicRead(Constants.PUBTRANSP.GATT_SERVICE_PUB_TRANSP.getUuid(),
-                                                         Constants.PUBTRANSP.GATT_PUB_TRANSP_BUS.getUuid());
+            gattProviderShout.registerConnGattSub(gattListenShout);
         }
 
         @Override
         public void onGattValueReceived(String macAddress, UUID uuid, byte[] value) {
-
+            actionGatt.invokeSelf(value, uuid);
         }
 
         @Override

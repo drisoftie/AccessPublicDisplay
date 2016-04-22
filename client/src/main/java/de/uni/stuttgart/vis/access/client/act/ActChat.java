@@ -65,9 +65,9 @@ public class ActChat extends ActGattScan {
     };
 
     public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
-        float ratio  = Math.min((float) maxImageSize / realImage.getWidth(), (float) maxImageSize / realImage.getHeight());
-        int   width  = Math.round((float) ratio * realImage.getWidth());
-        int   height = Math.round((float) ratio * realImage.getHeight());
+        float ratio  = Math.min(maxImageSize / realImage.getWidth(), maxImageSize / realImage.getHeight());
+        int   width  = Math.round(ratio * realImage.getWidth());
+        int   height = Math.round(ratio * realImage.getHeight());
 
         Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width, height, filter);
         return newBitmap;
@@ -118,6 +118,17 @@ public class ActChat extends ActGattScan {
                 sendMessage(message);
             }
         });
+
+        findViewById(R.id.btn_chat_pic).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(takePictureIntent, 10);
+                }
+            }
+        });
+
+
         mOutStringBuffer = new StringBuffer("");
     }
 
@@ -205,6 +216,11 @@ public class ActChat extends ActGattScan {
     @Override
     protected void onPausing() {
 
+    }
+
+    @Override
+    void deregisterGattComponents() {
+        gattProviderChat.deregisterConnGattSub(gattListenChat);
     }
 
     @Override
@@ -297,8 +313,7 @@ public class ActChat extends ActGattScan {
                 ChatMessage newMsg  = new ChatMessage();
                 if (value.length > 200) {
                     byte[] picData = Arrays.copyOfRange(value, index, value.length);
-                    Bitmap bitmap  = BitmapFactory.decodeByteArray(picData, 0, picData.length);
-                    newMsg.pic = bitmap;
+                    newMsg.pic = BitmapFactory.decodeByteArray(picData, 0, picData.length);
                 } else {
                     newMsg.message = message;
                 }

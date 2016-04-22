@@ -25,6 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import de.stuttgart.uni.vis.access.common.Constants;
+import de.uni.stuttgart.vis.access.client.BuildConfig;
 import de.uni.stuttgart.vis.access.client.R;
 import de.uni.stuttgart.vis.access.client.helper.IContextProv;
 import de.uni.stuttgart.vis.access.client.helper.INotifyProv;
@@ -288,7 +289,9 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
             super.onScanResult(callbackType, result);
             String address = result.getDevice().getAddress();
             countingOrResetting(true, result);
-            Log.d(TAG, "onScanResult: " + address);
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "onScanResult: " + address);
+            }
             if (result.getScanRecord() != null && result.getScanRecord().getServiceUuids() != null) {
                 IConnAdvertScan handler = getConnection(result.getScanRecord().getServiceUuids());
                 if (handler != null) {
@@ -318,7 +321,7 @@ public class ConnectorAdvertScan implements INotifyProv, ITtsProv {
                 case BluetoothGatt.GATT_SUCCESS:
                     switch (newState) {
                         case BluetoothProfile.STATE_CONNECTED:
-                            gatt.requestMtu(256);
+                            gatt.requestMtu(512);
                     }
                     break;
                 case BluetoothGatt.GATT_FAILURE:

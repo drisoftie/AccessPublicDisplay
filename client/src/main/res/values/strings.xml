@@ -163,7 +163,8 @@
     </string>
     <string name="title_activity_act_chat">Chatting</string>
     <string name="send_picture">Send Picture</string>
-    <string name="want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here">Want to book a table or dish inside El Mero Mexicano? Press here!</string>
+    <string name="want_to_book_a_table_or_dish_inside_el_mero_mexicano_press_here">Send and continue booking!</string>
+    <string name="btn_booking">Press here to book a table nearby! El Mero Mexicano</string>
     <string name="put_in_the_amount_of_persons">Put in the amount of persons.</string>
     <string name="chat_with_your_surrounding_people">Chat with your surrounding people!</string>
     <string name="send">Send</string>
@@ -183,5 +184,22 @@
     <string name="press_chat">Press here for chatting.</string>
     <string name="chat_with_people">Chat with people!</string>
     <string name="ntxt_new_info">Some new infos!</string>
+    <string name="txt_litem_public_in_range">Public Display in Room. Click here.</string>
+    <string name="txt_to">" bis "</string>
+    <string name="title_activity_act_shout">Meldungen</string>
+    <string name="title_activity_act_news">News</string>
+    <string name="ntxt_news">"News: "</string>
+    <string name="ntxt_book_table">Book a table!</string>
+    <string name="txt_head_booking">Book a table! Fill in the information and confirm with the button:</string>
+    <string name="info_book_choose_time">Choose Time!!</string>
 
+
+    <string-array name="arr_food">
+        <item>Schnitzel with Frites</item>
+        <item>Day special: Burrito with Beef</item>
+        <item>Spicy Hamburger</item>
+        <item>Macaroni and Cheese</item>
+        <item>Pizza Ham</item>
+        <item>Baguette Rusticale</item>
+    </string-array>
 </resources>

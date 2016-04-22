@@ -70,6 +70,11 @@ public class ConnChat extends ConnBasePartAdvertScan implements IConnMultiPart {
         }
     }
 
+    @Override
+    public Object getData() {
+        return chatHistory;
+    }
+
     private class BlAdvertScanCallback extends ScanCallbackBase {
 
         @Override
@@ -147,12 +152,23 @@ public class ConnChat extends ConnBasePartAdvertScan implements IConnMultiPart {
                 }
             }
             if (!found) {
-                ChatMessage msg = parseMsg(value, index);
+                ChatMessage msg = new ChatMessage();
+                parseMsg(value, index, msg);
                 msg.timestamp = stamp;
                 chatHistory.add(msg);
                 for (IConnGattSubscriber sub : getConnGattSubscribers()) {
                     sub.onGattValueChanged(getLastGattInst().getDevice().getAddress(), uuid, msg.value);
                 }
+            }
+        }
+
+        private void parseMsg(byte[] value, int indexColon, ChatMessage msg) {
+            msg.value = value;
+            if (value.length > 200) {
+                byte[] picData = Arrays.copyOfRange(value, indexColon + 1, value.length);
+                msg.pic = BitmapFactory.decodeByteArray(picData, 0, picData.length);
+            } else {
+                msg.message = new String(Arrays.copyOfRange(value, indexColon + 1, value.length));
             }
         }
 

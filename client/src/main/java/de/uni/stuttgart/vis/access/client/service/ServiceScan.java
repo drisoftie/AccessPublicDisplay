@@ -230,8 +230,8 @@ public class ServiceScan extends Service implements IContextProv, ITtsProv, INot
             } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_advert_gatt_connect))) {
                 connectorAdvertScan.connectGatt(intent.getParcelableExtra(getString(R.string.bndl_bl_scan_result)));
             } else if (StringUtils.equals(intent.getAction(), getString(R.string.intent_action_bl_user_stopped))) {
-                for (IServiceBlListener l : serviceListeners) {
-                    l.onConnStopped();
+                for (int i = 0; i < serviceListeners.size(); i++) {
+                    IServiceBlListener l = serviceListeners.get(i);
                 }
                 stopSelf();
             }

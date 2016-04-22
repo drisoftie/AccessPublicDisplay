@@ -1,7 +1,6 @@
 package de.uni.stuttgart.vis.access.client.service.bl;
 
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.le.ScanResult;
 import android.os.ParcelUuid;
 
@@ -86,7 +85,7 @@ public class ConnWeather extends ConnBasePartAdvertScan implements IConnMultiPar
                         }
                     } else {
                         addScanResult(scanData);
-                        getConnMulti().contributeNotification("Current temperature: " + new DecimalFormat("#.#")
+                        getConnMulti().contributeNotification(App.inst().getString(R.string.weather_curr_temp) + new DecimalFormat("#.#")
                                 .format(ParserData.parseByteToFloat(Arrays.copyOfRange(advert, i + 2, i + 6))), this);
                         String txtFound = App.string(R.string.ntxt_scan_found);
                         String txtFoundDescr = App.inst().getString(R.string.ntxt_scan_descr,
@@ -99,6 +98,11 @@ public class ConnWeather extends ConnBasePartAdvertScan implements IConnMultiPar
                 }
             }
         }
+    }
+
+    @Override
+    public Object getData() {
+        return null;
     }
 
     private class BlAdvertScanCallback extends ScanCallbackBase {
@@ -114,7 +118,7 @@ public class ConnWeather extends ConnBasePartAdvertScan implements IConnMultiPar
         }
     }
 
-    private class BlGattCallback extends BluetoothGattCallback {
+    private class BlGattCallback extends GattCallbackBase {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {

@@ -32,23 +32,23 @@ public class GattHandlerShout extends BaseGattHandler {
                 switch (count % 10) {
                     case 0:
                         changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
-                                       "Wall Mart sausages 50% off");
+                                       App.inst().getString(R.string.info_shout_wallmart));
                         break;
                     case 2:
                         changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
-                                       "Breuninger trousers up to 30% off");
+                                       App.inst().getString(R.string.info_shout_breu));
                         break;
                     case 4:
                         changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
-                                       "Prime Mark socks 20% off");
+                                       App.inst().getString(R.string.info_shout_prime));
                         break;
                     case 6:
                         changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
-                                       "Media Markt TVs up to 70% off!");
+                                       App.inst().getString(R.string.info_shout_media));
                         break;
                     case 8:
                         changeGattChar(Constants.SHOUT.GATT_SERVICE_SHOUT.getUuid(), Constants.SHOUT.GATT_SHOUT.getUuid(),
-                                       "Sportarena everything 10% off");
+                                       App.inst().getString(R.string.info_shout_sport));
                         count = 0;
                         break;
                 }

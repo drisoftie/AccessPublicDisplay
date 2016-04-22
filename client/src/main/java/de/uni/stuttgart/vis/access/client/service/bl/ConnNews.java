@@ -71,7 +71,7 @@ public class ConnNews extends ConnBasePartAdvertScan implements IConnMultiPart {
                         }
                     } else {
                         addScanResult(scanData);
-                        getConnMulti().contributeNotification("News: " + String.valueOf(advert[i + 2]), this);
+                        getConnMulti().contributeNotification(App.inst().getString(R.string.ntxt_news) + String.valueOf(advert[i + 2]), this);
                         String txtFound = App.string(R.string.ntxt_scan_found);
                         String txtFoundDescr = App.inst().getString(R.string.ntxt_scan_descr,
                                                                     App.string(Constants.AdvertiseConst.ADVERTISE_WEATHER.getDescr()));
@@ -85,6 +85,11 @@ public class ConnNews extends ConnBasePartAdvertScan implements IConnMultiPart {
                 break;
             }
         }
+    }
+
+    @Override
+    public Object getData() {
+        return null;
     }
 
     private class BlAdvertScanCallback extends ScanCallbackBase {

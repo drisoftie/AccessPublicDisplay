@@ -3,6 +3,7 @@ package de.uni.stuttgart.vis.access.client.act;
 import android.bluetooth.le.ScanResult;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -13,27 +14,27 @@ import android.widget.TextView;
 import com.drisoftie.action.async.IGenericAction;
 import com.drisoftie.action.async.android.AndroidAction;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import de.stuttgart.uni.vis.access.common.Constants;
-import de.uni.stuttgart.vis.access.client.App;
 import de.uni.stuttgart.vis.access.client.R;
-import de.uni.stuttgart.vis.access.client.helper.ParserUtil;
 import de.uni.stuttgart.vis.access.client.service.ServiceScan;
 import de.uni.stuttgart.vis.access.client.service.bl.IConnGattProvider;
 
-public class ActWeather extends ActGattScan {
+public class ActNews extends ActGattScan {
 
-    private GattWeather       gattListenWeather;
-    private IConnGattProvider gattProviderWeather;
+    private GattNews          gattListenNews;
+    private IConnGattProvider gattProviderNews;
     private ActionGattSetup   actionGatt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.act_weather);
+        setContentView(R.layout.act_news);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -58,11 +59,10 @@ public class ActWeather extends ActGattScan {
     @Override
     public void onServiceConnected(ComponentName name, IBinder binder) {
         super.onServiceConnected(name, binder);
-        if (gattListenWeather == null) {
-            gattProviderWeather = service.subscribeGattConnection(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                                  gattListenWeather = new GattWeather());
-            gattProviderWeather.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                          Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
+        if (gattListenNews == null) {
+            gattProviderNews = service.subscribeGattConnection(Constants.NEWS.GATT_SERVICE_NEWS.getUuid(), gattListenNews = new GattNews());
+
+            gattProviderNews.getGattCharacteristicRead(Constants.NEWS.GATT_SERVICE_NEWS.getUuid(), Constants.NEWS.GATT_NEWS.getUuid());
         }
     }
 
@@ -77,7 +77,7 @@ public class ActWeather extends ActGattScan {
 
     @Override
     void deregisterGattComponents() {
-        gattProviderWeather.deregisterConnGattSub(gattListenWeather);
+        gattProviderNews.deregisterConnGattSub(gattListenNews);
     }
 
     @Override
@@ -125,12 +125,9 @@ public class ActWeather extends ActGattScan {
         public Void onActionDoWork(String methodName, Object[] methodArgs, Void tag1, Void tag2, Object[] additionalTags) {
             Object[] args = stripMethodArgs(methodArgs);
             UUID     uuid = (UUID) args[1];
-            if (Constants.WEATHER.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
-                gattProviderWeather.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                              Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid());
-            } else if (Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
-                gattProviderWeather.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                              Constants.WEATHER.GATT_WEATHER_DAT.getUuid());
+            if (Constants.NEWS.GATT_NEWS.getUuid().equals(uuid)) {
+                //                                gattProviderNews.getGattCharacteristicRead(Constants.NEWS.GATT_SERVICE_NEWS.getUuid(),
+                //                                                                           Constants.NEWS.GATT_NEWS.getUuid());
             }
             return null;
         }
@@ -138,28 +135,51 @@ public class ActWeather extends ActGattScan {
         @Override
         public void onActionAfterWork(String methodName, Object[] methodArgs, Void workResult, Void tag1, Void tag2,
                                       Object[] additionalTags) {
-            Object[] args    = stripMethodArgs(methodArgs);
-            byte[]   value   = (byte[]) args[0];
-            UUID     uuid    = (UUID) args[1];
-            int      id      = 0;
-            String   weather = null;
-            if (Constants.WEATHER.GATT_WEATHER_TODAY.getUuid().equals(uuid)) {
-                weather = App.inst().getString(R.string.info_weather_today, ParserUtil.parseWeather(value));
-                id = R.id.txt_weather_today;
-            } else if (Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
-                weather = App.inst().getString(R.string.info_weather_tomorrow, ParserUtil.parseWeather(value));
-                id = R.id.txt_weather_tomorrow;
-            } else if (Constants.WEATHER.GATT_WEATHER_DAT.getUuid().equals(uuid)) {
-                weather = App.inst().getString(R.string.info_weather_dat, ParserUtil.parseWeather(value));
-                id = R.id.txt_weather_dat;
+            Object[] args  = stripMethodArgs(methodArgs);
+            byte[]   value = (byte[]) args[0];
+            UUID     uuid  = (UUID) args[1];
+            int      id    = 0;
+            String   news  = null;
+            if (Constants.NEWS.GATT_NEWS.getUuid().equals(uuid)) {
+                news = new String(value);
+                id = R.id.txt_info_news;
+                //            } else if (Constants.NEWS.GATT_WEATHER_TOMORROW.getUuid().equals(uuid)) {
+                //                weather = App.inst().getString(R.string.info_weather_tomorrow, ParserUtil.parseWeather(value));
+                //                id = R.id.txt_weather_tomorrow;
+                //            } else if (Constants.NEWS.GATT_WEATHER_DAT.getUuid().equals(uuid)) {
+                //                weather = App.inst().getString(R.string.info_weather_dat, ParserUtil.parseWeather(value));
+                //                id = R.id.txt_weather_dat;
             }
             if (id > 0) {
-                ((TextView) findViewById(id)).setText(weather);
+                TextView txt = (TextView) findViewById(id);
+                txt.setText(news + " Bitte doppelt klicken zum Lesen");
+                txt.setOnClickListener(new View.OnClickListener() {
+                    public String query;
+
+                    public View.OnClickListener init(String query) {
+                        this.query = query;
+                        return this;
+                    }
+
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            query = URLEncoder.encode(query, "utf-8");
+                            String url    = "http://www.google.com/search?q=" + query;
+                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                            intent.setData(Uri.parse(url));
+                            startActivity(intent);
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }.init(news));
+
             }
         }
     }
 
-    private class GattWeather implements IConnGattProvider.IConnGattSubscriber {
+    private class GattNews implements IConnGattProvider.IConnGattSubscriber {
 
         @Override
         public void onGattReady(String macAddress) {
@@ -167,9 +187,7 @@ public class ActWeather extends ActGattScan {
 
         @Override
         public void onServicesReady(String macAddress) {
-            gattProviderWeather.registerConnGattSub(gattListenWeather);
-            gattProviderWeather.getGattCharacteristicRead(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                                          Constants.WEATHER.GATT_WEATHER_TODAY.getUuid());
+            gattProviderNews.registerConnGattSub(gattListenNews);
         }
 
         @Override

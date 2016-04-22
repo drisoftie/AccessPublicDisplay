@@ -65,22 +65,30 @@ public class GattHandlerWeather extends BaseGattHandler {
         ProviderWeather provider = ProviderWeather.inst();
         provider.createForecasts();
         if (provider.hasWeatherInfo()) {
+            StringBuilder weather = new StringBuilder();
             if (provider.getCurrWeather().hasWeatherInstance()) {
+                weather.append(provider.getCurrWeather().getWeatherInstance(0).getWeatherDescription()).append(Constants.SEPARATOR).append(
+                        provider.getCurrWeather().getMainInstance().getMinTemperature()).append(Constants.SEPARATOR).
+                               append(provider.getCurrWeather().getMainInstance().getMaxTemperature());
                 changeGattChar(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(), Constants.WEATHER.GATT_WEATHER_TODAY.getUuid(),
-                               provider.getCurrWeather().getWeatherInstance(0).getWeatherDescription());
+                               weather.toString());
             }
             if (provider.getForecast().hasForecastCount()) {
                 DailyForecast forecast = provider.getForecast();
                 for (int i = 0; i < forecast.getForecastCount(); i++) {
-                    String descr = forecast.getForecastInstance(i).getWeatherInstance(0).getWeatherDescription();
+                    weather = new StringBuilder();
+                    weather.append(forecast.getForecastInstance(i).getWeatherInstance(0).getWeatherDescription()).append(
+                            Constants.SEPARATOR).append(forecast.getForecastInstance(i).getTemperatureInstance().getMinimumTemperature())
+                           .append(Constants.SEPARATOR).
+                                   append(forecast.getForecastInstance(i).getTemperatureInstance().getMaximumTemperature());
                     switch (i) {
                         case 0:
                             changeGattChar(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(),
-                                           Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid(), descr);
+                                           Constants.WEATHER.GATT_WEATHER_TOMORROW.getUuid(), weather.toString());
                             break;
                         case 1:
                             changeGattChar(Constants.WEATHER.GATT_SERVICE_WEATHER.getUuid(), Constants.WEATHER.GATT_WEATHER_DAT.getUuid(),
-                                           descr);
+                                           weather.toString());
                             break;
                     }
                 }
